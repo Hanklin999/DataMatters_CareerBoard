@@ -889,12 +889,11 @@ function familyDetailHTML(famKey, ctx){
   let envBlock = "";
   if (ctx && (ctx.envLines?.length || ctx.tradeoffs?.length)){
     envBlock = `
-      <div class="detail-block">
-        <div class="detail-label">🌤️ 你偏好的工作環境（僅供參考）</div>
+      <details class="method-details">
+        <summary>🌤️ 你偏好的工作環境（不影響配對）</summary>
         ${ctx.envLines?.length ? `<ul class="detail-list">${list(ctx.envLines)}</ul>` : ""}
         ${ctx.tradeoffs?.length ? `<ul class="detail-list">${list(ctx.tradeoffs)}</ul>` : ""}
-        <div class="detail-note">環境偏好不影響職能配對排名，只用來提醒可能的取捨與產業選擇。</div>
-      </div>`;
+      </details>`;
   }
 
   const matchBlock = (ctx && ctx.matchLevel) ? `
@@ -904,6 +903,9 @@ function familyDetailHTML(famKey, ctx){
       <span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">${meta.match_index_note}｜信心分數 ${State.confidence ? State.confidence.score : "-"}／100（僅供參考）</span></span>
     </div>` : "";
 
+  const chips = arr => (arr||[]).map(x => `<span class="chip">${x}</span>`).join("");
+  const companies = [...new Set(examples.map(t => t.company))].slice(0, 8);
+
   return `
     <div class="family-detail-head" style="${famVars(p)}">
       ${portraitHTML(p, "lg")}
@@ -911,16 +913,18 @@ function familyDetailHTML(famKey, ctx){
         <div class="official-zh" style="font-size:19px;">${p.cn_name}</div>
         <div class="official-en">${p.en_name}</div>
         <div class="rpg-badge">「${p.class_title}」</div>
-        <div class="detail-note" style="margin-top:4px;">${(p.representative_titles||[]).slice(0,3).join("・")}</div>
-        <div class="stars" style="margin-top:4px;">${"★".repeat(p.technical_stars)}${"☆".repeat(5-p.technical_stars)}<span class="tl-chip">${p.tlevel_range||""}</span></div>
+        <div class="stat-chips">
+          <span class="chip">${p.tlevel_range || ""} 技術深度</span>
+          <span class="chip">${"★".repeat(p.technical_stars)}</span>
+          ${p.salary_taiwan ? `<span class="chip">💰 有公開薪資</span>` : ""}
+        </div>
         ${matchBlock}
       </div>
     </div>
 
     <div class="detail-block">
-      <div class="detail-label">📖 這個角色在做什麼</div>
+      <div class="detail-label">這份工作在做什麼</div>
       <div class="detail-value">${p.role_description}</div>
-      <p class="class-lore">${p.class_lore}</p>
     </div>
 
     ${reasonsBlock}
@@ -928,70 +932,78 @@ function familyDetailHTML(famKey, ctx){
     ${envBlock}
 
     <div class="detail-block">
-      <div class="detail-label">⚠️ 你需要留意</div>
-      <ul class="detail-list">${list(p.tradeoffs)}</ul>
+      <div class="detail-label">常見職稱</div>
+      <div class="chip-row">${chips(p.representative_titles)}</div>
+      ${p.advanced_titles ? `<div class="detail-note" style="margin-top:8px;">進階（需多年經驗）</div><div class="chip-row">${chips(p.advanced_titles)}</div>` : ""}
     </div>
 
-    <div class="detail-grid">
-      <div>
-        <div class="detail-label">🗂️ 常見工作內容</div>
-        <ul class="detail-list">${list(p.daily_tasks)}</ul>
-      </div>
-      <div>
-        <div class="detail-label">🏷️ 常見職稱</div>
-        <div class="detail-note">入門／早期職涯</div>
-        <ul class="detail-list">${list(p.representative_titles)}</ul>
-        ${p.advanced_titles ? `
-        <div class="detail-note" style="margin-top:8px;">進階發展方向（通常需要多年經驗）</div>
-        <ul class="detail-list">${list(p.advanced_titles)}</ul>` : ""}
-        ${p.titles_note ? `<div class="detail-note" style="margin-top:6px;">${p.titles_note}</div>` : ""}
-      </div>
-      <div>
-        <div class="detail-label">🧰 必學技能</div>
-        <ul class="detail-list">${list(p.starter_skills)}</ul>
-      </div>
-      <div>
-        <div class="detail-label">🔎 可搜尋的實習職稱</div>
-        <ul class="detail-list">${list(p.internship_titles)}</ul>
-      </div>
+    <div class="detail-block">
+      <div class="detail-label">必學技能</div>
+      <div class="chip-row">${chips(p.starter_skills)}</div>
     </div>
 
-    <div class="detail-block starter-block">
-      <div class="detail-label">🛠️ 第一個作品集可以做什麼</div>
-      <div class="detail-value">${p.starter_portfolio}</div>
-    </div>
     <div class="detail-block starter-block">
       <div class="detail-label">👣 下一步</div>
       <div class="detail-value">${p.next_step}</div>
     </div>
-
-    <div class="detail-grid">
-      <div>
-        <div class="detail-label">💰 薪資（台灣）</div>
-        <div class="detail-value">${p.salary_taiwan || "暫無公開資料"}</div>
-        <div class="detail-note">${p.salary_note || ""}${p.salary_source ? ` · <a href="${p.salary_source}" target="_blank" rel="noopener noreferrer">來源</a>` : ""}</div>
-      </div>
-      <div>
-        <div class="detail-label">🛤️ 職涯路徑</div>
-        <div class="detail-value">${p.career_path}</div>
-      </div>
-      <div>
-        <div class="detail-label">🎫 入行門檻</div>
-        <div class="detail-value">${p.entry_requirements}</div>
-      </div>
-      <div>
-        <div class="detail-label">📌 小提醒</div>
-        <div class="detail-value">${p.tip}</div>
-      </div>
+    <div class="detail-block starter-block">
+      <div class="detail-label">🛠️ 第一個作品集</div>
+      <div class="detail-value">${p.starter_portfolio}</div>
     </div>
 
-    <div class="radar-detail-wrap">${radarSVG(p.radar, meta.radar_axes, p.color, 230)}</div>
-    <div class="detail-note" style="text-align:center;">工作特性參考（主觀啟發式評分，非統計量測）</div>
+    <details class="method-details">
+      <summary>日常工作與需要留意的地方</summary>
+      <div class="detail-label" style="margin-top:10px;">常見工作內容</div>
+      <ul class="detail-list">${list(p.daily_tasks)}</ul>
+      <div class="detail-label" style="margin-top:10px;">⚠️ 你需要留意</div>
+      <ul class="detail-list">${list(p.tradeoffs)}</ul>
+      ${p.titles_note ? `<div class="detail-note" style="margin-top:8px;">${p.titles_note}</div>` : ""}
+    </details>
 
-    <div class="example-jobs-label">範例職缺（真實來源）</div>
-    <div class="card-grid">
-      ${examples.length ? examples.map(t => jobCardHTML(t)).join("") : `<div class="job-hint">此家族目前尚無收錄的種子職缺。</div>`}
-    </div>
+    <details class="method-details">
+      <summary>薪資、路徑與入行門檻</summary>
+      <div class="detail-grid">
+        <div>
+          <div class="detail-label">💰 薪資（台灣）</div>
+          <div class="detail-value">${p.salary_taiwan || "暫無公開資料"}</div>
+          <div class="detail-note">${p.salary_note || ""}${p.salary_source ? ` · <a href="${p.salary_source}" target="_blank" rel="noopener noreferrer">來源</a>` : ""}</div>
+        </div>
+        <div>
+          <div class="detail-label">🛤️ 職涯路徑</div>
+          <div class="detail-value">${p.career_path}</div>
+        </div>
+        <div>
+          <div class="detail-label">🎫 入行門檻</div>
+          <div class="detail-value">${p.entry_requirements}</div>
+        </div>
+        <div>
+          <div class="detail-label">📌 小提醒</div>
+          <div class="detail-value">${p.tip}</div>
+        </div>
+      </div>
+      <div class="detail-label" style="margin-top:6px;">🔎 可搜尋的實習職稱</div>
+      <div class="chip-row">${chips(p.internship_titles)}</div>
+    </details>
+
+    <details class="method-details">
+      <summary>角色設定與特性圖</summary>
+      <p class="class-lore">${p.class_lore}</p>
+      <div class="radar-detail-wrap">${radarSVG(p.radar, meta.radar_axes, p.color, 230)}</div>
+      <div class="detail-note" style="text-align:center;">主觀啟發式評分，非統計量測</div>
+    </details>
+
+    ${companies.length ? `
+    <div class="detail-block">
+      <div class="detail-label">哪些公司開過這種缺</div>
+      <div class="chip-row">${chips(companies)}</div>
+    </div>` : ""}
+
+    <details class="method-details" ${examples.length <= 4 ? "open" : ""}>
+      <summary>範例職缺（真實來源，${examples.length} 筆）</summary>
+      <div class="card-grid" style="margin-top:12px;">
+        ${examples.length ? examples.map(t => jobCardHTML(t)).join("") : `<div class="job-hint">此家族目前尚無收錄的種子職缺。</div>`}
+      </div>
+    </details>
   `;
 }
 
@@ -1078,49 +1090,35 @@ const Results = {
           <span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">信心分數 ${c.score}／100，綜合「非中立回答比例、第一與第二名差距、有效作答覆蓋度」計算，僅供參考，不是心理量表。</span></span>
         </div>
         ${banner}
-        <div class="hex-wrap">
-          <div class="hex-title">你的工作偏好輪廓</div>
-          ${radarSVG(hexValues, HEX_AXES.map(a => a.label), "#d4af37", 270)}
-        </div>
+        <details class="method-details">
+          <summary>看我的偏好輪廓圖</summary>
+          <div class="hex-wrap">
+            ${radarSVG(hexValues, HEX_AXES.map(a => a.label), "#d4af37", 270)}
+            <div class="detail-note">由作答換算，不是能力評量。</div>
+          </div>
+        </details>
         <details class="method-details">
           <summary>結果怎麼算？</summary>
-          <p>系統依你的回答，計算你與九種資料職涯角色「工作內容偏好」的相似程度，取前三名成為探索路線。這是依你的答案進行配對的探索工具，不是能力、人格或錄用測驗；科系背景與環境偏好（收入、名聲、穩定、強度）不影響排名。偏好輪廓由作答換算，不是能力評量。</p>
+          <p>依你的回答，計算與九種角色「工作內容偏好」的相似程度，取前三名。這是探索工具，不是能力、人格或錄用測驗；科系與環境偏好不影響排名。</p>
         </details>
       </div>`;
   },
 
+  /* 路線卡瘦身：圖片＋職稱＋一句＋配對程度＋按鈕（其餘進 Modal）*/
   renderRoutes(){
     const html = ResultState.routes.map((r, i) => {
       const p = State.careers.meta.family_profiles[r.famKey];
-      const mainP = State.careers.meta.family_profiles[ResultState.routes[0].famKey];
-      let gapLine = "";
-      if (i === 1){
-        const mainSkills = new Set(mainP.starter_skills || []);
-        const gap = (p.starter_skills || []).filter(s => !mainSkills.has(s)).slice(0, 2);
-        gapLine = gap.length
-          ? `<div class="route-gap">與主路線的差異：需另外補強 ${gap.join("、")}</div>`
-          : `<div class="route-gap">與主路線技能高度重疊，轉換成本低</div>`;
-      }
-      if (i === 2 && r.background && r.background.gaps.length){
-        gapLine = `<div class="route-gap">需要補強：${r.background.gaps.slice(0,2).map(g => BACKGROUND_DIMS[g.dim]).join("、")}</div>`;
-      }
-      const mainReason = r.reasons[0] ? `你可能會喜歡它，因為${r.reasons[0]}。` : "";
       return `
         <div class="route-card ${r.cls}" style="${famVars(p)}" onclick="Results.openRoute(${i})">
           <div class="route-pill">${r.label}</div>
-          <div class="route-note-inline">${r.note}</div>
           ${portraitHTML(p)}
           <div class="official-zh">${p.cn_name}</div>
-          <div class="official-en">${p.en_name}</div>
           <div class="rpg-badge">「${p.class_title}」</div>
-          <div class="route-titles">${(p.representative_titles||[]).slice(0,3).join("・")}</div>
           <div class="route-oneliner">${p.tagline}</div>
-          <div class="match-row">配對程度：<b>${MATCH_ZH[r.matchLevel]}</b>
-            <span class="info-tip" tabindex="0" onclick="event.stopPropagation()">ⓘ<span class="info-bubble">${State.careers.meta.match_index_note}｜整體信心分數 ${State.confidence.score}／100（僅供參考）</span></span>
+          <div class="match-row">配對 <b>${MATCH_ZH[r.matchLevel]}</b>
+            <span class="info-tip" tabindex="0" onclick="event.stopPropagation()">ⓘ<span class="info-bubble">${State.careers.meta.match_index_note}｜信心分數 ${State.confidence.score}／100（僅供參考）</span></span>
           </div>
-          ${mainReason ? `<div class="route-reason">${mainReason}</div>` : ""}
-          ${gapLine}
-          <button class="btn btn-ghost route-btn" onclick="event.stopPropagation(); Results.openRoute(${i})">查看完整解析</button>
+          <button class="btn btn-ghost route-btn" onclick="event.stopPropagation(); Results.openRoute(${i})">為什麼是我？</button>
         </div>`;
     }).join("");
 
@@ -1164,14 +1162,13 @@ const Results = {
     const tradeoffs = ResultState.routes.length ? environmentTradeoffs(ResultState.routes[0].famKey) : [];
     const body = lines.length
       ? `<ul class="detail-list">${lines.map(l => `<li>${l}</li>`).join("")}</ul>`
-      : `<div class="detail-value">你對工作環境沒有特別強烈的偏好，選擇範圍相對彈性。</div>`;
+      : `<div class="detail-value">沒有特別強烈的環境偏好，選擇彈性大。</div>`;
     document.getElementById("env-profile").innerHTML = `
-      <div class="env-card">
-        <h3 class="next30-title">你偏好的工作環境</h3>
+      <details class="env-card method-details" style="padding:18px 26px;">
+        <summary>你偏好的工作環境（不影響配對）</summary>
         ${body}
         ${tradeoffs.length ? `<div class="detail-label" style="margin-top:10px;">與主路線的可能取捨</div><ul class="detail-list">${tradeoffs.map(t => `<li>${t}</li>`).join("")}</ul>` : ""}
-        <div class="detail-note">環境偏好不影響職能配對排名，只用來提醒取捨與產業選擇方向。</div>
-      </div>`;
+      </details>`;
   },
 
   /* 第一層 filter：三條探索路線（單選，點同一個取消） */
@@ -1409,11 +1406,9 @@ const Encyclopedia = {
         ${portraitHTML(p)}
         <div class="ency-rpg" style="color:${p.glow};">${p.class_title}</div>
         <div class="official-zh" style="font-size:15px;">${p.cn_name}</div>
-        <div class="official-en">${p.en_name}</div>
-        <div class="route-titles">${(p.representative_titles||[]).slice(0,3).join("・")}</div>
-        <div class="route-oneliner">「${p.tagline}」</div>
-        <div class="tl-chip" style="margin:8px auto 0;">${p.tlevel_range||""}</div>
-        <button class="btn btn-ghost route-btn" onclick="event.stopPropagation(); Encyclopedia.openFamily('${famKey.replace(/'/g,"\\'")}')">查看詳細內容</button>
+        <div class="route-oneliner">${p.tagline}</div>
+        <div class="tl-chip" style="margin:10px auto 0;">${p.tlevel_range||""}</div>
+        <button class="btn btn-ghost route-btn" onclick="event.stopPropagation(); Encyclopedia.openFamily('${famKey.replace(/'/g,"\\'")}')">認識這個角色</button>
       </div>
     `).join("");
   },

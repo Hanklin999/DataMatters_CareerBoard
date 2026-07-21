@@ -223,7 +223,7 @@ console.log("\n【Architect】職稱兩層顯示");
     !(prod.advanced_titles||[]).includes("Data Architect"));
   check("AI Architect 歸在 ML 工程", (State.careers.meta.family_profiles[F.MLE].advanced_titles||[]).includes("AI Architect"));
   const detail = familyDetailHTML(F.PROD);
-  check("詳細頁分層顯示入門/進階職稱", detail.includes("入門／早期職涯") && detail.includes("進階發展方向"));
+  check("詳細頁分層顯示入門/進階職稱", detail.includes("常見職稱") && detail.includes("進階（需多年經驗）"));
 }
 
 /* ── QUESTION_DIMENSIONS 與題庫一致 ── */

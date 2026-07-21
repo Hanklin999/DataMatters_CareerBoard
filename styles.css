@@ -433,6 +433,26 @@ footer{
 .square-portrait.lg{ width: 128px; max-width:128px; margin: 0; flex-shrink:0; }
 .square-portrait.lg .portrait-fallback{ font-size: 44px; }
 
+/* Chips（取代長列表與句子）*/
+.chip{
+  display:inline-block; padding: 5px 12px; border-radius: 999px; font-size: 12px;
+  background: rgba(255,255,255,0.05); border:1px solid var(--border-soft); color: var(--text);
+  line-height: 1.5; white-space: nowrap;
+}
+.chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.stat-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.stat-chips .chip{ color: var(--accent); border-color: var(--border); }
+
+/* 等高卡片與 F 型層級 */
+.route-grid{ gap: 20px; }
+.route-card{ display:flex; flex-direction:column; }
+.route-card .route-btn{ margin-top:auto; }
+.route-card .match-row{ margin: 10px 0 14px; }
+.ency-card .route-oneliner{ flex-grow:1; }
+section.view{ padding: 56px 0 72px; }
+.section-head{ margin-bottom: 30px; }
+.q-hint{ font-size: 12px; color: var(--sub); opacity: 0.85; }
+
 /* Baseline 與回饋量表 */
 .baseline-block{
   background: var(--surface); border:1px solid var(--border-soft); border-radius: 12px;
