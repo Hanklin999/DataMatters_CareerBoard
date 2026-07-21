@@ -35,7 +35,7 @@ if (publicUrl && publicAnonKey && existsSync(join(dist, "analytics-config.js")))
   const enabled = process.env.VITE_ANALYTICS_ENABLED !== "false";
   const env = process.env.VITE_ANALYTICS_ENV || "production";
   const debug = process.env.VITE_ANALYTICS_DEBUG === "true";
-  const generated = `/* Generated for deployment. Never put a service-role key here. */\nwindow.ANALYTICS_CONFIG = {\n  SUPABASE_URL: ${JSON.stringify(publicUrl)},\n  SUPABASE_ANON_KEY: ${JSON.stringify(publicAnonKey)},\n  ANALYTICS_ENABLED: ${enabled},\n  ANALYTICS_ENV: ${JSON.stringify(env)},\n  ANALYTICS_DEBUG: ${debug},\n  APP_VERSION: "v3.8",\n  SCORING_VERSION: "v2"\n};\n`;
+  const generated = `/* Generated for deployment. Never put a service-role key here. */\nwindow.ANALYTICS_CONFIG = {\n  SUPABASE_URL: ${JSON.stringify(publicUrl)},\n  SUPABASE_ANON_KEY: ${JSON.stringify(publicAnonKey)},\n  ANALYTICS_ENABLED: ${enabled},\n  ANALYTICS_ENV: ${JSON.stringify(env)},\n  ANALYTICS_DEBUG: ${debug},\n  APP_VERSION: "v3.9",\n  SCORING_VERSION: "v2"\n};\n`;
   writeFileSync(join(dist, "analytics-config.js"), generated);
 } else if (!overlay && existsSync(join(dist, "analytics-config.js"))) {
   const existing = readFileSync(join(dist, "analytics-config.js"), "utf8");
