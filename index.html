@@ -1,235 +1,172 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>資料科學分析地圖 | Data Matters</title>
-<meta name="description" content="資料職涯那麼多，你適合哪一種？用約 3 分鐘找出適合你的資料工作、常見職稱與下一步該學什麼，每條路徑都附上可查證的真實職缺。">
-<link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="用生活情境題，找出適合探索的資料職涯角色、真實工作與下一步。">
+  <meta name="theme-color" content="#090c16">
+  <title>Data Matters｜找出適合你的資料職涯</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="product-v3.css">
 </head>
 <body>
-
-<header class="nav">
-  <div class="logo">
-    <span class="logo-mark">◆</span>
-    <div class="logo-text">
-      <span class="logo-title">資料科學分析地圖</span>
-      <span class="logo-sub">Data Matters</span>
-    </div>
-  </div>
-  <div class="nav-right">
-    <nav class="navlinks">
+  <a class="skip-link" href="#main-content">跳到主要內容</a>
+  <header class="nav" aria-label="主要導覽">
+    <button class="logo logo-button" type="button" onclick="Nav.show('home')" aria-label="回到首頁">
+      <span class="logo-mark" aria-hidden="true">◆</span>
+      <span class="logo-text"><span class="logo-title">Data Matters</span><span class="logo-sub">資料職涯探索</span></span>
+    </button>
+    <nav class="navlinks" aria-label="網站頁面">
       <a data-nav="home" class="active" onclick="Nav.show('home')">首頁</a>
-      <a data-nav="quiz" onclick="Nav.startQuiz('unknown')">開始測驗</a>
+      <a data-nav="quiz" onclick="Nav.startQuiz('nav')">開始測驗</a>
       <a data-nav="encyclopedia" onclick="Nav.show('encyclopedia')">職涯圖鑑</a>
-      <a data-nav="about" onclick="Nav.show('about')">關於本站</a>
+      <a data-nav="community" onclick="Nav.show('community')">留言板</a>
+      <a data-nav="about" onclick="Nav.show('about')">關於</a>
     </nav>
-    <a class="friend-link" href="https://gc-good-career.netlify.app/" target="_blank" rel="noopener noreferrer">金融職涯｜GC交易所 ↗</a>
-  </div>
-</header>
+  </header>
 
-<main>
-
-<!-- HOME -->
-<section id="home" class="view">
-  <div class="hero">
-    <h1>不知道 Data 工作<br>到底差在哪？</h1>
-    <p class="hero-sub">
-      3 分鐘，帶你找到適合自己的方向。
-    </p>
-    <div class="cta-row">
-      <button class="btn btn-primary" onclick="Nav.startQuiz('homepage_primary_cta')">開始探索</button>
-      <button class="btn btn-ghost" onclick="Nav.show('encyclopedia')">先看職涯圖鑑</button>
-    </div>
-    <div class="cta-previews">
-      <span>✓ 適合你的職涯角色</span>
-      <span>✓ 對應職稱與產業</span>
-      <span>✓ 建議技能與下一步</span>
-    </div>
-  </div>
-
-  <div class="feature-grid">
-    <div class="feature-card">
-      <div class="feature-icon">◆</div>
-      <h3>找出適合的方向</h3>
-      <p>回答工作情境題，系統依你的答案配對出三條探索路線。</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">▣</div>
-      <h3>看懂九種資料工作</h3>
-      <p>九位角色帶你分清資料分析、資料科學與資料工程的差別。</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">✓</div>
-      <h3>對照真實職缺</h3>
-      <p>每條路線都附上可查證來源的真實職缺，看得到就查得到。</p>
-    </div>
-  </div>
-</section>
-
-<!-- STATION 1 -->
-<section id="station1" class="view" style="display:none;">
-  <div class="quiz-wrap">
-    <div class="quiz-progress-label"><span>第 1 / 3 站</span><span>你會怎麼幫朋友？</span></div>
-    <div class="progress-track"><div class="progress-fill" style="width:8%"></div></div>
-    <div class="baseline-block">
-      <div class="q-text" style="font-size:14px;">開始前，你對自己適合哪類資料職涯有多清楚？<span class="q-hint" style="display:inline; margin-left:6px;">（選填，不影響配對）</span></div>
-      <div class="fb-scale" id="baseline-scale"></div>
-    </div>
-    <div id="station1-mount"></div>
-    <div class="quiz-nav">
-      <button class="btn btn-ghost" onclick="Nav.show('home')">回首頁</button>
-      <button class="btn btn-primary" onclick="Stations.next('station1','station2')">下一站：你平常怎麼做事</button>
-    </div>
-  </div>
-</section>
-
-<!-- STATION 2 -->
-<section id="station2" class="view" style="display:none;">
-  <div class="quiz-wrap">
-    <div class="quiz-progress-label"><span>第 2 / 3 站</span><span>你平常怎麼做事？</span></div>
-    <div class="progress-track"><div class="progress-fill" style="width:40%"></div></div>
-    <div id="station2-mount"></div>
-    <div class="quiz-nav">
-      <button class="btn btn-ghost" onclick="Stations.show('station1')">上一站</button>
-      <button class="btn btn-primary" onclick="Stations.next('station2','station3')">下一站：你想要的生活</button>
-    </div>
-  </div>
-</section>
-
-<!-- STATION 3 -->
-<section id="station3" class="view" style="display:none;">
-  <div class="quiz-wrap">
-    <div class="quiz-progress-label"><span>第 3 / 3 站</span><span>你想要什麼生活？</span></div>
-    <div class="progress-track"><div class="progress-fill" style="width:75%"></div></div>
-    <p class="q-hint">最後，看看你適合什麼工作環境。<span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">這一站不影響配對結果，只用來整理環境偏好與產業建議。</span></span></p>
-    <div id="station3-mount"></div>
-    <div class="quiz-nav">
-      <button class="btn btn-ghost" onclick="Stations.show('station2')">上一站</button>
-      <button class="btn btn-primary" onclick="Results.compute()">看我的配對結果</button>
-    </div>
-  </div>
-</section>
-
-<!-- RESULTS -->
-<section id="results" class="view" style="display:none;">
-  <div class="section-head">
-    <h2>你的探索結果</h2>
-    <p class="section-sub">依你的回答即時配對。想知道怎麼算的，展開下方「結果怎麼算？」。</p>
-  </div>
-
-  <div class="profile-summary" id="profile-summary"></div>
-
-  <h3 class="also-consider-title">三條探索路線</h3>
-  <p class="q-hint" style="margin-top:-6px;">排序只代表偏好相似程度，沒有好壞。</p>
-  <div id="route-cards"></div>
-
-  <div id="next30"></div>
-
-  <div id="env-profile"></div>
-
-  <div id="result-feedback"></div>
-
-  <h3 class="also-consider-title">看真實職缺</h3>
-  <p class="q-hint" style="margin-top:-6px;">選一條路線、再選一個領域。</p>
-
-  <div class="filter-step-label">第一步：選一條探索路線</div>
-  <div class="tag-row" id="route-filter-chips"></div>
-
-  <div class="filter-step-label">第二步：選一個領域</div>
-  <div class="tag-row" id="result-domain-chips"></div>
-
-  <div id="result-jobs-hint" class="job-hint">依序選擇「探索路線」與「領域」，查看對應的真實職缺。</div>
-  <div id="result-jobs" class="card-grid"></div>
-
-  <div class="cta-row" style="margin-top:28px;">
-    <button class="btn btn-ghost" onclick="Stations.restart()">重新測驗</button>
-    <button class="btn btn-primary" onclick="Nav.show('encyclopedia')">看完整職涯圖鑑</button>
-  </div>
-</section>
-
-<!-- ENCYCLOPEDIA -->
-<section id="encyclopedia" class="view" style="display:none;">
-  <div class="section-head">
-    <h2>職涯圖鑑</h2>
-    <p class="section-sub">九大職能，九位角色。像挑卡牌一樣左右滑動瀏覽，點卡片看完整介紹。</p>
-  </div>
-
-  <div class="carousel-wrap">
-    <button class="car-btn" aria-label="上一張" onclick="Encyclopedia.scroll(-1)">‹</button>
-    <div class="car-track" id="ency-carousel"></div>
-    <button class="car-btn" aria-label="下一張" onclick="Encyclopedia.scroll(1)">›</button>
-  </div>
-
-  <details class="tlevel-legend">
-    <summary>T1–T5：程式與技術投入程度</summary>
-    <p class="detail-note" style="margin:8px 0 0;">代表這份工作需要投入多少程式、工程與演算法，不代表薪資或職涯高低。</p>
-    <div class="tlevel-grid">
-      <div><b>T1｜商業工具</b><span>Excel、報表、簡報、流程分析</span></div>
-      <div><b>T2｜資料分析</b><span>SQL、報表儀表板（BI）、KPI</span></div>
-      <div><b>T3｜程式分析</b><span>Python／R、實驗、預測、因果分析</span></div>
-      <div><b>T4｜工程與模型</b><span>機器學習、資料處理流程（Pipeline）、雲端、可正式上線的程式</span></div>
-      <div><b>T5｜研究與大型系統</b><span>分散式系統、進階演算法、ML 研究</span></div>
-    </div>
-  </details>
-
-  <h3 class="also-consider-title">你的工作重心會在哪？</h3>
-  <div class="plot-wrap">
-    <div class="plot-ylabel">
-      <span>影響整個團隊／公司<span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">你的工作會改變：流程、產品、制度、平台。</span></span></span>
-      <span>解決眼前問題<span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">主要解決：單一專案、單一團隊、特定問題。</span></span></span>
-    </div>
-    <div class="plot-area-wrap">
-      <div class="spectrum-plot" id="spectrum-plot"></div>
-      <div class="plot-xlabel">
-        <span>◀ 分析資料<span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">每天花比較多時間：找原因、看數據、回答問題。</span></span></span>
-        <span><span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">每天花比較多時間：設計、建立、改善、維護。</span></span>打造產品／系統 ▶</span>
+  <main id="main-content">
+    <section id="home" class="view" aria-labelledby="home-title">
+      <div class="hero home-hero">
+        <div class="eyebrow">給第一次探索資料工作的你</div>
+        <h1 id="home-title">找出適合你的資料職涯</h1>
+        <p class="hero-sub">用幾個生活問題，了解你適合探索哪些資料工作。</p>
+        <div class="cta-row">
+          <button class="btn btn-primary" onclick="Nav.startQuiz('landing_hero')">開始探索</button>
+          <button class="btn btn-ghost" onclick="Nav.show('encyclopedia')">先看九大職涯</button>
+        </div>
+        <div class="home-outcomes" aria-label="你會得到">
+          <span>適合你的職涯角色</span><span>可能做的真實工作</span><span>建議技能與下一步</span>
+        </div>
+        <p class="privacy-inline">測驗不需要姓名或 Email；網站會匿名記錄基本操作，用於改善使用體驗。</p>
       </div>
-    </div>
-  </div>
-  <p class="detail-note" style="margin-top:8px;">比較九種工作的重心：每天做什麼、影響範圍多大。位置為主觀配置，不代表價值或薪資。</p>
-</section>
+      <div class="feature-grid home-feature-grid">
+        <article class="feature-card"><h2>看懂差別</h2><p>用生活情境理解九種資料工作。</p></article>
+        <article class="feature-card"><h2>找到方向</h2><p>先看最接近你，再探索鄰近角色。</p></article>
+        <article class="feature-card"><h2>採取下一步</h2><p>直接看常見職稱、技能與真實職缺。</p></article>
+      </div>
+      <aside class="community-entry">
+        <div><h2>還有問題？</h2><p>看看大家在問什麼，或留下你的問題。</p></div>
+        <button class="btn btn-ghost" onclick="Nav.show('community')">前往留言板</button>
+      </aside>
+    </section>
 
-<!-- ABOUT -->
-<section id="about" class="view" style="display:none;">
-  <div class="section-head">
-    <h2>關於本站</h2>
-  </div>
-  <div class="about-card">
-    <p>本站以「工作類型（Functional Job Family）× 應用領域（Domain）× 產業（Industry）× 程式與技術投入程度（T1–T5）」四個維度，重新整理數據科學家 / 資料分析師底下藏著的各種職涯路徑。分類架構、測驗設計與種子職缺由 Hank 設計、蒐集與確認。測驗依你的答案進行配對，是探索工具，不是能力、人格或錄用測驗。</p>
-    <p>資料來源原則：薪資與職缺事實僅採用公司官方職缺頁、官方新聞稿、政府薪資調查，或 104、Cake、Yourator 等轉載官方職缺 / 提供聚合薪資統計的平台；不採用論壇、匿名或自評薪資網站。查無公開資料時一律標示「暫無公開資料」。職涯路徑、入行門檻與小提醒等內容為本站綜合產業常識撰寫的參考說明，非逐筆引用特定來源。</p>
-    <p>本站的測驗與配對運算皆在你的瀏覽器內完成。我們不收集姓名、Email、完整測驗答案或其他可直接識別個人的資料。為改善網站體驗，本站會匿名記錄頁面瀏覽、測驗進度、推薦角色，以及角色、領域與職缺互動等使用事件。這些資料僅用於分析整體使用情況與改善產品。</p>
-    <details class="method-details">
-      <summary>匿名使用分析說明</summary>
-      <p><b>會蒐集：</b>匿名 session ID（關閉分頁即結束，不跨裝置追蹤）、頁面與互動事件、測驗階段完成資訊、推薦角色 ID、職涯／領域／職缺互動、粗略裝置類型（手機／平板／電腦）、來源網域與行銷參數（UTM）。</p>
-      <p><b>不會蒐集：</b>姓名、Email、電話、完整測驗答案、精確位置、IP 作為資料欄位、瀏覽器指紋、鍵盤輸入內容。</p>
-    </details>
-  </div>
-  <div class="contact-card">
-    <h3>問題、建議、或想合作？</h3>
-    <ul class="contact-list">
-      <li>Email：<a href="mailto:data.matters.hank4@gmail.com">data.matters.hank4@gmail.com</a></li>
-      <li>Threads：<a href="https://www.threads.com/@hank00117" target="_blank" rel="noopener noreferrer">@hank00117</a></li>
-    </ul>
-  </div>
-</section>
+    <section id="station1" class="view" style="display:none" aria-labelledby="station1-title">
+      <div class="quiz-wrap">
+        <div class="quiz-progress-label"><span>第 1 / 3 站</span><span>你想解決什麼問題？</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:33%"></div></div>
+        <div class="quiz-card">
+          <h1 id="station1-title" class="quiz-title">哪種問題最吸引你？</h1>
+          <div class="clarity-before">
+            <p>你現在有多清楚不同資料工作的差別？</p>
+            <div id="baseline-scale" class="baseline-scale" aria-label="測驗前清楚程度"></div>
+            <small>選填，不影響配對。</small>
+          </div>
+          <div id="station1-mount"></div>
+          <div class="quiz-nav"><button class="btn btn-ghost" onclick="Nav.show('home')">回首頁</button><button class="btn btn-primary" onclick="Stations.next('station1','station2')">下一站</button></div>
+        </div>
+      </div>
+    </section>
 
-</main>
+    <section id="station2" class="view" style="display:none" aria-labelledby="station2-title">
+      <div class="quiz-wrap">
+        <div class="quiz-progress-label"><span>第 2 / 3 站</span><span>你喜歡怎麼做事？</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:66%"></div></div>
+        <div class="quiz-card">
+          <h1 id="station2-title" class="quiz-title">你喜歡怎麼完成事情？</h1>
+          <div id="station2-mount"></div>
+          <div class="quiz-nav"><button class="btn btn-ghost" onclick="Stations.show('station1')">上一站</button><button class="btn btn-primary" onclick="Stations.next('station2','station3')">下一站</button></div>
+        </div>
+      </div>
+    </section>
 
-<footer>
-  <div>資料科學分析地圖 | Data Matters</div>
-  <div class="footer-sub">配對結果僅供參考，實際職涯選擇請搭配專業諮詢與你自己的判斷</div>
-</footer>
+    <section id="station3" class="view" style="display:none" aria-labelledby="station3-title">
+      <div class="quiz-wrap">
+        <div class="quiz-progress-label"><span>第 3 / 3 站</span><span>你想要什麼工作環境？</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+        <div class="quiz-card">
+          <h1 id="station3-title" class="quiz-title">你想要什麼工作環境？</h1>
+          <p class="quiz-note">這一站只整理環境偏好，不影響職涯角色排名。</p>
+          <div id="station3-mount"></div>
+          <div class="quiz-nav"><button class="btn btn-ghost" onclick="Stations.show('station2')">上一站</button><button class="btn btn-primary" onclick="Results.compute()">看我的結果</button></div>
+        </div>
+      </div>
+    </section>
 
-<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this) Modal.close()">
-  <div class="modal-box">
-    <button class="modal-close" onclick="Modal.close()">✕</button>
-    <div id="modal-body"></div>
+    <section id="results" class="view results-view" style="display:none" aria-labelledby="results-title">
+      <h1 id="results-title" class="sr-only">你的探索結果</h1>
+      <div id="result-hero"></div>
+      <div id="result-why"></div>
+      <div id="result-common-work"></div>
+      <div id="result-alternates">
+        <div id="route-cards"></div>
+        <div id="compare-entry"></div>
+      </div>
+      <div id="result-profile">
+        <div id="profile-summary"></div>
+        <div id="env-profile"></div>
+      </div>
+      <section id="result-jobs-section" class="result-section" aria-labelledby="result-jobs-title">
+        <div class="section-heading"><div><span class="eyebrow">現在就能查看</span><h2 id="result-jobs-title">真實職缺</h2><p>先顯示最接近你的方向，不用先完成兩層篩選。</p></div></div>
+        <div id="route-filter-chips"></div>
+        <div id="result-domain-chips"></div>
+        <div id="result-jobs-hint" class="job-hint"></div>
+        <div id="result-jobs" class="card-grid"></div>
+      </section>
+      <div id="next30"></div>
+      <div id="result-feedback"></div>
+      <div class="result-footer-actions"><button class="btn btn-ghost" onclick="Stations.restart()">重新測驗</button><button class="btn btn-ghost" onclick="Nav.show('encyclopedia')">看完整職涯圖鑑</button></div>
+    </section>
+
+    <section id="encyclopedia" class="view" style="display:none" aria-labelledby="ency-title">
+      <div class="page-head"><span class="eyebrow">九種常見工作重心</span><h1 id="ency-title">職涯圖鑑</h1><p>先看真實職能，再用角色設定幫你記住差異。</p><button class="btn btn-ghost" onclick="RoleCompare.open()">比較兩個角色</button></div>
+      <div class="carousel-shell"><button class="carousel-arrow" aria-label="往左" onclick="Encyclopedia.scroll(-1)">‹</button><div id="ency-carousel" class="ency-carousel"></div><button class="carousel-arrow" aria-label="往右" onclick="Encyclopedia.scroll(1)">›</button></div>
+      <details class="method-details tech-levels"><summary>技術投入怎麼看？</summary><p>較少：以試算表、報表與溝通為主。中等：常用 SQL 或 Python 做分析。較多：需要模型、系統或軟體工程。</p></details>
+      <section class="focus-map-section" aria-labelledby="focus-map-title">
+        <div class="section-heading"><div><span class="eyebrow">比較工作重心</span><h2 id="focus-map-title">你的工作重心</h2><p>每天主要做什麼，以及工作影響的範圍。</p></div></div>
+        <div class="focus-map-layout">
+          <div class="focus-y-title">工作主要影響誰？</div>
+          <div class="focus-y-label top">改變整個組織<small>跨團隊流程、共用平台、長期決策</small></div>
+          <div id="spectrum-plot" class="spectrum-plot focus-plot" role="group" aria-label="九種資料工作的工作重心位置"></div>
+          <div class="focus-y-label bottom">解決單一問題<small>單一專案、特定團隊、眼前問題</small></div>
+          <div class="focus-x-title">每天主要在做什麼？</div>
+          <div class="focus-x-labels"><span>找答案<small>找原因、看資料、提出建議</small></span><span>做出可用的東西<small>設計流程、建立工具、改善產品</small></span></div>
+        </div>
+        <p class="map-disclaimer">位置代表常見工作重心，不代表能力、薪資或職涯高低。</p>
+      </section>
+    </section>
+
+    <section id="community" class="view" style="display:none" aria-labelledby="community-title">
+      <div id="community-app">
+        <div class="page-head"><span class="eyebrow">匿名、低壓力交流</span><h1 id="community-title">留言板</h1><p>提問、分享經驗，也看看別人怎麼選。</p><button class="btn btn-primary" onclick="Community.openPostForm()">我要留言</button><small>不用登入，請勿留下個人資料。</small></div>
+        <div id="community-controls"></div><div id="community-list" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="about" class="view" style="display:none" aria-labelledby="about-title">
+      <div class="page-head"><span class="eyebrow">關於這個工具</span><h1 id="about-title">關於 Data Matters</h1><p>幫助沒有背景知識的使用者，看懂資料職涯差異並找到可探索方向。</p></div>
+      <div class="about-stack">
+        <section class="about-card"><h2>匿名使用分析</h2><p>測驗不要求姓名、Email，也不建立個人帳號。網站使用匿名 session ID，可能記錄頁面瀏覽、測驗進度、角色開啟、職缺點擊、分享、留言板操作與評分，用於改善題目、閱讀體驗與使用流程。</p><p>資料不出售、不用於徵才或能力判斷；留言內容與暱稱不會傳入 Analytics。</p></section>
+        <details class="method-details"><summary>這個工具的限制</summary><ul><li>結果來自自陳偏好，不是能力測驗。</li><li>同一職稱在不同公司可能不同。</li><li>九種角色只是探索框架，彼此可能重疊。</li><li>尚未完成正式心理計量驗證。</li><li>結果不代表錄取機率或薪資。</li></ul></details>
+        <details class="method-details"><summary>留言板使用規範</summary><ul><li>尊重不同背景與選擇。</li><li>不發布個人資料、廣告或詐騙。</li><li>不人身攻擊或提供違法內容。</li><li>留言只代表使用者觀點；管理者可隱藏不當內容。</li></ul></details>
+        <details class="method-details"><summary>資料來源與職缺限制</summary><p>職缺可能隨時間關閉或更新，申請前請以來源頁面為準。分類與說明為探索用途。</p></details>
+        <p><a href="docs/methodology.md">查看完整方法說明</a></p>
+      </div>
+    </section>
+  </main>
+
+  <footer><strong>Data Matters</strong><span>探索結果僅供參考，請搭配自己的經驗與專業建議。</span></footer>
+
+  <div id="modal-overlay" class="modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-label="詳細內容" onclick="if(event.target===this) Modal.close()">
+    <div class="modal-box" role="document"><button class="modal-close" aria-label="關閉" onclick="Modal.close()">×</button><div id="modal-body"></div></div>
   </div>
-</div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-<script src="analytics-config.js"></script>
-<script src="analytics.js"></script>
-<script src="app.js"></script>
+  <script src="analytics-config.js"></script>
+  <script src="analytics.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <script src="app.js"></script>
+  <script src="product-v3.js"></script>
+  <script src="community.js"></script>
 </body>
 </html>

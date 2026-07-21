@@ -1,9 +1,9 @@
-# 環境變數（本專案目前不需要，但保險起見）
+# 環境變數
 .env
 .env.*
 !.env.example
 
-# 相依套件與建置產物（本專案為純靜態站，通常不會出現）
+# 相依套件與建置產物
 node_modules/
 dist/
 .netlify/
@@ -21,7 +21,7 @@ Thumbs.db
 __pycache__/
 coverage/
 
-# 本機爬蟲輸出與大型原始資料（如有，請勿入庫）
+# 本機爬蟲輸出與大型原始資料
 raw_data/
 scraped/
 *.zip
