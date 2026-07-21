@@ -1,0 +1,27 @@
+# 環境變數（本專案目前不需要，但保險起見）
+.env
+.env.*
+!.env.example
+
+# 相依套件與建置產物（本專案為純靜態站，通常不會出現）
+node_modules/
+dist/
+.netlify/
+
+# 作業系統
+.DS_Store
+Thumbs.db
+
+# 編輯器個人設定
+.vscode/
+.idea/
+
+# 快取與紀錄
+*.log
+__pycache__/
+coverage/
+
+# 本機爬蟲輸出與大型原始資料（如有，請勿入庫）
+raw_data/
+scraped/
+*.zip

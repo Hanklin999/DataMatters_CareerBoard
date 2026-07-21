@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料科學分析地圖 | Data Matters</title>
+<meta name="description" content="資料職涯那麼多，你適合哪一種？用約 3 分鐘找出適合你的資料工作、常見職稱與下一步該學什麼，每條路徑都附上可查證的真實職缺。">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="logo">
+    <span class="logo-mark">◆</span>
+    <div class="logo-text">
+      <span class="logo-title">資料科學分析地圖</span>
+      <span class="logo-sub">Data Matters</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <nav class="navlinks">
+      <a data-nav="home" class="active" onclick="Nav.show('home')">首頁</a>
+      <a data-nav="quiz" onclick="Nav.startQuiz()">開始測驗</a>
+      <a data-nav="encyclopedia" onclick="Nav.show('encyclopedia')">職涯圖鑑</a>
+      <a data-nav="about" onclick="Nav.show('about')">關於本站</a>
+    </nav>
+    <a class="friend-link" href="https://gc-good-career.netlify.app/" target="_blank" rel="noopener noreferrer">金融職涯｜GC交易所 ↗</a>
+  </div>
+</header>
+
+<main>
+
+<!-- HOME -->
+<section id="home" class="view">
+  <div class="hero">
+    <h1>資料職涯那麼多，<br>你適合哪一種？</h1>
+    <p class="hero-sub">
+      用約 3 分鐘，找出適合你的資料工作、常見職稱，以及下一步可以學什麼。
+    </p>
+    <div class="cta-row">
+      <button class="btn btn-primary" onclick="Nav.startQuiz()">開始探索</button>
+      <button class="btn btn-ghost" onclick="Nav.show('encyclopedia')">先看職涯圖鑑</button>
+    </div>
+    <div class="cta-previews">
+      <span>✓ 適合你的職涯角色</span>
+      <span>✓ 對應職稱與產業</span>
+      <span>✓ 建議技能與下一步</span>
+    </div>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">◆</div>
+      <h3>找出適合的方向</h3>
+      <p>回答工作情境題，系統依你的答案配對出三條探索路線。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">▣</div>
+      <h3>看懂九種資料工作</h3>
+      <p>九位角色帶你分清資料分析、資料科學與資料工程的差別。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">✓</div>
+      <h3>對照真實職缺</h3>
+      <p>每條路線都附上可查證來源的真實職缺，看得到就查得到。</p>
+    </div>
+  </div>
+</section>
+
+<!-- STATION 1 -->
+<section id="station1" class="view" style="display:none;">
+  <div class="quiz-wrap">
+    <div class="quiz-progress-label"><span>第 1 / 3 站</span><span>你想解決什麼問題</span></div>
+    <div class="progress-track"><div class="progress-fill" style="width:8%"></div></div>
+    <div id="station1-mount"></div>
+    <div class="quiz-nav">
+      <button class="btn btn-ghost" onclick="Nav.show('home')">回首頁</button>
+      <button class="btn btn-primary" onclick="Stations.next('station1','station2')">下一站：你喜歡如何工作</button>
+    </div>
+  </div>
+</section>
+
+<!-- STATION 2 -->
+<section id="station2" class="view" style="display:none;">
+  <div class="quiz-wrap">
+    <div class="quiz-progress-label"><span>第 2 / 3 站</span><span>你喜歡如何工作</span></div>
+    <div class="progress-track"><div class="progress-fill" style="width:40%"></div></div>
+    <div id="station2-mount"></div>
+    <div class="quiz-nav">
+      <button class="btn btn-ghost" onclick="Stations.show('station1')">上一站</button>
+      <button class="btn btn-primary" onclick="Stations.next('station2','station3')">下一站：你想要的工作環境</button>
+    </div>
+  </div>
+</section>
+
+<!-- STATION 3 -->
+<section id="station3" class="view" style="display:none;">
+  <div class="quiz-wrap">
+    <div class="quiz-progress-label"><span>第 3 / 3 站</span><span>你想要什麼工作環境</span></div>
+    <div class="progress-track"><div class="progress-fill" style="width:75%"></div></div>
+    <p class="q-hint">最後，看看你適合什麼工作環境。<span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">這一站不影響職能配對結果，只用來整理環境偏好、提醒取捨與推薦產業方向。</span></span></p>
+    <div id="station3-mount"></div>
+    <div class="quiz-nav">
+      <button class="btn btn-ghost" onclick="Stations.show('station2')">上一站</button>
+      <button class="btn btn-primary" onclick="Results.compute()">看我的配對結果</button>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section id="results" class="view" style="display:none;">
+  <div class="section-head">
+    <h2>你的探索結果</h2>
+    <p class="section-sub">依你的回答即時配對。想知道怎麼算的，展開下方「結果怎麼算？」。</p>
+  </div>
+
+  <div class="profile-summary" id="profile-summary"></div>
+
+  <h3 class="also-consider-title">三條探索路線</h3>
+  <p class="q-hint" style="margin-top:-6px;">三條路線沒有絕對好壞，排序只代表與你目前偏好的相似程度。點卡片看完整解析。</p>
+  <div id="route-cards"></div>
+
+  <div id="next30"></div>
+
+  <div id="env-profile"></div>
+
+  <h3 class="also-consider-title">探索對應的真實職缺</h3>
+  <p class="q-hint" style="margin-top:-6px;">兩層篩選都是單選，點同一個選項可取消。領域不分先後，只列出目前有真實職缺可看的選項。</p>
+
+  <div class="filter-step-label">第一步：選一條探索路線</div>
+  <div class="tag-row" id="route-filter-chips"></div>
+
+  <div class="filter-step-label">第二步：選一個領域</div>
+  <div class="tag-row" id="result-domain-chips"></div>
+
+  <div id="result-jobs-hint" class="job-hint">依序選擇「探索路線」與「領域」，查看對應的真實職缺。</div>
+  <div id="result-jobs" class="card-grid"></div>
+
+  <div class="cta-row" style="margin-top:28px;">
+    <button class="btn btn-ghost" onclick="Stations.restart()">重新測驗</button>
+    <button class="btn btn-primary" onclick="Nav.show('encyclopedia')">看完整職涯圖鑑</button>
+  </div>
+</section>
+
+<!-- ENCYCLOPEDIA -->
+<section id="encyclopedia" class="view" style="display:none;">
+  <div class="section-head">
+    <h2>職涯圖鑑</h2>
+    <p class="section-sub">九大職能，九位角色。像挑卡牌一樣左右滑動瀏覽，點卡片看完整介紹。</p>
+  </div>
+
+  <div class="carousel-wrap">
+    <button class="car-btn" aria-label="上一張" onclick="Encyclopedia.scroll(-1)">‹</button>
+    <div class="car-track" id="ency-carousel"></div>
+    <button class="car-btn" aria-label="下一張" onclick="Encyclopedia.scroll(1)">›</button>
+  </div>
+
+  <details class="tlevel-legend">
+    <summary>T1–T5：程式與技術投入程度</summary>
+    <p class="detail-note" style="margin:8px 0 0;">代表這份工作需要投入多少程式、工程與演算法，不代表薪資或職涯高低。</p>
+    <div class="tlevel-grid">
+      <div><b>T1｜商業工具</b><span>Excel、報表、簡報、流程分析</span></div>
+      <div><b>T2｜資料分析</b><span>SQL、報表儀表板（BI）、KPI</span></div>
+      <div><b>T3｜程式分析</b><span>Python／R、實驗、預測、因果分析</span></div>
+      <div><b>T4｜工程與模型</b><span>機器學習、資料處理流程（Pipeline）、雲端、可正式上線的程式</span></div>
+      <div><b>T5｜研究與大型系統</b><span>分散式系統、進階演算法、ML 研究</span></div>
+    </div>
+  </details>
+
+  <h3 class="also-consider-title">職涯地圖：用工作重心比較九個角色</h3>
+  <div class="plot-wrap">
+    <div class="plot-ylabel">
+      <span>預測與自動化</span>
+      <span>描述與洞察</span>
+    </div>
+    <div class="plot-area-wrap">
+      <div class="spectrum-plot" id="spectrum-plot"></div>
+      <div class="plot-xlabel">
+        <span>◀ 商業與決策</span>
+        <span>系統與技術 ▶</span>
+      </div>
+    </div>
+  </div>
+  <p class="detail-note" style="margin-top:8px;">此圖用工作重心協助比較職涯，位置為主觀相對配置，不代表職涯價值、難度或薪資高低。</p>
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="view" style="display:none;">
+  <div class="section-head">
+    <h2>關於本站</h2>
+  </div>
+  <div class="about-card">
+    <p>本站以「工作類型（Functional Job Family）× 應用領域（Domain）× 產業（Industry）× 程式與技術投入程度（T1–T5）」四個維度，重新整理數據科學家 / 資料分析師底下藏著的各種職涯路徑。分類架構、測驗設計與種子職缺由 Hank 設計、蒐集與確認。測驗依你的答案進行配對，是探索工具，不是能力、人格或錄用測驗。</p>
+    <p>資料來源原則：薪資與職缺事實僅採用公司官方職缺頁、官方新聞稿、政府薪資調查，或 104、Cake、Yourator 等轉載官方職缺 / 提供聚合薪資統計的平台；不採用論壇、匿名或自評薪資網站。查無公開資料時一律標示「暫無公開資料」。職涯路徑、入行門檻與小提醒等內容為本站綜合產業常識撰寫的參考說明，非逐筆引用特定來源。</p>
+    <p>本站為靜態網站，所有測驗與配對計算都在你的瀏覽器端完成，不會收集、上傳或儲存你的任何個人資料。</p>
+  </div>
+  <div class="contact-card">
+    <h3>問題、建議、或想合作？</h3>
+    <ul class="contact-list">
+      <li>Email：<a href="mailto:chihhanlin99@gmail.com">chihhanlin99@gmail.com</a></li>
+      <li>LinkedIn：<a href="https://www.linkedin.com/in/hank-lin-ch17/" target="_blank" rel="noopener noreferrer">linkedin.com/in/hank-lin-ch17</a></li>
+      <li>Threads：<a href="https://www.threads.com/@hank00117" target="_blank" rel="noopener noreferrer">@hank00117</a></li>
+      <li>GitHub：<a href="https://github.com/Hanklin999" target="_blank" rel="noopener noreferrer">github.com/Hanklin999</a></li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div>資料科學分析地圖 | Data Matters</div>
+  <div class="footer-sub">配對結果僅供參考，實際職涯選擇請搭配專業諮詢與你自己的判斷</div>
+</footer>
+
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this) Modal.close()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="Modal.close()">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

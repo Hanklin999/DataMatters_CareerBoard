@@ -1,0 +1,563 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+:root{
+  --bg: #090c16;
+  --bg-2: #10152a;
+  --surface: rgba(255,255,255,0.045);
+  --surface-solid: #131a30;
+  --border: rgba(212,175,55,0.22);
+  --border-soft: rgba(255,255,255,0.08);
+  --text: #f0ecdd;
+  --sub: #9aa3c4;
+  --accent: #d4af37;
+  --accent-2: #38bdf8;
+  --accent-soft: rgba(212,175,55,0.12);
+  --warn-bg: rgba(245,158,11,0.12);
+  --warn-text: #f5b342;
+  --radius: 14px;
+  --shadow: 0 10px 30px rgba(0,0,0,0.45), 0 0 0 1px rgba(212,175,55,0.06);
+  --font-display: 'Cinzel', 'Noto Sans TC', serif;
+  --font-body: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+}
+*{ box-sizing: border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  background:
+    radial-gradient(900px 500px at 12% -8%, rgba(212,175,55,0.10), transparent 60%),
+    radial-gradient(800px 500px at 92% 6%, rgba(56,189,248,0.10), transparent 58%),
+    radial-gradient(700px 480px at 50% 108%, rgba(129,140,248,0.09), transparent 60%),
+    radial-gradient(1.5px 1.5px at 10% 20%, rgba(255,255,255,0.55) 50%, transparent 51%) 0 0/180px 180px repeat,
+    radial-gradient(1.5px 1.5px at 70% 60%, rgba(255,255,255,0.4) 50%, transparent 51%) 0 0/240px 240px repeat,
+    radial-gradient(1px 1px at 45% 85%, rgba(255,255,255,0.5) 50%, transparent 51%) 0 0/160px 160px repeat,
+    linear-gradient(180deg, var(--bg), var(--bg-2) 35%, var(--bg));
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.65;
+}
+a{ color: var(--accent-2); }
+h1,h2,h3,.class-title,.logo-title,.btn{ font-family: var(--font-display); letter-spacing: 0.02em; }
+
+/* NAV */
+header.nav{
+  position: sticky; top:0; z-index: 20;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 14px 28px;
+  background: rgba(9,12,22,0.75);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.logo{ display:flex; align-items:center; gap:10px; }
+.logo-mark{ color: var(--accent); font-size: 20px; text-shadow: 0 0 10px rgba(212,175,55,0.6); }
+.logo-text{ display:flex; flex-direction:column; line-height:1.15; }
+.logo-title{ font-weight:700; font-size:15px; color: var(--accent); }
+.logo-sub{ font-size:10.5px; color: var(--sub); letter-spacing: 0.12em; text-transform:uppercase; }
+.navlinks{ display:flex; gap:22px; font-size:14px; }
+.navlinks a{ color: var(--sub); text-decoration:none; cursor:pointer; padding-bottom:2px; transition:.15s; }
+.navlinks a:hover{ color: var(--text); }
+.navlinks a.active{ color: var(--accent); border-bottom:2px solid var(--accent); }
+.nav-right{ display:flex; align-items:center; gap:20px; }
+.friend-link{
+  font-size:12px; color: var(--accent-2); text-decoration:none; white-space:nowrap;
+  border:1px solid rgba(56,189,248,0.35); padding:6px 12px; border-radius:999px; background: rgba(56,189,248,0.08);
+}
+.friend-link:hover{ border-color: var(--accent-2); box-shadow: 0 0 12px rgba(56,189,248,0.35); }
+@media (max-width: 720px){
+  .nav-right{ flex-direction:column; align-items:flex-end; gap:8px; }
+}
+
+main{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+section.view{ padding: 48px 0 64px; }
+
+/* HERO */
+.hero{ text-align:center; padding: 56px 0 24px; }
+.hero h1{
+  font-size: 2.3rem; line-height:1.35; margin-bottom: 16px;
+  color: var(--text);
+  text-shadow: 0 0 30px rgba(212,175,55,0.18);
+}
+.hero-sub{ color: var(--sub); max-width: 620px; margin: 0 auto 28px; font-size: 15px; }
+.cta-row{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+.btn{
+  border-radius: 999px; padding: 12px 26px; font-size: 14px; font-weight: 600;
+  border: 1px solid transparent; cursor: pointer; letter-spacing:0.03em;
+}
+.btn-primary{
+  background: linear-gradient(135deg, #e6c15a, var(--accent));
+  color:#1a1206; box-shadow: 0 6px 20px rgba(212,175,55,0.35);
+}
+.btn-primary:hover{ box-shadow: 0 8px 26px rgba(212,175,55,0.5); transform: translateY(-1px); }
+.btn-ghost{ background: var(--surface); color: var(--text); border-color: var(--border-soft); }
+.btn-ghost:hover{ border-color: var(--accent); color: var(--accent); }
+
+/* FEATURES */
+.feature-grid{
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap:16px; margin-top: 32px;
+}
+.feature-card{
+  background: var(--surface); border:1px solid var(--border-soft); border-radius: var(--radius);
+  padding: 22px; box-shadow: var(--shadow); backdrop-filter: blur(6px);
+}
+.feature-icon{ color: var(--accent); font-size: 20px; margin-bottom: 8px; text-shadow: 0 0 12px rgba(212,175,55,0.5); }
+.feature-card h3{ font-size: 15px; margin: 0 0 8px; font-family: var(--font-body); font-weight:700; }
+.feature-card p{ font-size: 13px; color: var(--sub); margin:0; }
+
+/* QUIZ */
+.quiz-wrap{ max-width: 640px; margin: 0 auto; }
+.quiz-progress-label{
+  display:flex; justify-content:space-between; font-size:12px; color: var(--sub); margin-bottom:8px;
+}
+.progress-track{ height:6px; background: var(--surface); border:1px solid var(--border-soft); border-radius:4px; overflow:hidden; margin-bottom: 24px;}
+.progress-fill{ height:100%; background: linear-gradient(90deg, var(--accent-2), var(--accent)); width:12%; transition: width .2s; box-shadow: 0 0 10px rgba(212,175,55,0.5); }
+.quiz-card{
+  background: var(--surface); border:1px solid var(--border-soft); border-radius: var(--radius);
+  padding: 32px; box-shadow: var(--shadow);
+}
+.q-text{ font-size: 1.05rem; font-weight:700; margin: 0 0 6px; color: var(--text); }
+.q-hint{ font-size: 12.5px; color: var(--sub); margin: 0 0 18px; }
+.option{
+  display:flex; align-items:flex-start; gap:10px;
+  padding: 14px 16px; border:1px solid var(--border-soft); border-radius: 10px;
+  margin-bottom: 10px; cursor:pointer; font-size: 14px; transition: .15s; background: rgba(255,255,255,0.02);
+}
+.option:hover{ border-color: var(--accent); background: var(--accent-soft); }
+.option.selected{ border-color: var(--accent); background: var(--accent-soft); }
+.option input{ margin-top:3px; accent-color: var(--accent); }
+.quiz-nav{ display:flex; justify-content:space-between; margin-top: 20px; }
+
+.tag-groups .tag-group{ margin-bottom: 18px; }
+.tag-group-label{ font-size:12px; color: var(--sub); margin-bottom:8px; font-weight:600; }
+.tag-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 20px; }
+.tag{
+  padding: 8px 14px; border:1px solid var(--border-soft); border-radius: 999px;
+  font-size: 13px; cursor:pointer; color: var(--sub); background: var(--surface);
+}
+.tag.selected{ border-color: var(--accent-2); color:#bdeaff; background: rgba(56,189,248,0.12); }
+
+/* SLIDER ROWS */
+.slider-row{ margin-bottom: 26px; }
+.slider-row .q-text{ font-size: 14.5px; font-weight:600; margin-bottom: 10px; }
+.slider-row input[type=range]{
+  width:100%; accent-color: var(--accent); height:4px; margin: 6px 0;
+}
+.slider-labels{
+  display:flex; justify-content:space-between; font-size:12px; color: var(--sub);
+}
+.slider-value{
+  font-weight:700; color: var(--accent); background: var(--accent-soft);
+  border-radius:6px; padding:1px 8px;
+}
+.single-select-block{ margin-bottom: 28px; }
+
+.job-hint{ font-size:13px; color: var(--sub); padding: 16px 0; }
+
+/* PROFILE SUMMARY (results) */
+.profile-card{
+  display:flex; gap:16px; align-items:center; background: var(--surface);
+  border:1px solid var(--border-soft); border-radius: var(--radius); padding:20px; box-shadow: var(--shadow);
+  margin-bottom: 24px;
+}
+.profile-icon{ font-size: 34px; }
+.profile-title{ font-size:17px; font-weight:700; color: var(--text); font-family: var(--font-body); }
+.profile-en{ font-size:12px; color: var(--sub); font-weight:400; margin-left:8px; }
+.profile-tagline{ font-size:13.5px; color: var(--sub); margin-top:4px; }
+
+/* CHARACTER PORTRAIT + CLASS LORE */
+.class-portrait{
+  position:relative; width:84px; height:84px; margin: 4px auto 10px; border-radius:50%;
+  overflow:hidden; border:2px solid var(--fam-glow, var(--accent));
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.03), 0 0 18px var(--fam-glow-soft, rgba(212,175,55,0.25));
+  background: var(--fam-color, #1a1a2e);
+}
+.class-portrait img{ width:100%; height:100%; object-fit:cover; display:block; }
+.portrait-fallback{
+  width:100%; height:100%; display:none; align-items:center; justify-content:center; font-size:34px;
+}
+.class-portrait.sm{ width:52px; height:52px; margin:0; }
+.class-portrait.sm .portrait-fallback{ font-size:22px; }
+.class-portrait.lg{ width:112px; height:112px; }
+.class-portrait.lg .portrait-fallback{ font-size:44px; }
+
+.class-title{
+  font-size: 16px; font-weight:700; text-align:center; margin-top:2px;
+  color: var(--fam-glow, var(--accent));
+  text-shadow: 0 0 14px var(--fam-glow-soft, rgba(212,175,55,0.35));
+}
+.class-title-en{
+  font-size: 10px; text-align:center; color: var(--sub); text-transform:uppercase; letter-spacing:0.1em; margin-top:1px;
+}
+.class-family-name{ font-size:12px; text-align:center; color: var(--sub); margin-top:4px; }
+.class-item{
+  display:block; width:fit-content; margin: 8px auto 0; font-size:11px; color: var(--text);
+  background: rgba(255,255,255,0.05); border:1px solid var(--border-soft); border-radius:999px; padding:3px 10px;
+}
+.class-lore{ font-size:12.5px; color: var(--sub); font-style:italic; line-height:1.6; margin: 10px 0 0; }
+
+/* MINI FAMILY CARDS (results top-3) */
+.mini-card-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap:16px; margin-bottom: 8px; }
+.mini-family-card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)), var(--surface-solid);
+  border:1px solid var(--fam-border, var(--border-soft)); border-radius: var(--radius);
+  padding: 18px; box-shadow: var(--shadow); position:relative;
+}
+.mini-family-card::before, .mini-family-card::after{
+  content:"◆"; position:absolute; top:8px; font-size:9px; color: var(--fam-glow, var(--accent)); opacity:0.7;
+}
+.mini-family-card::before{ left:10px; }
+.mini-family-card::after{ right:10px; }
+.mini-card-head{ display:flex; justify-content:center; align-items:center; font-size:20px; margin-bottom:2px; }
+
+/* RADAR CHART */
+.mini-radar-wrap{ display:flex; justify-content:center; margin: 8px 0 2px; }
+.radar-detail-wrap{ display:flex; justify-content:center; margin: 10px 0 4px; overflow:visible; }
+.radar-chart{ display:block; margin: 0 auto; }
+
+/* SPECTRUM PLOT (encyclopedia, 2D) */
+.plot-wrap{ display:flex; gap:10px; }
+.plot-ylabel{
+  display:flex; flex-direction:column; justify-content:space-between; align-items:flex-end;
+  font-size:11px; color: var(--sub); padding: 4px 0 34px; white-space:nowrap;
+}
+.plot-area-wrap{ flex:1; min-width:0; }
+.spectrum-plot{
+  position:relative; width:100%; height: 460px; background: var(--surface-solid);
+  border:1px solid var(--border-soft); border-radius: var(--radius); box-shadow: var(--shadow);
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 12.5% 12.5%;
+}
+.plot-xlabel{
+  display:flex; justify-content:space-between; font-size:11px; color: var(--sub); margin-top:8px;
+}
+.spectrum-node{
+  position:absolute; transform: translate(-50%,-50%);
+  width: 108px; background: var(--surface-solid); border:1px solid var(--border-soft); border-radius: 12px;
+  padding: 10px 6px 8px; text-align:center; cursor:pointer; box-shadow: var(--shadow);
+}
+.spectrum-node:hover{ border-color: var(--fam-glow, var(--accent)); z-index:5; box-shadow: 0 0 18px var(--fam-glow-soft, rgba(212,175,55,0.3)); }
+.spectrum-icon{ font-size: 18px; margin-bottom:2px; }
+.spectrum-name{ font-size: 10.5px; font-weight:700; margin-bottom:2px; line-height:1.3; color: var(--fam-glow, var(--accent)); }
+.spectrum-family{ font-size: 9px; color: var(--sub); margin-bottom:4px; }
+.stars{ color:var(--accent); font-size:13px; letter-spacing:1px; }
+
+@media (max-width: 640px){
+  .spectrum-plot{ height: 560px; }
+  .spectrum-node{ width:88px; }
+}
+
+.family-detail-head{ display:flex; gap:16px; align-items:center; margin-bottom:10px; }
+
+/* MODAL */
+.modal-overlay{
+  display:none; position:fixed; inset:0; background: rgba(4,6,14,0.72); backdrop-filter: blur(3px);
+  align-items:center; justify-content:center; padding: 20px; z-index: 100;
+}
+.modal-box{
+  background: var(--surface-solid); border:1px solid var(--border); border-radius: var(--radius); max-width: 640px; width:100%;
+  max-height: 86vh; overflow-y:auto; padding: 28px; position:relative; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.modal-close{
+  position:absolute; top:14px; right:14px; border:none; background:transparent;
+  font-size:16px; color: var(--sub); cursor:pointer; width:32px; height:32px; border-radius:8px;
+}
+.modal-close:hover{ background: var(--accent-soft); color: var(--accent); }
+.detail-grid{
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap:16px; margin: 18px 0; padding-top:16px; border-top:1px solid var(--border-soft);
+}
+.detail-label{ font-size:12px; color: var(--sub); font-weight:700; margin-bottom:4px; }
+.detail-value{ font-size:13.5px; color: var(--text); }
+.detail-note{ font-size:11px; color: var(--sub); margin-top:4px; }
+.example-jobs-label{ font-size:13px; font-weight:700; color: var(--sub); margin: 18px 0 12px; padding-top:16px; border-top:1px solid var(--border-soft); }
+
+/* RESULTS */
+.section-head{ margin-bottom: 24px; }
+.section-head h2{ margin:0 0 6px; font-size: 1.6rem; color: var(--accent); }
+.section-sub{ color: var(--sub); font-size: 13.5px; margin:0; }
+.also-consider-title{ font-size: 1rem; color: var(--sub); margin: 28px 0 12px; font-weight:600; font-family: var(--font-body); }
+
+.result-card{
+  background: var(--surface-solid); border:1px solid var(--border-soft); border-radius: var(--radius);
+  padding: 20px; margin-bottom: 14px; box-shadow: var(--shadow);
+  display:grid; grid-template-columns: 44px 1fr auto; gap: 16px; align-items:flex-start;
+}
+.result-rank{ font-size: 1.4rem; font-weight:800; color: var(--accent); text-align:center; }
+.result-title{ font-size: 16px; font-weight:700; margin:0 0 4px; color: var(--text); }
+.result-meta{ font-size: 12px; color: var(--sub); margin-bottom:8px; }
+.result-meta .badge{ display:inline-block; background: var(--accent-soft); color: var(--accent); font-size:11px; padding:2px 8px; border-radius:6px; margin-right:6px; }
+.result-desc{ font-size: 13.5px; color: var(--text); margin: 6px 0; }
+.result-skills{ font-size:12px; color: var(--sub); margin-top:6px; }
+.result-side{ text-align:right; min-width:150px; }
+.salary-pill{
+  font-size:12px; padding:8px 12px; border-radius:8px; background: var(--surface); border:1px solid var(--border-soft);
+  margin-bottom:8px; color: var(--text);
+}
+.salary-pill.na{ font-style: italic; background: var(--warn-bg); border-color: rgba(245,158,11,0.35); color: var(--warn-text); }
+.source-link{ font-size:11px; }
+
+/* ENCYCLOPEDIA */
+.filter-bar{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom: 24px; }
+.filter-bar select{
+  padding:8px 12px; border-radius:8px; border:1px solid var(--border-soft); background: var(--surface-solid);
+  font-size:13px; color: var(--text);
+}
+.card-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(270px,1fr)); gap:16px; }
+.job-card{
+  background: var(--surface-solid); border:1px solid var(--border-soft); border-left:3px solid var(--fam-glow, var(--accent));
+  border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); display:flex; flex-direction:column; gap:8px;
+}
+.job-card .family-badge{
+  font-size:11px; color: var(--accent); background: var(--accent-soft); padding:3px 8px; border-radius:6px; width:fit-content;
+}
+.job-card h4{ margin:4px 0; font-size:15px; color: var(--text); }
+.job-card .companies{ font-size:12.5px; color: var(--sub); }
+.job-card .tl-badge{ font-size:11px; color:#7fe3d8; background: rgba(45,212,191,0.12); padding:2px 8px; border-radius:6px; width:fit-content; }
+.job-card .row{ display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-top:8px; border-top:1px solid var(--border-soft); padding-top:10px; }
+
+/* ABOUT */
+.about-card, .contact-card{
+  background: var(--surface-solid); border:1px solid var(--border-soft); border-radius: var(--radius);
+  padding: 24px; margin-bottom: 16px; box-shadow: var(--shadow); font-size: 14px; color: var(--text);
+}
+.contact-list{ list-style:none; padding:0; margin:0; }
+.contact-list li{ margin-bottom:8px; font-size:14px; }
+
+footer{
+  border-top:1px solid var(--border-soft); padding: 28px 24px; text-align:center;
+  color: var(--sub); font-size:12px; background: rgba(9,12,22,0.6);
+}
+.footer-sub{ margin-top:4px; }
+
+@media (max-width: 640px){
+  .result-card{ grid-template-columns: 1fr; }
+  .result-side{ text-align:left; }
+  .navlinks{ gap:12px; font-size:12.5px; }
+}
+
+/* ==========================================================================
+   P0 新元件：個人輪廓 / 三條探索路線 / 六邊形 / 圖鑑卡牌 / 職涯地圖
+   ========================================================================== */
+
+/* HERO 附加 */
+.hero-second{
+  font-family: var(--font-display);
+  font-size: 1.25rem; color: var(--accent); margin: -6px 0 14px; font-weight:600;
+}
+.cta-previews{
+  display:flex; gap:18px; justify-content:center; flex-wrap:wrap;
+  margin-top: 18px; font-size: 12.5px; color: var(--sub);
+}
+
+/* 官方職涯名稱層級 */
+.official-zh{ font-size: 16px; font-weight: 700; color: var(--text); font-family: var(--font-body); line-height:1.4; }
+.official-en{ font-size: 12px; font-weight: 700; color: var(--sub); letter-spacing: 0.02em; line-height:1.4; margin-top:2px; }
+.rpg-badge{
+  display:inline-block; font-size: 11.5px; color: var(--fam-glow, var(--accent));
+  border:1px solid var(--fam-border, var(--border)); border-radius: 999px;
+  padding: 2px 10px; margin-top: 8px; background: rgba(255,255,255,0.03);
+}
+.tl-chip{
+  display:inline-block; font-size:11px; color:#7fe3d8; background: rgba(45,212,191,0.12);
+  padding:2px 8px; border-radius:6px; margin-left:8px; letter-spacing:0.04em; vertical-align:middle;
+}
+
+/* 個人職涯輪廓 */
+.profile-wrap{
+  background: var(--surface-solid); border:1px solid var(--border-soft); border-radius: var(--radius);
+  padding: 26px; box-shadow: var(--shadow); margin-bottom: 8px;
+}
+.profile-title-main{ font-family: var(--font-body); font-size: 1.1rem; margin: 0 0 10px; color: var(--accent); font-weight:700; }
+.profile-sentence{ font-size: 15.5px; line-height:1.7; margin: 0 0 14px; color: var(--text); }
+.profile-tags{ margin-bottom: 6px; }
+.profile-tag{
+  padding: 6px 14px; border:1px solid var(--fam-border, var(--border)); border-radius: 999px;
+  font-size: 12.5px; color: var(--accent); background: var(--accent-soft);
+}
+.hex-wrap{ text-align:center; margin: 18px 0 6px; }
+.hex-title{ font-size: 13px; font-weight:700; color: var(--sub); margin-bottom: 6px; }
+.profile-disclaimer{ font-size: 11.5px; color: var(--sub); margin: 12px 0 0; }
+
+/* Info tooltip */
+.info-tip{ position:relative; cursor:help; color: var(--sub); font-size: 12px; margin-left:4px; }
+.info-bubble{
+  display:none; position:absolute; bottom: 140%; left: 50%; transform: translateX(-50%);
+  width: 220px; background: var(--surface-solid); border:1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px; font-size: 11.5px; color: var(--text);
+  line-height:1.5; z-index: 30; box-shadow: var(--shadow); text-align:left; font-style:normal;
+}
+.info-tip:hover .info-bubble, .info-tip:focus .info-bubble{ display:block; }
+
+/* 三條探索路線 */
+.route-note-inline{ font-size: 11.5px; color: var(--sub); margin: 8px 0 10px; line-height:1.5; }
+.route-pill{
+  display:inline-block; font-size: 11.5px; font-weight:700; letter-spacing:0.05em;
+  border-radius: 999px; padding: 3px 12px; border:1px solid;
+}
+.route-best .route-pill, .route-pill{ color:#ffd98a; border-color: rgba(212,175,55,0.5); background: rgba(212,175,55,0.12); }
+.route-near .route-pill{ color:#8fd3f4; border-color: rgba(56,189,248,0.5); background: rgba(56,189,248,0.1); }
+.route-stretch .route-pill{ color:#c4b5fd; border-color: rgba(167,139,250,0.5); background: rgba(139,92,246,0.12); }
+.route-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); gap:16px; }
+.route-card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)), var(--surface-solid);
+  border:1px solid var(--fam-border, var(--border-soft)); border-radius: var(--radius);
+  padding: 20px; box-shadow: var(--shadow); cursor:pointer; text-align:center;
+  transition: transform .15s, box-shadow .15s;
+}
+.route-card:hover{ transform: translateY(-3px); box-shadow: 0 14px 36px rgba(0,0,0,0.5), 0 0 18px var(--fam-glow-soft, rgba(212,175,55,0.2)); }
+.route-card .route-pill{ margin-bottom: 12px; }
+.route-titles{ font-size: 11.5px; color: var(--sub); margin-top: 8px; line-height:1.5; }
+.route-oneliner{ font-size: 12.5px; color: var(--text); margin-top: 8px; line-height:1.6; }
+.match-row{ font-size: 13px; color: var(--sub); margin-top: 12px; }
+.match-row b{ color: var(--accent); font-size: 17px; }
+.route-reason{
+  font-size: 12px; color: var(--text); text-align:left; margin-top: 10px;
+  background: rgba(255,255,255,0.04); border-radius: 8px; padding: 8px 10px; line-height:1.6;
+}
+.route-gap{ font-size: 11.5px; color: var(--sub); text-align:left; margin-top: 8px; line-height:1.5; }
+.route-btn{ margin-top: 12px; font-size: 12.5px; padding: 8px 18px; width:100%; }
+
+/* 正方形角色卡圖 */
+.square-portrait{
+  position:relative; width: 100%; max-width: 180px; aspect-ratio: 1/1; margin: 4px auto 12px;
+  border-radius: 12px; overflow:hidden;
+  border: 2px solid var(--fam-glow, var(--accent));
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.03), 0 0 18px var(--fam-glow-soft, rgba(212,175,55,0.25));
+  background: var(--fam-color, #1a1a2e);
+}
+.square-portrait img{ width:100%; height:100%; object-fit: cover; display:block; }
+.square-portrait .portrait-fallback{
+  width:100%; height:100%; display:none; align-items:center; justify-content:center; font-size: 52px;
+}
+.square-portrait.lg{ width: 128px; max-width:128px; margin: 0; flex-shrink:0; }
+.square-portrait.lg .portrait-fallback{ font-size: 44px; }
+
+/* 方法說明折疊區 */
+.method-details{
+  margin-top: 14px; font-size: 12.5px; color: var(--sub);
+  border-top: 1px solid var(--border-soft); padding-top: 10px;
+}
+.method-details summary{ cursor:pointer; color: var(--accent); font-weight:600; }
+.method-details p{ margin: 8px 0 0; line-height: 1.7; }
+
+/* 信心與環境摘要 */
+.confidence-row{ font-size: 13px; color: var(--sub); margin: 10px 0 4px; }
+.confidence-row b{ color: var(--accent); }
+.low-confidence-banner{
+  background: rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.35);
+  border-radius: 10px; padding: 12px 16px; margin: 12px 0 4px;
+  font-size: 13px; line-height: 1.7; color: var(--text);
+}
+.env-card{
+  background: var(--surface-solid); border:1px solid var(--border-soft);
+  border-left: 3px solid var(--accent-2);
+  border-radius: var(--radius); padding: 22px 26px; margin: 24px 0 4px; box-shadow: var(--shadow);
+}
+
+/* 30 天行動 */
+.next30-card{
+  background: var(--surface-solid); border:1px solid var(--fam-border, var(--border-soft));
+  border-left: 3px solid var(--fam-glow, var(--accent));
+  border-radius: var(--radius); padding: 22px 26px; margin: 24px 0 4px; box-shadow: var(--shadow);
+}
+.next30-title{ font-family: var(--font-body); font-size: 1.05rem; margin: 0 0 10px; color: var(--text); font-weight:700; }
+.next30-list{ margin: 0; padding-left: 22px; font-size: 13.5px; line-height: 1.8; color: var(--text); }
+.next30-list li{ margin-bottom: 6px; }
+
+/* 兩層職缺篩選 */
+.filter-step-label{ font-size: 12.5px; font-weight:700; color: var(--sub); margin: 14px 0 8px; letter-spacing:0.03em; }
+.route-filter-chip{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; border-radius: 12px; max-width: 320px; }
+.route-filter-chip.selected{
+  border-color: var(--fam-glow, var(--accent-2));
+  background: var(--fam-glow-soft, rgba(212,175,55,0.15));
+  color: var(--text);
+}
+.route-filter-chip.selected .domain-chip-note{ color: var(--text); opacity:0.75; }
+
+/* 領域 chips（含一句實例） */
+.domain-chip{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; border-radius: 12px; max-width: 320px; }
+.domain-chip-name{ font-weight:700; font-size: 13px; }
+.domain-chip-note{ font-size: 11px; color: var(--sub); line-height:1.4; }
+.tag.domain-chip.selected .domain-chip-note{ color: #9adbd4; }
+
+/* 職缺卡附加 */
+.job-why{
+  font-size: 12px; color: #ffd98a; background: rgba(212,175,55,0.08);
+  border-radius: 8px; padding: 7px 10px; line-height:1.5;
+}
+
+/* 詳細內容區塊 */
+.detail-block{ margin: 16px 0; padding-top: 14px; border-top: 1px solid var(--border-soft); }
+.detail-list{ margin: 6px 0 0; padding-left: 20px; font-size: 13px; line-height: 1.75; color: var(--text); }
+.detail-list li{ margin-bottom: 3px; }
+.starter-block{ border-top:none; padding-top:0; margin: 12px 0; background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px 14px; }
+
+/* 圖鑑橫向卡牌 */
+.carousel-wrap{ display:flex; align-items:center; gap: 8px; }
+.car-btn{
+  flex-shrink:0; width: 38px; height: 38px; border-radius: 50%;
+  border:1px solid var(--border); background: var(--surface-solid); color: var(--accent);
+  font-size: 20px; cursor:pointer; line-height:1;
+}
+.car-btn:hover{ border-color: var(--accent); box-shadow: 0 0 12px rgba(212,175,55,0.3); }
+.car-track{
+  display:flex; gap: 16px; overflow-x:auto; scroll-snap-type: x mandatory;
+  padding: 8px 4px 16px; scrollbar-width: thin; flex:1; min-width:0;
+}
+.ency-card{
+  flex: 0 0 250px; scroll-snap-align: start;
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)), var(--surface-solid);
+  border:1px solid var(--fam-border, var(--border-soft)); border-radius: var(--radius);
+  padding: 18px; text-align:center; cursor:pointer; box-shadow: var(--shadow);
+  display:flex; flex-direction:column;
+  transition: transform .15s, box-shadow .15s;
+}
+.ency-card:hover{ transform: translateY(-3px); box-shadow: 0 14px 36px rgba(0,0,0,0.5), 0 0 18px var(--fam-glow-soft, rgba(212,175,55,0.2)); }
+.ency-rpg{ font-family: var(--font-display); font-size: 17px; font-weight:700; margin-bottom: 4px; text-shadow: 0 0 14px var(--fam-glow-soft, rgba(212,175,55,0.3)); }
+.ency-card .route-btn{ margin-top:auto; }
+.ency-card .route-oneliner{ flex-grow:0; }
+
+/* T1–T5 圖例 */
+.tlevel-legend{
+  background: var(--surface-solid); border:1px solid var(--border-soft); border-radius: var(--radius);
+  padding: 14px 18px; margin: 18px 0 26px; font-size: 13px; color: var(--text);
+}
+.tlevel-legend summary{ cursor:pointer; font-weight:700; color: var(--accent); font-size: 13.5px; }
+.tlevel-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 10px 18px; margin: 14px 0 8px; }
+.tlevel-grid div{ display:flex; flex-direction:column; gap:2px; }
+.tlevel-grid b{ font-size: 12.5px; color: var(--text); }
+.tlevel-grid span{ font-size: 11.5px; color: var(--sub); line-height:1.5; }
+
+/* 職涯地圖節點（代表物小圖） */
+.map-node{
+  position:absolute; transform: translate(-50%,-50%);
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  cursor:pointer; width: 76px; text-align:center;
+}
+.map-node:hover{ z-index: 6; }
+.map-icon{
+  position:relative; width: 44px; height: 44px; border-radius: 50%; overflow:hidden;
+  border: 2px solid; background: var(--surface-solid);
+  box-shadow: 0 0 12px rgba(0,0,0,0.4);
+}
+.map-node:hover .map-icon{ box-shadow: 0 0 16px var(--fam-glow-soft, rgba(212,175,55,0.4)); }
+.map-icon img{ width:100%; height:100%; object-fit:cover; display:block; }
+.map-icon .portrait-fallback{ width:100%; height:100%; display:none; align-items:center; justify-content:center; }
+.map-label{ font-size: 10.5px; font-weight:700; color: var(--text); line-height:1.3; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+
+/* 375px 手機版 */
+@media (max-width: 420px){
+  .hero h1{ font-size: 1.55rem; }
+  .hero-second{ font-size: 1.05rem; }
+  .route-grid{ grid-template-columns: 1fr; }
+  .ency-card{ flex: 0 0 82vw; }
+  .car-btn{ display:none; }
+  .square-portrait.lg{ width: 96px; max-width:96px; }
+  .family-detail-head{ flex-direction:column; align-items:flex-start; }
+  .spectrum-plot{ height: 480px; }
+  .map-node{ width: 64px; }
+  .map-icon{ width: 38px; height: 38px; }
+  .modal-box{ padding: 20px 16px; }
+  .info-bubble{ width: 180px; }
+}
