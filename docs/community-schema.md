@@ -21,7 +21,7 @@ Migration：`supabase/migrations/002_community_board.sql`
 - `public_visible_community_posts`
 - `public_visible_community_replies`
 
-View 只回傳公開欄位，且只包含 `visible` 狀態。匿名使用者沒有 base table 的 select、insert、update 或 delete 權限。
+View 只回傳公開欄位，且只包含 `visible` 狀態。瀏覽器不直接存取 base table 或 View；讀取與寫入都經 Netlify Functions，匿名角色沒有 select、insert、update 或 delete 權限。
 
 ## reply_count
 

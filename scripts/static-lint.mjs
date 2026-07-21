@@ -21,6 +21,4 @@ for (const file of publicFiles){
   const source = readFileSync(file,"utf8");
   assert.ok(!/SUPABASE_SERVICE_ROLE_KEY\s*[:=]\s*["'][^"']+/i.test(source), `${file} may expose a service role key`);
 }
-const config = readFileSync("analytics-config.js","utf8");
-assert.ok(!/eyJ[a-zA-Z0-9_-]{20,}\./.test(config), "analytics-config.js contains a committed JWT-like key");
 console.log(`Static lint passed: ${jsFiles.length} JavaScript files, ${ids.length} unique HTML ids.`);

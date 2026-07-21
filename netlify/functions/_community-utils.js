@@ -7,16 +7,19 @@ const PII_PATTERNS = [
   /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i,
   /(?:\+?886[-\s]?)?0?9\d{2}[-\s]?\d{3}[-\s]?\d{3}/,
   /\b[A-Z][12]\d{8}\b/i,
-  /https?:\/\/|www\./i
+  /https?:\/\/|www\./i,
+  /(?:台|臺)?(?:北|中|南|東)?(?:市|縣|區|鄉|鎮).{0,18}(?:路|街|巷|弄)\s*\d{1,4}(?:號|樓)/
 ];
 const BLOCK_PATTERNS = [
-  /(?:加我|私訊我|聯絡我).{0,10}(?:line|telegram|微信|whatsapp)/i,
-  /(?:保證獲利|快速致富|代操|借款|博弈|色情|援交)/i,
+  /(?:加我|私訊我|聯絡我).{0,12}(?:line|telegram|微信|whatsapp)/i,
+  /(?:保證獲利|快速致富|代操|借款|博弈|援交|色情服務|投資群組)/i,
+  /(?:去死|垃圾人|低能|智障|仇恨|納粹|種族清洗)/i,
+  /(?:招募代理|兼職日領|在家工作).{0,15}(?:私訊|加line|加賴)/i,
   /(.)\1{14,}/
 ];
 
 function json(statusCode, body){
-  return { statusCode, headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Access-Control-Allow-Origin":"*"}, body:JSON.stringify(body) };
+  return { statusCode, headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"}, body:JSON.stringify(body) };
 }
 function normalizeText(value){ return String(value || "").replace(/\r\n/g,"\n").trim(); }
 function originAllowed(event){

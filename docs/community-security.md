@@ -4,7 +4,7 @@
 
 - 所有 base table 啟用 RLS。
 - anon/authenticated 不直接讀寫 base table。
-- 公開內容只從欄位受限的 visible views 讀取。
+- Netlify Function 使用 server-only service role，且只從欄位受限的 visible views 回傳公開內容。
 - 寫入只經 Netlify Function 或等價的 Supabase Edge Function。
 - 管理操作只使用 Supabase Dashboard、SQL Editor 或受保護後台。
 

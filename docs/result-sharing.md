@@ -2,6 +2,8 @@
 
 ## 圖片生成架構
 
+QR Code 使用 repository 內的 `vendor/qrcode.js`（qrcode-generator 1.4.4，MIT），不依賴外部 CDN。
+
 `product-v3.js` 使用 Canvas API 建立固定 1080 × 1920 PNG，不直接截取結果頁。生成前等待 `document.fonts.ready`，再載入本地角色圖片與 QR Code。
 
 內容只有品牌、RPG 名稱、真實職能名稱、角色圖片、一句描述、三個偏好標籤、邀請文字、網域與 QR Code。檔名為 `data-matters-[role-id]-story.png`。

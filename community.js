@@ -5,7 +5,11 @@
   const USER_TYPES=["","高中生","大學生","研究生","轉職中","在職","其他"];
   const API_BASE="/.netlify/functions";
   const state={category:"全部",sort:"latest",posts:[],loaded:false,loading:false};
-  const sessionId=(()=>{try{let id=sessionStorage.getItem("dm_community_session");if(!id){id=crypto.randomUUID();sessionStorage.setItem("dm_community_session",id);}return id;}catch(_){return crypto.randomUUID();}})();
+  function uuid(){
+    try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (_) {}
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==="x"?r:(r&3|8)).toString(16);});
+  }
+  const sessionId=(()=>{try{let id=sessionStorage.getItem("dm_community_session");if(!id){id=uuid();sessionStorage.setItem("dm_community_session",id);}return id;}catch(_){return uuid();}})();
   const nickname=(()=>{try{let n=sessionStorage.getItem("dm_community_nickname");if(!n){n=`匿名探險者 ${Math.floor(100+Math.random()*900)}`;sessionStorage.setItem("dm_community_nickname",n);}return n;}catch(_){return `匿名探險者 ${Math.floor(100+Math.random()*900)}`;}})();
 
   function trackCommunity(name,props){try{track(name,Object.assign({source_page:"community",environment:(window.DMAnalytics&&window.DMAnalytics.environment)||undefined},props||{}));}catch(_){}}
@@ -13,7 +17,20 @@
   function relativeTime(value){const t=new Date(value).getTime();if(!Number.isFinite(t))return "剛剛";const s=Math.max(0,Math.round((Date.now()-t)/1000));if(s<60)return "剛剛";if(s<3600)return `${Math.floor(s/60)} 分鐘前`;if(s<86400)return `${Math.floor(s/3600)} 小時前`;if(s<604800)return `${Math.floor(s/86400)} 天前`;return new Intl.DateTimeFormat("zh-TW",{month:"short",day:"numeric"}).format(new Date(t));}
   function bucket(n){if(n===0)return "0";if(n<=2)return "1-2";if(n<=5)return "3-5";return "6+";}
   function validateNickname(v){const s=v.trim();if(s.length<2||s.length>20)return "暱稱需為 2–20 字。";if(/@|https?:\/\/|www\.|\d{8,}/i.test(s))return "暱稱不可包含 Email、電話或網址。";return "";}
-  function validateContent(v,min,max){const s=v.trim();if(s.length<min||s.length>max)return `內容需為 ${min}–${max} 字。`;if(/<[^>]+>|\[[^\]]+\]\([^\)]+\)/.test(s))return "請使用純文字，不要加入 HTML 或 Markdown。";if(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(s)||/(?:\+?886[-\s]?)?0?9\d{2}[-\s]?\d{3}[-\s]?\d{3}/.test(s)||/https?:\/\/|www\./i.test(s))return "請移除 Email、電話或其他個人資料後再發布。";return "";}
+  function validateContent(v,min,max){
+    const s=v.trim();
+    if(s.length<min||s.length>max)return `內容需為 ${min}–${max} 字。`;
+    if(/<[^>]+>|\[[^\]]+\]\([^\)]+\)/.test(s))return "請使用純文字，不要加入 HTML 或 Markdown。";
+    const hasPersonalData = [
+      /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i,
+      /(?:\+?886[-\s]?)?0?9\d{2}[-\s]?\d{3}[-\s]?\d{3}/,
+      /\b[A-Z][12]\d{8}\b/i,
+      /https?:\/\/|www\./i,
+      /(?:台|臺)?(?:北|中|南|東)?(?:市|縣|區|鄉|鎮).{0,18}(?:路|街|巷|弄)\s*\d{1,4}(?:號|樓)/
+    ].some(pattern => pattern.test(s));
+    if(hasPersonalData)return "請移除 Email、電話或其他個人資料後再發布。";
+    return "";
+  }
 
   const Community={
     async load(force=false){

@@ -2,7 +2,7 @@
 (() => {
   "use strict";
 
-  const APP_VERSION = (window.ANALYTICS_CONFIG && window.ANALYTICS_CONFIG.APP_VERSION) || "v3";
+  const APP_VERSION = window.DATA_MATTERS_APP_VERSION || (window.ANALYTICS_CONFIG && window.ANALYTICS_CONFIG.APP_VERSION) || "v3";
   const SCORING_VERSION = (window.ANALYTICS_CONFIG && window.ANALYTICS_CONFIG.SCORING_VERSION) || "v2";
   const questionSeenAt = new Map();
   const sliderTimers = new Map();
@@ -52,7 +52,7 @@
     document.querySelectorAll(".navlinks a").forEach(a => a.classList.toggle("active", a.dataset.nav === navMap[id]));
     if (["home","encyclopedia","community","about"].includes(id)) history.replaceState(null, "", id === "home" ? location.pathname + location.search : `#${id}`);
     window.scrollTo({ top:0, behavior:"smooth" });
-    safeTrack("page_viewed", { page_path: id });
+    safeTrack("page_viewed", { source_page: id });
     if (id === "community" && window.Community) Community.load();
   };
 
@@ -80,7 +80,7 @@
     const seen = questionSeenAt.get(id) || Date.now();
     return {
       question_id: id,
-      quiz_step: Object.entries(STATIONS).find(([, qs]) => qs.some(item => item.id === id))?.[0]?.replace("station", "") || undefined,
+      quiz_step: Number(Object.entries(STATIONS).find(([, qs]) => qs.some(item => item.id === id))?.[0]?.replace("station", "")) || undefined,
       selected_option: q && q.type === "single" ? `option_${Number(selected) + 1}` : Number(selected),
       response_time_ms: Math.max(0, Math.min(600000, Date.now() - seen)),
       changed_answer: Boolean(changed),
@@ -358,7 +358,7 @@
     const fb = ResultState.feedback;
     if (fb.after === null && fb.acc === null){ document.getElementById("fb-msg").textContent = "至少選一項再送出。"; return; }
     const top = ResultState.routes[0]?.famKey;
-    if (fb.after !== null) safeTrack("clarity_after_submitted", { clarity_before:State.baselineClarity, clarity_after:fb.after, clarity_lift:State.baselineClarity == null ? undefined : fb.after - State.baselineClarity, role_id:top });
+    if (fb.after !== null) safeTrack("clarity_after_submitted", { clarity_before:State.baselineClarity, clarity_after:fb.after, clarity_uplift:State.baselineClarity == null ? undefined : fb.after - State.baselineClarity, role_id:top });
     if (fb.acc !== null) safeTrack("accuracy_rating_submitted", { accuracy_rating:fb.acc, role_id:top });
     safeTrack("result_feedback_submitted", { clarity_before:State.baselineClarity, clarity_after:fb.after, accuracy_rating:fb.acc, role_id:top });
     fb.submitted = true;
@@ -438,7 +438,7 @@
       RoleCompare.current = [a,b];
     },
     change(index,value){ const next = [...RoleCompare.current]; next[index]=value; if(next[0]===next[1]) next[1-index]=Object.keys(State.careers.meta.family_profiles).find(k=>k!==value); RoleCompare.render(next[0],next[1]); },
-    complete(a,b){ safeTrack("role_compare_completed", { role_id:a, compared_role_id:b }); Toast.show("已完成角色比較"); },
+    complete(a,b){ safeTrack("role_compare_completed", { role_id:a, role_pair:`${a}__${b}` }); Toast.show("已完成角色比較"); },
     openRole(fam){ Modal.open(familyDetailHTML(fam)); },
     jobs(fam){
       safeTrack("role_compare_job_opened", { role_id:fam });
@@ -465,7 +465,16 @@
     chars.forEach(ch=>{ const test=line+ch; if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=ch}else line=test; }); if(line) lines.push(line);
     lines.slice(0,maxLines).forEach((l,i)=>ctx.fillText(l,x,y+i*lineHeight));
   }
-  function roleImagePath(p){ return p.card_image || `images/${slugify(p.class_title_en)}.jpg`; }
+  async function loadRoleImage(p){
+    const base = slugify(p.class_title_en);
+    const candidates = [p.card_image, `images/${base}.jpg`, `images/${base}.png`].filter(Boolean);
+    let lastError;
+    for (const src of [...new Set(candidates)]){
+      try { return await loadImage(src); } catch (error) { lastError = error; }
+    }
+    throw lastError || new Error("角色圖片無法載入");
+  }
+  function roleShareId(famKey){ return slugify(famKey); }
 
   const ResultShare = {
     dataUrl:null, file:null, referralUrl:null,
@@ -490,20 +499,20 @@
       if(document.fonts?.ready) await document.fonts.ready;
       if(typeof window.qrcode!=="function") throw new Error("QR Code 元件尚未載入");
       const canvas=document.createElement("canvas"); canvas.width=1080; canvas.height=1920; const ctx=canvas.getContext("2d");
-      const referral=new URL(location.origin+location.pathname); referral.searchParams.set("utm_source","instagram"); referral.searchParams.set("utm_medium","story"); referral.searchParams.set("utm_campaign","result_share"); referral.searchParams.set("utm_content",slugify(p.class_title_en));
+      const referral=new URL(location.origin+location.pathname); referral.searchParams.set("utm_source","instagram"); referral.searchParams.set("utm_medium","story"); referral.searchParams.set("utm_campaign","result_share"); const shareRoleId=roleShareId(main.famKey); referral.searchParams.set("utm_content",shareRoleId);
       ResultShare.referralUrl=referral.toString();
       const grad=ctx.createLinearGradient(0,0,1080,1920); grad.addColorStop(0,p.color||"#172033"); grad.addColorStop(.58,"#10152a"); grad.addColorStop(1,"#090c16"); ctx.fillStyle=grad;ctx.fillRect(0,0,1080,1920);
       ctx.fillStyle="rgba(255,255,255,.05)";ctx.beginPath();ctx.arc(900,370,430,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(150,1550,360,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle="#f0ecdd";ctx.font="700 34px 'Noto Sans TC', sans-serif";ctx.fillText("DATA MATTERS",90,220);
-      ctx.fillStyle="#b7bfd9";ctx.font="500 34px 'Noto Sans TC', sans-serif";ctx.fillText("我的資料職涯角色是",90,340);
-      ctx.fillStyle="#ffffff";ctx.font="900 82px 'Noto Sans TC', sans-serif";drawWrapped(ctx,p.class_title,90,455,900,96,2);
-      ctx.fillStyle=p.glow||"#d4af37";ctx.font="700 42px 'Noto Sans TC', sans-serif";ctx.fillText(p.cn_name,90,650);
-      const img=await loadImage(roleImagePath(p)); const size=650,x=215,y=735;ctx.save();roundedRect(ctx,x,y,size,size,56);ctx.clip();const scale=Math.max(size/img.width,size/img.height);const sw=size/scale,sh=size/scale,sx=(img.width-sw)/2,sy=(img.height-sh)/2;ctx.drawImage(img,sx,sy,sw,sh,x,y,size,size);ctx.restore();
-      ctx.fillStyle="#f0ecdd";ctx.font="600 32px 'Noto Sans TC', sans-serif";drawWrapped(ctx,p.tagline||p.role_description,90,1485,900,46,2);
-      const tags=compactReasons(main);ctx.font="600 27px 'Noto Sans TC', sans-serif";let tx=90;tags.forEach(tag=>{const w=ctx.measureText(tag).width+48;ctx.fillStyle="rgba(255,255,255,.10)";roundedRect(ctx,tx,1595,w,58,29);ctx.fill();ctx.fillStyle="#f0ecdd";ctx.fillText(tag,tx+24,1634);tx+=w+14;});
-      ctx.fillStyle="#f0ecdd";ctx.font="700 30px 'Noto Sans TC', sans-serif";ctx.fillText("你是哪一種資料職涯角色？",90,1775);ctx.fillStyle="#9aa3c4";ctx.font="500 23px 'Noto Sans TC', sans-serif";ctx.fillText(location.host,90,1822);
-      const qr=window.qrcode(0,"M");qr.addData(ResultShare.referralUrl);qr.make();const modules=qr.getModuleCount(),qrSize=190,cell=qrSize/modules,qx=800,qy=1680;ctx.fillStyle="#ffffff";ctx.fillRect(qx-14,qy-14,qrSize+28,qrSize+28);ctx.fillStyle="#111111";for(let r=0;r<modules;r++)for(let c=0;c<modules;c++)if(qr.isDark(r,c))ctx.fillRect(qx+c*cell,qy+r*cell,Math.ceil(cell),Math.ceil(cell));
-      ResultShare.dataUrl=canvas.toDataURL("image/png"); const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png")); ResultShare.file=new File([blob],`data-matters-${slugify(p.class_title_en)}-story.png`,{type:"image/png"});
+      ctx.fillStyle="#f0ecdd";ctx.font="700 32px 'Noto Sans TC', sans-serif";ctx.fillText("DATA MATTERS",90,230);
+      ctx.fillStyle="#b7bfd9";ctx.font="500 44px 'Noto Sans TC', sans-serif";ctx.fillText("我的資料職涯角色是",90,350);
+      ctx.fillStyle="#ffffff";ctx.font="900 84px 'Noto Sans TC', sans-serif";drawWrapped(ctx,p.class_title,90,470,900,96,2);
+      ctx.fillStyle=p.glow||"#d4af37";ctx.font="700 44px 'Noto Sans TC', sans-serif";ctx.fillText(p.cn_name,90,625);
+      const img=await loadRoleImage(p); const size=600,x=240,y=690;ctx.save();roundedRect(ctx,x,y,size,size,56);ctx.clip();const scale=Math.max(size/img.width,size/img.height);const sw=size/scale,sh=size/scale,sx=(img.width-sw)/2,sy=(img.height-sh)/2;ctx.drawImage(img,sx,sy,sw,sh,x,y,size,size);ctx.restore();
+      ctx.fillStyle="#f0ecdd";ctx.font="600 32px 'Noto Sans TC', sans-serif";drawWrapped(ctx,p.tagline||p.role_description,90,1370,660,44,2);
+      const tags=compactReasons(main);ctx.font="600 32px 'Noto Sans TC', sans-serif";let tx=90;tags.forEach(tag=>{const w=ctx.measureText(tag).width+48;ctx.fillStyle="rgba(255,255,255,.10)";roundedRect(ctx,tx,1490,w,62,31);ctx.fill();ctx.fillStyle="#f0ecdd";ctx.fillText(tag,tx+24,1532);tx+=w+14;});
+      ctx.fillStyle="#f0ecdd";ctx.font="700 32px 'Noto Sans TC', sans-serif";ctx.fillText("你是哪一種資料職涯角色？",90,1600);ctx.fillStyle="#9aa3c4";ctx.font="500 32px 'Noto Sans TC', sans-serif";ctx.fillText(location.host,90,1645);
+      const qr=window.qrcode(0,"M");qr.addData(ResultShare.referralUrl);qr.make();const modules=qr.getModuleCount(),qrSize=180,cell=qrSize/modules,qx=810,qy=1400;ctx.fillStyle="#ffffff";ctx.fillRect(qx-14,qy-14,qrSize+28,qrSize+28);ctx.fillStyle="#111111";for(let r=0;r<modules;r++)for(let c=0;c<modules;c++)if(qr.isDark(r,c))ctx.fillRect(qx+c*cell,qy+r*cell,Math.ceil(cell),Math.ceil(cell));
+      ResultShare.dataUrl=canvas.toDataURL("image/png"); const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png")); ResultShare.file=new File([blob],`data-matters-${shareRoleId}-story.png`,{type:"image/png"});
       return {dataUrl:ResultShare.dataUrl,alt:`我的資料職涯角色是${p.class_title}，${p.cn_name}`};
     },
     async nativeShare(){

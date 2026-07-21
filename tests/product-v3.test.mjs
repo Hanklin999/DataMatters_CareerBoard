@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
 
 const app = readFileSync("app.js","utf8");
 const product = readFileSync("product-v3.js","utf8");
@@ -40,6 +43,11 @@ test("sharing uses fixed Story dimensions and referral fields", () => {
   assert.match(product,/canvas\.height=1920/);
   for (const value of ["instagram","story","result_share","utm_content"]) assert.match(product,new RegExp(value));
   assert.match(product,/navigator\.canShare/);
+  assert.match(product,/data-matters-\$\{shareRoleId\}-story\.png/);
+  assert.match(product,/fillText\("DATA MATTERS",90,230\)/);
+  assert.match(product,/fillText\(location\.host,90,1645\)/);
+  assert.match(html,/vendor\/qrcode\.js/);
+  assert.doesNotMatch(html,/cdn\.jsdelivr|cdnjs\.cloudflare/);
 });
 
 test("work focus map defines nine distinct positions", () => {
@@ -62,6 +70,8 @@ test("community database has RLS, public views and no anon base-table grants", (
   assert.match(sql,/public_visible_community_posts/);
   assert.match(sql,/public_visible_community_replies/);
   assert.match(sql,/revoke all on public\.community_posts from anon/);
+  assert.match(sql,/revoke all on public\.public_visible_community_posts from public, anon, authenticated/);
+  assert.match(sql,/community_reports_one_per_fingerprint_idx/);
   assert.doesNotMatch(sql,/grant insert on (?:table )?public\.community_posts to anon/);
 });
 
@@ -81,4 +91,14 @@ test("analytics includes required result, sharing and community events", () => {
     "community_viewed","community_filter_selected","community_post_submitted","community_reply_submitted","community_report_submitted"
   ];
   for (const name of names) assert.match(all,new RegExp(name));
+});
+
+
+test("community validation blocks personal data and obvious spam", () => {
+  const { validateNickname, validateContent } = require("../netlify/functions/_community-utils.js");
+  assert.equal(validateNickname("test@example.com"), "personal_data");
+  assert.equal(validateContent("請聯絡 0912-345-678 討論", 2, 300), "personal_data");
+  assert.equal(validateContent("台北市信義區松仁路100號", 2, 300), "personal_data");
+  assert.equal(validateContent("保證獲利，加入投資群組", 2, 300), "blocked_content");
+  assert.equal(validateContent("我想了解資料分析和產品分析的差別", 2, 300), null);
 });

@@ -8,20 +8,20 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
         with:
-          node-version: "22"
-      - name: JavaScript syntax check
-        run: |
-          node --check app.js
-          node --check validate-data.mjs
-          node --check test-cases.mjs
-          node --check analytics.js
-          node --check analytics-config.js
-      - name: JSON validation
-        run: node validate-data.mjs
-      - name: Algorithm acceptance tests
-        run: node test-cases.mjs
-      - name: Analytics unit tests
-        run: node test-analytics.mjs
+          node-version: "24"
+
+      - name: Static lint
+        run: npm run lint
+
+      - name: Data validation
+        run: npm run validate:data
+
+      - name: Existing and v3 tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
