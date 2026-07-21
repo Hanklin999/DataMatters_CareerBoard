@@ -9,8 +9,12 @@
    SUPABASE_URL / SUPABASE_ANON_KEY 留空 = analytics 自動停用（網站功能不受影響）。
    ========================================================================== */
 window.ANALYTICS_CONFIG = {
-  SUPABASE_URL: "https://supabase.com/dashboard/project/rmflseoygadbocpkgxyi",        // 例："https://xxxx.supabase.co"
-  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtZmxzZW95Z2FkYm9jcGtneHlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1OTI4NzgsImV4cCI6MjEwMDE2ODg3OH0.QR_VZcp58lHkcR8YzToJz8TDyRUfz-1QiiWUsRX_Z9s",   // Supabase Dashboard → Settings → API → anon public
+  // ⚠️ 這裡要填「Project API URL」（Settings → API → Project URL），
+  //    格式必為 https://<project-ref>.supabase.co
+  //    不要貼瀏覽器網址列的 Dashboard 網址（supabase.com/dashboard/...）——
+  //    貼錯時 analytics.js 會驗證失敗並自動停用。
+  SUPABASE_URL: "https://rmflseoygadbocpkgxyi.supabase.co",
+  SUPABASE_ANON_KEY: "",   // Supabase Dashboard → Settings → API → anon public
   ANALYTICS_ENABLED: true, // false = 全域停用
   ANALYTICS_DEBUG: false,  // true = console 顯示事件 payload（開發用）
   APP_VERSION: "v1",
