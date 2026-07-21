@@ -167,6 +167,27 @@
     document.getElementById("result-jobs-section")?.scrollIntoView({ behavior:"smooth", block:"start" });
   };
 
+  Results.openPrimaryRole = function(){
+    const famKey=ResultState.routes[0]?.famKey;
+    if(!famKey)return;
+    if(window.DataMattersRoleDetail?.open)window.DataMattersRoleDetail.open(famKey,"result_primary");
+    else if(window.Encyclopedia?.openFamily)window.Encyclopedia.openFamily(famKey);
+  };
+
+  Results.bindPrimaryRoleDetail = function(){
+    document.querySelectorAll("#result-hero [data-primary-role-detail]").forEach(trigger=>{
+      if(trigger.dataset.detailBound)return;
+      trigger.dataset.detailBound="1";
+      const open=event=>{
+        if(event.type==="keydown"&&!['Enter',' '].includes(event.key))return;
+        event.preventDefault();
+        Results.openPrimaryRole();
+      };
+      trigger.addEventListener("click",open);
+      if(trigger.tagName!=="BUTTON")trigger.addEventListener("keydown",open);
+    });
+  };
+
   Results.ensureHeroArtwork = function(){
     const wrapper = document.querySelector("#result-hero .result-hero-art");
     const portrait = wrapper?.querySelector(".square-portrait");
@@ -206,24 +227,26 @@
 
     document.getElementById("result-hero").innerHTML = `
       <section class="result-hero-v3" style="${famVars(p)}" aria-labelledby="result-role-title">
-        <div class="result-hero-heading">
+        <div class="result-hero-heading result-role-detail-trigger" data-primary-role-detail role="button" tabindex="0" aria-label="查看 ${escapeHTML(p.cn_name)} 詳細資訊">
           <span class="eyebrow">你的探索結果</span>
           <div class="result-kicker">你最像</div>
           <h2 id="result-role-title">${escapeHTML(p.class_title)}</h2>
           <div class="real-role">${escapeHTML(p.cn_name)}</div>
           <div class="real-role-en">${escapeHTML(p.en_name || "")}</div>
         </div>
-        <div class="result-hero-art" aria-live="polite">${portraitHTML(p, "hero")}</div>
+        <button type="button" class="result-hero-art result-role-detail-trigger" data-primary-role-detail aria-label="查看 ${escapeHTML(p.cn_name)} 詳細資訊" aria-live="polite">${portraitHTML(p, "hero")}</button>
         <div class="result-hero-body">
           <p class="hero-tagline">${escapeHTML(p.tagline || p.role_description)}</p>
           <ul class="hero-reasons">${reasons.map(r => `<li>${escapeHTML(r)}</li>`).join("")}</ul>
           <div class="cta-row result-hero-actions">
             <button class="btn btn-primary" onclick="Results.scrollToJobs()">看看你可能做的工作</button>
+            <button type="button" class="btn btn-ghost" data-primary-role-detail>認識這個角色</button>
             <button class="btn btn-ghost" onclick="ResultShare.open()">分享我的結果</button>
           </div>
           <span class="result-confidence">${confidenceLabel()}${State.confidence?.clarity === "Exploratory" ? "｜建議先廣泛探索" : ""}</span>
         </div>
       </section>`;
+    Results.bindPrimaryRoleDetail();
     nextFrame(() => Results.ensureHeroArtwork());
 
     document.getElementById("result-why").innerHTML = `

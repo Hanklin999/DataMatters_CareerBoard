@@ -27,9 +27,35 @@ function originAllowed(event){
   const configured=(process.env.COMMUNITY_ALLOWED_ORIGINS||"https://datamatters-hanks-career-board.netlify.app,http://localhost:8888").split(",").map(v=>v.trim()).filter(Boolean);
   return configured.includes(origin);
 }
+function firstEnv(names){
+  for(const name of names){
+    const value=String(process.env[name]||"").trim();
+    if(value)return value;
+  }
+  return "";
+}
+function serverKey(){
+  return firstEnv(["SUPABASE_SERVICE_ROLE_KEY","SUPABASE_SECRET_KEY"]);
+}
+function communityConfigStatus(){
+  const url=firstEnv(["SUPABASE_URL","VITE_SUPABASE_URL"]);
+  const key=serverKey();
+  const salt=firstEnv(["COMMUNITY_HASH_SALT"]) || key;
+  const missing=[];
+  if(!url)missing.push("SUPABASE_URL");
+  if(!key)missing.push("SUPABASE_SERVICE_ROLE_KEY_OR_SECRET_KEY");
+  if(!salt||salt.length<32)missing.push("COMMUNITY_HASH_SALT");
+  return {configured:missing.length===0,missing,urlSource:process.env.SUPABASE_URL?"SUPABASE_URL":process.env.VITE_SUPABASE_URL?"VITE_SUPABASE_URL":null,keySource:process.env.SUPABASE_SERVICE_ROLE_KEY?"SUPABASE_SERVICE_ROLE_KEY":process.env.SUPABASE_SECRET_KEY?"SUPABASE_SECRET_KEY":null};
+}
+function configurationError(){
+  const error=new Error("server_not_configured");
+  error.code="server_not_configured";
+  error.missing=communityConfigStatus().missing;
+  return error;
+}
 function hash(value){
-  const salt=process.env.COMMUNITY_HASH_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!salt||salt.length<32){const error=new Error("server_not_configured");error.code="server_not_configured";throw error;}
+  const salt=firstEnv(["COMMUNITY_HASH_SALT"]) || serverKey();
+  if(!salt||salt.length<32)throw configurationError();
   return crypto.createHmac("sha256",salt).update(String(value || "unknown")).digest("hex");
 }
 function clientMeta(event, sessionId){
@@ -51,14 +77,16 @@ function validateContent(value,min,max){
 }
 function supabaseBaseUrl(){
   try{
-    const parsed=new URL(String(process.env.SUPABASE_URL||"").trim());
-    if(parsed.protocol!=="https:"||!/^[a-z0-9-]+\.supabase\.co$/i.test(parsed.hostname))throw new Error();
+    const raw=firstEnv(["SUPABASE_URL","VITE_SUPABASE_URL"]);
+    const parsed=new URL(raw);
+    const cleanPath=parsed.pathname.replace(/\/+$/,"");
+    if(parsed.protocol!=="https:"||!/^[a-z0-9-]+\.supabase\.co$/i.test(parsed.hostname)||cleanPath!==""||parsed.search||parsed.hash)throw new Error();
     return parsed.origin;
-  }catch(_){const error=new Error("server_not_configured");error.code="server_not_configured";throw error;}
+  }catch(_){throw configurationError();}
 }
 function supabaseHeaders(){
-  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key){const error=new Error("server_not_configured");error.code="server_not_configured";throw error;}
+  const key=serverKey();
+  if(!key)throw configurationError();
   return { apikey:key, Authorization:`Bearer ${key}`, "Content-Type":"application/json", Prefer:"return=representation" };
 }
 async function supabase(path, options={}){
@@ -88,4 +116,4 @@ async function recentRows(table,fingerprintHash,sinceIso,select="created_at,cont
   const q=`${table}?select=${encodeURIComponent(select)}&fingerprint_hash=eq.${fingerprintHash}&created_at=gte.${encodeURIComponent(sinceIso)}&order=created_at.desc`;
   return await supabase(q);
 }
-module.exports={ALLOWED_USER_TYPES,REPORT_REASONS,json,normalizeText,originAllowed,clientMeta,validateNickname,validateContent,supabase,verifyTurnstile,recentRows};
+module.exports={ALLOWED_USER_TYPES,REPORT_REASONS,json,normalizeText,originAllowed,clientMeta,validateNickname,validateContent,supabase,verifyTurnstile,recentRows,communityConfigStatus,supabaseBaseUrl};

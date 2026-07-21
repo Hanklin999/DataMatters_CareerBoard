@@ -296,3 +296,44 @@ footer{max-width:1080px;margin:0 auto;padding:30px 24px 50px;border-top:1px soli
   .result-hero-art .square-portrait{width:min(286px,82vw)!important;max-width:286px!important}
   .result-hero-body .hero-tagline{font-size:15.5px;line-height:1.6}
 }
+
+
+/* v3.6 role-detail triggers and hard mobile centering. */
+.result-role-detail-trigger{cursor:pointer}
+.result-hero-heading.result-role-detail-trigger{border-radius:16px}
+.result-hero-heading.result-role-detail-trigger:focus-visible{outline:3px solid var(--accent);outline-offset:6px}
+button.result-hero-art{
+  appearance:none;
+  border:0;
+  background:transparent;
+  padding:0;
+  font:inherit;
+  color:inherit;
+}
+button.result-hero-art:focus-visible{outline:3px solid var(--accent);outline-offset:6px;border-radius:26px}
+@media(max-width:800px){
+  #result-hero .result-hero-v3{align-items:stretch!important;justify-items:stretch!important}
+  #result-hero .result-hero-art{
+    display:grid!important;
+    place-items:center!important;
+    justify-self:stretch!important;
+    align-self:center!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0 auto!important;
+    transform:none!important;
+    left:auto!important;
+    right:auto!important;
+  }
+  #result-hero .result-hero-art .square-portrait{
+    justify-self:center!important;
+    align-self:center!important;
+    margin-inline:auto!important;
+    left:auto!important;
+    right:auto!important;
+    float:none!important;
+    transform:none!important;
+  }
+  #result-hero .result-hero-art .square-portrait img{margin:0 auto!important}
+  #result-hero .result-hero-heading{margin-inline:auto!important}
+}

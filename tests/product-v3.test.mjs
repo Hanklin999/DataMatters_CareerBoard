@@ -178,12 +178,37 @@ test("mobile result hero has deterministic heading-art-body order and full-width
   assert.match(product,/result-hero-heading/);
   assert.match(product,/result-hero-art/);
   assert.match(product,/result-hero-body/);
-  const heading = product.indexOf('class="result-hero-heading"');
-  const art = product.indexOf('class="result-hero-art"');
+  const heading = product.indexOf('class="result-hero-heading result-role-detail-trigger"');
+  const art = product.indexOf('class="result-hero-art result-role-detail-trigger"');
   const body = product.indexOf('class="result-hero-body"');
   assert.ok(heading >= 0 && art > heading && body > art);
   assert.match(css,/grid-template-areas:\s*\n\s*"heading"\s*\n\s*"art"\s*\n\s*"body"/);
   assert.match(css,/\.result-hero-actions\{[\s\S]*grid-template-columns:1fr!important/);
   assert.match(css,/\.result-hero-art \.square-portrait\{[\s\S]*aspect-ratio:1\/1!important/);
   assert.match(css,/\.result-hero-body \.hero-tagline\{[\s\S]*overflow-wrap:anywhere/);
+});
+
+
+test("role detail actions are exported and available from atlas and primary result", () => {
+  assert.match(app,/DataMattersRoleDetail:\{open:openRoleDetail\}/);
+  assert.match(app,/data-role-detail=/);
+  assert.match(app,/detailButton\.addEventListener\("click"/);
+  assert.match(product,/Results\.openPrimaryRole/);
+  assert.match(product,/data-primary-role-detail/);
+  assert.match(product,/認識這個角色/);
+});
+
+test("community server accepts Netlify public URL fallback and modern Supabase secret key", () => {
+  const utils=readFileSync("netlify/functions/_community-utils.js","utf8");
+  const health=readFileSync("netlify/functions/community-health.js","utf8");
+  assert.match(utils,/\["SUPABASE_URL","VITE_SUPABASE_URL"\]/);
+  assert.match(utils,/\["SUPABASE_SERVICE_ROLE_KEY","SUPABASE_SECRET_KEY"\]/);
+  assert.match(health,/communityConfigStatus/);
+  assert.match(health,/database:true/);
+});
+
+test("mobile result artwork has a final hard-centering rule", () => {
+  assert.match(css,/#result-hero \.result-hero-art\{[\s\S]*place-items:center!important/);
+  assert.match(css,/#result-hero \.result-hero-art \.square-portrait\{[\s\S]*margin-inline:auto!important/);
+  assert.match(css,/transform:none!important/);
 });

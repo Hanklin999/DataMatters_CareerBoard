@@ -1,21 +1,24 @@
-# Apply Data Matters v3.5
+# 套用 Data Matters v3.6
 
-1. Extract this package.
-2. Open PowerShell in the extracted folder.
-3. Run:
+在解壓後資料夾開啟 PowerShell：
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
-.\apply-update.ps1 -RepoPath "C:\Users\chihh\OneDrive\文件\GitHub\DataMatters_CareerBoard"
+
+.\apply-update.ps1 `
+  -RepoPath "C:\Users\chihh\OneDrive\文件\GitHub\DataMatters_CareerBoard"
 ```
 
-4. In the repository run:
+接著回到 repository：
 
 ```powershell
 npm run validate
+git status
 git add -A
-git commit -m "Fix mobile result hero layout"
+git commit -m "Fix community server and role detail interactions"
 git push origin master
 ```
 
-5. Trigger a fresh Netlify deploy. The updated asset query strings help bypass stale mobile Safari cache.
+Push 後讓 Netlify 重新部署。
+
+留言功能還需要完成 Netlify server-only environment variables；詳見 `docs/community-server-setup.md`。

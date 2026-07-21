@@ -1430,7 +1430,7 @@ const Encyclopedia = {
     const viewport = document.getElementById("ency-carousel");
     const entries = Object.entries(profiles);
     viewport.innerHTML = `<div class="ency-track">${entries.map(([famKey, p], index) => `
-      <article class="ency-card" style="${famVars(p)}" data-card-index="${index}" role="group" aria-label="${index + 1} / ${entries.length}：${p.class_title}，${p.cn_name}" onclick="Encyclopedia.openCard(event,'${famKey.replace(/'/g,"\'")}')">
+      <article class="ency-card" style="${famVars(p)}" data-card-index="${index}" data-fam-key="${famKey}" role="group" aria-label="${index + 1} / ${entries.length}：${p.class_title}，${p.cn_name}">
         <div class="ency-card-visual">${portraitHTML(p)}</div>
         <div class="ency-card-copy">
           <span class="eyebrow">角色 ${index + 1} / ${entries.length}</span>
@@ -1439,10 +1439,22 @@ const Encyclopedia = {
           <div class="official-en">${p.en_name || ""}</div>
           <p class="route-oneliner">${p.tagline}</p>
           <div class="tl-chip">${p.tlevel_range||""}</div>
-          <button class="btn btn-ghost route-btn" onclick="event.stopPropagation(); Encyclopedia.openFamily('${famKey.replace(/'/g,"\'")}')">認識這個角色</button>
+          <button type="button" class="btn btn-ghost route-btn" data-role-detail="${famKey}">認識這個角色</button>
         </div>
       </article>
     `).join("")}</div>`;
+    viewport.querySelectorAll(".ency-card").forEach(card => {
+      card.addEventListener("click", event => {
+        if(event.target.closest("[data-role-detail]"))return;
+        Encyclopedia.openCard(event, card.dataset.famKey);
+      });
+      const detailButton=card.querySelector("[data-role-detail]");
+      if(detailButton)detailButton.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        Encyclopedia.openFamily(detailButton.dataset.roleDetail);
+      });
+    });
     Encyclopedia.bindCarousel();
     Encyclopedia.syncCarousel(Encyclopedia._activeIndex || 0);
     deferFrame(() => deferFrame(() => Encyclopedia.refreshCarousel(false)));
@@ -1643,8 +1655,7 @@ const Encyclopedia = {
   },
 
   openFamily(famKey){
-    track("role_opened", { role_id: famKey, source: "career_guide" });
-    Modal.open(familyDetailHTML(famKey));
+    openRoleDetail(famKey,"career_guide");
   }
 };
 
@@ -1668,6 +1679,26 @@ const Modal = {
   },
   _esc(e){ if (e.key === "Escape") Modal.close(); }
 };
+
+function openRoleDetail(famKey, source="unknown"){
+  const profiles=State.careers?.meta?.family_profiles||{};
+  if(!famKey||!profiles[famKey]){
+    console.warn("Unknown role detail",famKey);
+    return false;
+  }
+  track("role_opened", { role_id:famKey, source });
+  Modal.open(familyDetailHTML(famKey));
+  return true;
+}
+
+// Inline handlers and the v3 product layer must be able to call these reliably.
+Object.assign(window,{
+  Encyclopedia,
+  Modal,
+  Nav,
+  Results,
+  DataMattersRoleDetail:{open:openRoleDetail}
+});
 
 /* ---------------------------------------------------------------------
    Boot

@@ -41,7 +41,7 @@
         const res=await fetch(url,{headers:{"Accept":"application/json"}});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.message||"read_failed");state.posts=Array.isArray(data.posts)?data.posts:[];state.loaded=true;Community.renderList();
       }catch(err){
         const setupMessages={
-          server_not_configured:"留言板尚未完成伺服器環境變數設定。",
+          server_not_configured:"留言板尚未連接資料庫，網站管理者需完成 Netlify 伺服器設定。",
           community_schema_missing:"留言板資料表尚未建立。",
           community_permission_missing:"留言板資料庫權限尚未完成設定。"
         };
@@ -86,7 +86,7 @@
           invalid_nickname:"請使用 2–20 字的暱稱。",
           duplicate_content:"相同內容剛剛已發布，請勿重複送出。",
           consent_required:"請先同意留言板規範。",
-          server_not_configured:"留言功能尚未完成伺服器設定。",
+          server_not_configured:"留言功能尚未連接資料庫，網站管理者需完成 Netlify 伺服器設定。",
           community_schema_missing:"留言資料表尚未建立，請通知網站管理者。",
           community_permission_missing:"留言資料庫權限尚未完成，請通知網站管理者。",
           community_schema_outdated:"留言資料庫版本尚未更新，請通知網站管理者。"
