@@ -3,9 +3,10 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 
 const jsFiles = [
-  "app.js", "analytics.js", "product-v3.js", "community.js",
+  "analytics-events.js", "app.js", "analytics.js", "product-v3.js", "community.js",
   "netlify/functions/_community-utils.js", "netlify/functions/community-read.js",
-  "netlify/functions/community-submit.js", "netlify/functions/community-report.js"
+  "netlify/functions/community-submit.js", "netlify/functions/community-report.js",
+  "netlify/functions/community-health.js", "netlify/functions/role-share.js"
 ];
 for (const file of jsFiles) execFileSync(process.execPath, ["--check", file], { stdio:"inherit" });
 
@@ -16,7 +17,17 @@ assert.match(html, /<meta name="viewport"[^>]*width=device-width/i);
 assert.match(html, /class="skip-link"/);
 assert.match(html, /aria-modal="true"/);
 
-const publicFiles = ["index.html","analytics-config.js","analytics.js","app.js","product-v3.js","community.js"];
+const registryScript = html.indexOf('src="analytics-events.js');
+const configScript = html.indexOf('src="analytics-config.js');
+const analyticsScript = html.indexOf('src="analytics.js');
+const appScript = html.indexOf('src="app.js');
+const productScript = html.indexOf('src="product-v3.js');
+const communityScript = html.indexOf('src="community.js');
+assert.ok(registryScript >= 0, "analytics-events.js is not loaded");
+assert.ok(registryScript < configScript && configScript < analyticsScript, "Analytics registry/config/client load order is invalid");
+assert.ok(analyticsScript < appScript && analyticsScript < productScript && analyticsScript < communityScript, "Analytics client must load before product scripts");
+
+const publicFiles = ["index.html","analytics-events.js","analytics-config.js","analytics.js","app.js","product-v3.js","community.js"];
 for (const file of publicFiles){
   if (!existsSync(file)) continue;
   const source = readFileSync(file,"utf8");

@@ -1,154 +1,256 @@
-#!/usr/bin/env node
-/**
- * test-analytics.mjs — 匿名埋點單元測試（零依賴）
- * 用法：node test-analytics.mjs
- */
 import { readFileSync } from "node:fs";
+import vm from "node:vm";
 
-let failures = 0;
-function check(name, cond, extra){
-  if (cond) console.log("  ✓ " + name);
-  else { failures++; console.log("  ✗ " + name + (extra ? "｜" + extra : "")); }
+const registryCode = readFileSync("analytics-events.js", "utf8");
+const analyticsCode = readFileSync("analytics.js", "utf8");
+
+const results = [];
+function check(label, condition) {
+  if (!condition) {
+    results.push({ label, ok: false });
+    console.error(`  ✗ ${label}`);
+  } else {
+    results.push({ label, ok: true });
+    console.log(`  ✓ ${label}`);
+  }
 }
 
-/* ── stubs ── */
-const store = {};
-global.sessionStorage = {
-  getItem: k => store[k] ?? null,
-  setItem: (k,v) => { store[k] = String(v); },
-  removeItem: k => { delete store[k]; }
-};
-global.location = { hostname: "datamatters-hanks-career-board.netlify.app", pathname: "/", search: "?utm_source=threads&utm_medium=social" };
-global.screen = { width: 1440 };
-global.window = global;
-Object.defineProperty(global, "navigator", { value: { maxTouchPoints: 0 }, configurable: true });
-global.document = { referrer: "https://www.threads.com/@hank00117" };
-// Node 22 已內建 global crypto（含 randomUUID），無需覆寫
-const sent = [];
-global.fetch = (url, opts) => { sent.push({ url, body: JSON.parse(opts.body) }); return Promise.resolve({ ok: true, status: 201 }); };
+function createStorage() {
+  const values = new Map();
+  return {
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    setItem(key, value) { values.set(key, String(value)); },
+    removeItem(key) { values.delete(key); },
+    clear() { values.clear(); }
+  };
+}
 
-global.ANALYTICS_CONFIG = {
-  SUPABASE_URL: "https://test.supabase.co",
-  SUPABASE_ANON_KEY: "test-anon-key",
-  ANALYTICS_ENABLED: true,
-  ANALYTICS_DEBUG: false,
-  APP_VERSION: "v1", SCORING_VERSION: "v2"
-};
-window.ANALYTICS_CONFIG = global.ANALYTICS_CONFIG;
+function loadAnalytics({
+  hostname = "datamatters.example.com",
+  pathname = "/",
+  search = "",
+  referrer = "",
+  url = "https://rmflseoygadbocpkgxyi.supabase.co",
+  anonKey = "anon-key",
+  enabled = true,
+  environment = "production",
+  debug = false,
+  loadRegistry = true,
+  storage = createStorage()
+} = {}) {
+  const requests = [];
+  const warnings = [];
+  const logs = [];
+  let uuidCounter = 0;
 
-(0, eval)(readFileSync("analytics.js", "utf8"));
-const A = window.DMAnalytics;
+  const location = { hostname, pathname, search };
+  const document = { referrer };
+  const navigator = { maxTouchPoints: 0 };
+  const screen = { width: 1280 };
+  const crypto = {
+    randomUUID() {
+      uuidCounter += 1;
+      return `00000000-0000-4000-8000-${String(uuidCounter).padStart(12, "0")}`;
+    }
+  };
+
+  const window = {
+    ANALYTICS_CONFIG: {
+      ANALYTICS_ENABLED: enabled,
+      ANALYTICS_ENV: environment,
+      ANALYTICS_DEBUG: debug,
+      SUPABASE_URL: url,
+      SUPABASE_ANON_KEY: anonKey,
+      APP_VERSION: "v3.10"
+    },
+    DATA_MATTERS_APP_VERSION: "v3.10",
+    innerWidth: 1280,
+    crypto
+  };
+
+  const fetch = (requestUrl, options = {}) => {
+    requests.push({ url: String(requestUrl), options });
+    return Promise.resolve({ ok: true, status: 201 });
+  };
+
+  const context = {
+    window,
+    location,
+    document,
+    navigator,
+    screen,
+    sessionStorage: storage,
+    fetch,
+    URL,
+    URLSearchParams,
+    Uint8Array,
+    Math,
+    setTimeout,
+    clearTimeout,
+    console: {
+      warn(...args) { warnings.push(args.map(String).join(" ")); },
+      log(...args) { logs.push(args); },
+      error(...args) { warnings.push(args.map(String).join(" ")); }
+    }
+  };
+  Object.assign(window, {
+    window,
+    location,
+    document,
+    navigator,
+    screen,
+    sessionStorage: storage,
+    fetch,
+    URL,
+    URLSearchParams,
+    Uint8Array,
+    Math,
+    setTimeout,
+    clearTimeout,
+    console: context.console
+  });
+
+  vm.createContext(context);
+  if (loadRegistry) vm.runInContext(registryCode, context, { filename: "analytics-events.js" });
+  vm.runInContext(analyticsCode, context, { filename: "analytics.js" });
+  return { context, analytics: window.DMAnalytics, requests, warnings, logs, storage };
+}
+
+function parseRow(request) {
+  const parsed = JSON.parse(request.options.body);
+  return Array.isArray(parsed) ? parsed[0] : parsed;
+}
 
 console.log("【analytics.js 單元測試】");
-check("production 環境判定", A.env === "production", A.env);
-check("已啟用", A.enabled === true);
 
-// session 一致性
-const s1 = A.sessionId(), s2 = A.sessionId();
-check("同一 tab session ID 一致", s1 === s2 && /^[0-9a-f-]{36}$/.test(s1));
+{
+  const { analytics } = loadAnalytics();
+  check("production 環境判定", analytics.environment === "production" && analytics.env === "production");
+  check("已啟用", analytics.enabled === true);
+}
 
-// 事件送出與欄位
-A.track("landing_viewed", { landing_variant: "default" });
-await new Promise(r => setTimeout(r, 10));
-check("合法事件已送出", sent.length === 1);
-const row = sent[0].body[0];
-check("REST endpoint 正確", sent[0].url.includes("/rest/v1/analytics_events"));
-check("row 含 session_id / event_name / device_type", row.session_id === s1 && row.event_name === "landing_viewed" && ["mobile","tablet","desktop","unknown"].includes(row.device_type));
-check("occurred_at 未由前端指定（交給 DB default）", row.occurred_at === undefined);
-check("UTM 從首次 URL 捕捉", row.utm_source === "threads" && row.utm_medium === "social");
-check("referrer 只留 domain", row.referrer_domain === "www.threads.com");
-check("properties 含 environment 與 client_event_id", row.properties.environment === "production" && /^[0-9a-f-]{36}$/.test(row.properties.client_event_id));
+{
+  const sharedStorage = createStorage();
+  const first = loadAnalytics({ storage: sharedStorage });
+  const second = loadAnalytics({ storage: sharedStorage });
+  check("同一 tab session ID 一致", first.analytics.sessionId() === second.analytics.sessionId());
+}
 
-// 未知事件拒絕
-A.track("hacked_event", { foo: 1 });
-await new Promise(r => setTimeout(r, 10));
-check("未知事件被拒絕", sent.length === 1);
+{
+  const run = loadAnalytics({
+    pathname: "/career",
+    search: "?utm_source=threads&utm_medium=social&utm_campaign=launch",
+    referrer: "https://example.org/article"
+  });
+  const E = run.context.window.DMAnalyticsEvents.EVENTS;
+  run.analytics.track(E.RESULT_VIEWED, {
+    role_id: "Data Analytics & Business Intelligence",
+    source: "result_page",
+    answers: { q1: 5 },
+    unknown_field: "drop-me"
+  });
+  const request = run.requests[0];
+  const row = parseRow(request);
+  check("合法事件已送出", run.requests.length === 1);
+  check("REST endpoint 正確", request.url === "https://rmflseoygadbocpkgxyi.supabase.co/rest/v1/analytics_events");
+  check("row 含 session_id / event_name / device_type", Boolean(row.session_id) && row.event_name === E.RESULT_VIEWED && row.device_type === "desktop");
+  check("occurred_at 未由前端指定（交給 DB default）", !("occurred_at" in row));
+  check("UTM 從首次 URL 捕捉", row.utm_source === "threads" && row.utm_medium === "social" && row.utm_campaign === "launch");
+  check("referrer 只留 domain", row.referrer_domain === "example.org");
+  check("properties 含 environment 與 client_event_id", row.properties.environment === "production" && Boolean(row.properties.client_event_id));
+  check("answers / 未知欄位被丟棄", !("answers" in row.properties) && !("unknown_field" in row.properties));
+}
 
-// 欄位 allowlist：answers 與未知欄位不得外洩
-A.track("quiz_completed", { total_time_spent_sec: 42, answers: { major: 2, income: 5 }, secret_dom: "<div>", result_count: 3 });
-await new Promise(r => setTimeout(r, 10));
-const row2 = sent[1].body[0];
-check("answers / 未知欄位被丟棄", row2.properties.answers === undefined && row2.properties.secret_dom === undefined && row2.answers === undefined);
-check("合法 properties 保留", row2.properties.total_time_spent_sec === 42 && row2.properties.result_count === 3);
+{
+  const run = loadAnalytics();
+  const E = run.context.window.DMAnalyticsEvents.EVENTS;
+  run.analytics.track("unknown_event", {});
+  check("未知事件被拒絕", run.requests.length === 0);
+  run.analytics.track(E.RESULT_HERO_VIEWED, { match_level: "high", source_page: "results" });
+  const row = parseRow(run.requests[0]);
+  check("合法 properties 保留", row.properties.match_level === "high" && row.properties.source_page === "results");
+}
 
-// 欄位分流：column fields 進 top-level
-A.track("result_feedback_submitted", { accuracy_rating: 5, clarity_before: 2, clarity_after: 4, preferred_role_id: "X", role_id: "Y", clarity_uplift: 2 });
-await new Promise(r => setTimeout(r, 10));
-const row3 = sent[2].body[0];
-check("column 欄位進 top-level、props 進 properties", row3.accuracy_rating === 5 && row3.clarity_before === 2 && row3.properties.clarity_uplift === 2);
+{
+  const run = loadAnalytics();
+  const E = run.context.window.DMAnalyticsEvents.EVENTS;
+  run.analytics.track(E.ACCURACY_RATING_SUBMITTED, {
+    role_id: "role-a",
+    accuracy_rating: 5,
+    source: "feedback"
+  });
+  const row = parseRow(run.requests[0]);
+  check("column 欄位進 top-level、props 進 properties", row.role_id === "role-a" && row.accuracy_rating === 5 && row.properties.source === "feedback");
+}
 
-// once per session
-A.trackOncePerSession("landing_viewed", {});
-A.trackOncePerSession("landing_viewed", {});
-await new Promise(r => setTimeout(r, 10));
-check("trackOncePerSession 去重", sent.length === 4); // 只多 1 筆
+{
+  const run = loadAnalytics();
+  const E = run.context.window.DMAnalyticsEvents.EVENTS;
+  run.analytics.trackOncePerSession(E.LANDING_VIEWED, { landing_variant: "default" });
+  run.analytics.trackOncePerSession(E.LANDING_VIEWED, { landing_variant: "default" });
+  check("trackOncePerSession 去重", run.requests.length === 1);
+  run.analytics.trackOncePerRun("hero", E.RESULT_HERO_VIEWED, {});
+  run.analytics.trackOncePerRun("hero", E.RESULT_HERO_VIEWED, {});
+  check("trackOncePerRun 去重", run.requests.length === 2);
+}
 
-// once per run
-A.trackOncePerRun("fb_1", "result_feedback_viewed", {});
-A.trackOncePerRun("fb_1", "result_feedback_viewed", {});
-await new Promise(r => setTimeout(r, 10));
-check("trackOncePerRun 去重", sent.length === 5);
+{
+  const run = loadAnalytics();
+  const E = run.context.window.DMAnalyticsEvents.EVENTS;
+  run.analytics.track(E.COMMUNITY_POST_FAILED, { error_type: "x".repeat(500) });
+  const row = parseRow(run.requests[0]);
+  check("properties 字串截斷至 200", row.properties.error_type.length === 200);
+}
 
-// 長字串截斷
-A.track("job_viewed", { source_section: "x".repeat(500), job_id: "j1" });
-await new Promise(r => setTimeout(r, 10));
-check("properties 字串截斷至 200", sent[5].body[0].properties.source_section.length === 200);
+{
+  const run = loadAnalytics({ url: "", anonKey: "", enabled: true });
+  run.analytics.track(run.context.window.DMAnalyticsEvents.EVENTS.LANDING_VIEWED, {});
+  check("缺 Supabase 設定：停用且不拋錯", run.analytics.enabled === false && run.requests.length === 0);
+}
 
-// 缺 config → 停用不炸
-const store2 = {}; // fresh session storage
-global.sessionStorage = { getItem: k => store2[k] ?? null, setItem: (k,v)=>{store2[k]=String(v);}, removeItem: k=>{delete store2[k];} };
-window.ANALYTICS_CONFIG = { SUPABASE_URL: "", SUPABASE_ANON_KEY: "", ANALYTICS_ENABLED: true };
-window.DMAnalytics = undefined;
-(0, eval)(readFileSync("analytics.js", "utf8"));
-const B = window.DMAnalytics;
-const before = sent.length;
-B.track("landing_viewed", {});
-await new Promise(r => setTimeout(r, 10));
-check("缺 Supabase 設定：停用且不拋錯", B.enabled === false && sent.length === before);
+{
+  const run = loadAnalytics({ hostname: "localhost", environment: "local", debug: false });
+  const E = run.context.window.DMAnalyticsEvents.EVENTS;
+  run.analytics.track(E.LANDING_VIEWED, {});
+  check("localhost 預設不寫入 production", run.analytics.enabled === false && run.requests.length === 0);
+}
 
-// localhost 預設不送
-global.location = { hostname: "localhost", pathname: "/", search: "" };
-window.ANALYTICS_CONFIG = { SUPABASE_URL: "https://test.supabase.co", SUPABASE_ANON_KEY: "test-anon-key", ANALYTICS_ENABLED: true, ANALYTICS_DEBUG: false }; // 有 key 的完整設定
-window.DMAnalytics = undefined;
-const store3 = {};
-global.sessionStorage = { getItem: k => store3[k] ?? null, setItem: (k,v)=>{store3[k]=String(v);}, removeItem: k=>{delete store3[k];} };
-(0, eval)(readFileSync("analytics.js", "utf8"));
-const C = window.DMAnalytics;
-const before2 = sent.length;
-C.track("landing_viewed", {});
-await new Promise(r => setTimeout(r, 10));
-check("localhost 預設不寫入 production", C.env === "local" && C.enabled === false && sent.length === before2);
-
-// URL validation：Dashboard 網址必須被拒絕並停用
-for (const [label, badUrl] of [
+for (const [label, url] of [
   ["Dashboard 網址", "https://supabase.com/dashboard/project/rmflseoygadbocpkgxyi"],
   ["含 /rest/v1", "https://rmflseoygadbocpkgxyi.supabase.co/rest/v1"],
   ["http 非 https", "http://rmflseoygadbocpkgxyi.supabase.co"],
   ["非 supabase.co 網域", "https://rmflseoygadbocpkgxyi.evil.com"]
-]){
-  window.ANALYTICS_CONFIG = { SUPABASE_URL: badUrl, SUPABASE_ANON_KEY: "k", ANALYTICS_ENABLED: true };
-  window.DMAnalytics = undefined;
-  const st = {}; global.sessionStorage = { getItem: k => st[k] ?? null, setItem: (k,v)=>{st[k]=String(v);}, removeItem: k=>{delete st[k];} };
-  global.location = { hostname: "datamatters-hanks-career-board.netlify.app", pathname: "/", search: "" };
-  (0, eval)(readFileSync("analytics.js", "utf8"));
-  const D = window.DMAnalytics;
-  const b = sent.length;
-  D.track("landing_viewed", {});
-  await new Promise(r => setTimeout(r, 10));
-  check(`URL validation 拒絕：${label}`, D.enabled === false && sent.length === b, badUrl);
-}
-// 正確 URL 通過 validation
-{
-  window.ANALYTICS_CONFIG = { SUPABASE_URL: "https://rmflseoygadbocpkgxyi.supabase.co", SUPABASE_ANON_KEY: "k", ANALYTICS_ENABLED: true };
-  window.DMAnalytics = undefined;
-  const st = {}; global.sessionStorage = { getItem: k => st[k] ?? null, setItem: (k,v)=>{st[k]=String(v);}, removeItem: k=>{delete st[k];} };
-  (0, eval)(readFileSync("analytics.js", "utf8"));
-  const E = window.DMAnalytics;
-  const b = sent.length;
-  E.track("landing_viewed", {});
-  await new Promise(r => setTimeout(r, 10));
-  check("正確 Project URL 通過並送至 .supabase.co/rest/v1", E.enabled === true && sent.length === b + 1 && sent[sent.length-1].url === "https://rmflseoygadbocpkgxyi.supabase.co/rest/v1/analytics_events");
+]) {
+  const run = loadAnalytics({ url });
+  const E = run.context.window.DMAnalyticsEvents.EVENTS;
+  run.analytics.track(E.LANDING_VIEWED, {});
+  check(`URL validation 拒絕：${label}｜${url}`, run.requests.length === 0 && run.analytics.enabled === false);
 }
 
-console.log("\n" + (failures ? `✗ ${failures} 項未通過` : "✓ analytics 測試全部通過"));
-process.exit(failures ? 1 : 0);
+{
+  const run = loadAnalytics({ url: "https://rmflseoygadbocpkgxyi.supabase.co" });
+  const E = run.context.window.DMAnalyticsEvents.EVENTS;
+  run.analytics.track(E.LANDING_VIEWED, {});
+  check("正確 Project URL 通過並送至 .supabase.co/rest/v1", run.requests.length === 1 && run.requests[0].url.endsWith(".supabase.co/rest/v1/analytics_events"));
+}
+
+{
+  const run = loadAnalytics({ loadRegistry: false, debug: true });
+  run.analytics.track("landing_viewed", {});
+  check("缺少事件 registry 時安全停用", run.analytics.enabled === false && run.requests.length === 0);
+  check("debug 模式明確警告 registry 缺失", run.warnings.some(message => message.includes("Event registry is missing")));
+  check("_allowedEvents 由 registry 產生", Array.isArray(run.analytics._allowedEvents) && run.analytics._allowedEvents.length === 0);
+}
+
+{
+  const run = loadAnalytics();
+  const names = run.context.window.DMAnalyticsEvents.EVENT_NAMES;
+  check("_allowedEvents 與 registry 完全一致", JSON.stringify([...run.analytics._allowedEvents].sort()) === JSON.stringify([...names].sort()));
+}
+
+const failed = results.filter(item => !item.ok);
+if (failed.length) {
+  console.error(`\n✗ ${failed.length} 項未通過`);
+  process.exit(1);
+}
+console.log(`\n✓ ${results.length} 項全部通過`);

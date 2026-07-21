@@ -1,66 +1,54 @@
 param(
-  [Parameter(Mandatory = $true)]
+  [Parameter(Mandatory=$true)]
   [string]$RepoPath
 )
 
 $ErrorActionPreference = "Stop"
-$Source = Split-Path -Parent $MyInvocation.MyCommand.Path
-$Repo = (Resolve-Path $RepoPath).Path
+$PackageRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RepoPath = (Resolve-Path $RepoPath).Path
 
-$required = @(
-  (Join-Path $Repo ".git"),
-  (Join-Path $Repo "analytics-config.js"),
-  (Join-Path $Repo "data\careers.json"),
-  (Join-Path $Repo "images")
-)
-foreach ($item in $required) {
-  if (-not (Test-Path $item)) {
-    throw "不是完整的 Data Matters repository，缺少：$item"
-  }
-}
-
-$excluded = @(
-  "APPLY_UPDATE.md",
-  "CHANGE_REPORT.md",
-  "V3_1_CHANGE_REPORT.md",
-  "V3_2_CHANGE_REPORT.md",
-  "V3_4_CHANGE_REPORT.md",
-  "V3_5_CHANGE_REPORT.md",
-  "V3_6_CHANGE_REPORT.md",
-  "V3_7_CHANGE_REPORT.md",
-  "V3_8_CHANGE_REPORT.md",
-  "V3_9_CHANGE_REPORT.md",
-  "VALIDATION_REPORT.md",
-  "MANIFEST.sha256",
-  "apply-update.ps1"
+$Files = @(
+  "analytics-events.js",
+  "analytics.js",
+  "app.js",
+  "product-v3.js",
+  "community.js",
+  "index.html",
+  "package.json",
+  "package-lock.json",
+  "test-analytics.mjs",
+  ".github/workflows/validate.yml",
+  "scripts/build.mjs",
+  "scripts/static-lint.mjs",
+  "scripts/generate-analytics-event-constraint.mjs",
+  "tests/analytics-event-contract.test.mjs",
+  "tests/analytics-url-runtime.test.mjs",
+  "tests/product-v3.test.mjs",
+  "tests/role-detail-runtime.test.mjs",
+  "docs/ANALYTICS_DATA_DICTIONARY.md",
+  "supabase/generated/analytics_event_constraint.sql",
+  "supabase/generated/check_legacy_analytics_events.sql",
+  "supabase/migrations/006_sync_analytics_event_names.sql"
 )
 
-$files = Get-ChildItem -LiteralPath $Source -Recurse -File | Where-Object {
-  $relative = $_.FullName.Substring($Source.Length).TrimStart('\')
-  ($excluded -notcontains $relative) -and ($relative -notlike "dist\*")
-}
+$BackupRoot = Join-Path $RepoPath (".analytics-event-registry-backup-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
+New-Item -ItemType Directory -Force -Path $BackupRoot | Out-Null
 
-$obsoleteFiles = @(
-  (Join-Path $Repo "vendor\qrcode.js")
-)
-foreach ($obsolete in $obsoleteFiles) {
-  if (Test-Path $obsolete) {
-    Remove-Item -LiteralPath $obsolete -Force
-    Write-Host "Removed obsolete $obsolete"
+foreach ($RelativePath in $Files) {
+  $Source = Join-Path $PackageRoot $RelativePath
+  if (-not (Test-Path $Source)) { throw "Package file missing: $RelativePath" }
+
+  $Target = Join-Path $RepoPath $RelativePath
+  if (Test-Path $Target) {
+    $Backup = Join-Path $BackupRoot $RelativePath
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Backup) | Out-Null
+    Copy-Item -Force $Target $Backup
   }
+
+  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Target) | Out-Null
+  Copy-Item -Force $Source $Target
 }
 
-foreach ($file in $files) {
-  $relative = $file.FullName.Substring($Source.Length).TrimStart('\')
-  $destination = Join-Path $Repo $relative
-  $parent = Split-Path -Parent $destination
-  if (-not (Test-Path $parent)) {
-    New-Item -ItemType Directory -Path $parent -Force | Out-Null
-  }
-  Copy-Item -LiteralPath $file.FullName -Destination $destination -Force
-  Write-Host "Updated $relative"
-}
-
-Write-Host ""
-Write-Host "完成。已保留 analytics-config.js、data、images 與 .git。" -ForegroundColor Green
-Write-Host "下一步：cd 到 repository，執行 npm run validate；通過後再 commit 與 push。"
+Write-Host "Analytics event registry update applied."
+Write-Host "Backup: $BackupRoot"
+Write-Host "Next: npm install; npm run generate:analytics-schema; npm run validate; npm run build"

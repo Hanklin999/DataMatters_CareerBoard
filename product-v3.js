@@ -3,6 +3,7 @@
   "use strict";
 
   const APP_VERSION = window.DATA_MATTERS_APP_VERSION || (window.ANALYTICS_CONFIG && window.ANALYTICS_CONFIG.APP_VERSION) || "v3";
+  const EVENTS = (window.DMAnalyticsEvents && window.DMAnalyticsEvents.EVENTS) || {};
   const SCORING_VERSION = (window.ANALYTICS_CONFIG && window.ANALYTICS_CONFIG.SCORING_VERSION) || "v2";
   const questionSeenAt = new Map();
   const sliderTimers = new Map();
@@ -10,6 +11,7 @@
   let sharedQuizStarted = false;
 
   function safeTrack(name, properties){
+    if (!name) return;
     try { track(name, Object.assign({ app_version: APP_VERSION }, properties || {})); } catch (_) {}
   }
 
@@ -58,7 +60,7 @@
     document.querySelectorAll(".navlinks a").forEach(a => a.classList.toggle("active", a.dataset.nav === navMap[id]));
     if (["home","encyclopedia","community","about"].includes(id)) history.replaceState(null, "", id === "home" ? location.pathname + location.search : `#${id}`);
     window.scrollTo({ top:0, behavior:"smooth" });
-    safeTrack("page_viewed", { source_page: id });
+    safeTrack(EVENTS.PAGE_VIEWED, { source_page: id });
     if (id === "encyclopedia") nextFrame(() => nextFrame(() => Encyclopedia.refreshCarousel && Encyclopedia.refreshCarousel(false)));
     if (id === "results") nextFrame(() => Results.ensureHeroArtwork && Results.ensureHeroArtwork());
     if (id === "community" && window.Community) Community.load();
@@ -68,7 +70,7 @@
   Nav.startQuiz = function(entryPoint){
     if (sharedReferral){
       sharedQuizStarted = true;
-      safeTrack("shared_result_quiz_started", { source_page: "shared_result" });
+      safeTrack(EVENTS.SHARED_RESULT_QUIZ_STARTED, { source_page: "shared_result" });
     }
     baseStartQuiz(entryPoint || (sharedReferral ? "shared_result" : "unknown"));
     markStationQuestions("station1");
@@ -101,7 +103,7 @@
   Stations.onSingle = function(id, idx){
     const previous = State.answers[id];
     baseOnSingle(id, idx);
-    safeTrack("quiz_question_answered", questionPayload(id, idx, previous, previous !== undefined && Number(previous) !== Number(idx)));
+    safeTrack(EVENTS.QUIZ_QUESTION_ANSWERED, questionPayload(id, idx, previous, previous !== undefined && Number(previous) !== Number(idx)));
   };
 
   const baseOnSlider = Stations.onSlider.bind(Stations);
@@ -110,14 +112,14 @@
     baseOnSlider(id, val);
     clearTimeout(sliderTimers.get(id));
     sliderTimers.set(id, setTimeout(() => {
-      safeTrack("quiz_question_answered", questionPayload(id, val, previous, previous !== undefined && Number(previous) !== Number(val)));
+      safeTrack(EVENTS.QUIZ_QUESTION_ANSWERED, questionPayload(id, val, previous, previous !== undefined && Number(previous) !== Number(val)));
     }, 450));
   };
 
   const baseSetBaseline = Stations.setBaseline.bind(Stations);
   Stations.setBaseline = function(v){
     baseSetBaseline(v);
-    if (State.baselineClarity !== null) safeTrack("clarity_before_submitted", { clarity_before: State.baselineClarity });
+    if (State.baselineClarity !== null) safeTrack(EVENTS.CLARITY_BEFORE_SUBMITTED, { clarity_before: State.baselineClarity });
   };
 
   /* ------------------------------------------------------------------
@@ -163,7 +165,7 @@
   }
 
   Results.scrollToJobs = function(){
-    safeTrack("result_primary_cta_clicked", { role_id: ResultState.routes[0]?.famKey });
+    safeTrack(EVENTS.RESULT_PRIMARY_CTA_CLICKED, { role_id: ResultState.routes[0]?.famKey });
     document.getElementById("result-jobs-section")?.scrollIntoView({ behavior:"smooth", block:"start" });
   };
 
@@ -277,7 +279,7 @@
 
     document.getElementById("compare-entry").innerHTML = `<div class="compare-entry"><div><h3>還分不清兩個角色？</h3><p>把每天做什麼、技術投入與常見產出放在一起看。</p></div><button class="btn btn-ghost" onclick="RoleCompare.open('${escapeHTML(main.famKey)}')">比較兩個角色</button></div>`;
 
-    nextFrame(() => safeTrack("result_hero_viewed", { role_id: main.famKey, match_level: State.confidence?.matchLevel, result_clarity: State.confidence?.clarity }));
+    nextFrame(() => safeTrack(EVENTS.RESULT_HERO_VIEWED, { role_id: main.famKey, match_level: State.confidence?.matchLevel, result_clarity: State.confidence?.clarity }));
   };
 
   Results.renderProfile = function(){
@@ -307,7 +309,7 @@
       const d = document.getElementById("result-profile-accordion");
       if (d && !d.dataset.bound){
         d.dataset.bound = "1";
-        d.addEventListener("toggle", () => safeTrack(d.open ? "result_profile_expanded" : "result_profile_collapsed", { role_id: main.famKey }));
+        d.addEventListener("toggle", () => safeTrack(d.open ? EVENTS.RESULT_PROFILE_EXPANDED : EVENTS.RESULT_PROFILE_COLLAPSED, { role_id: main.famKey }));
       }
     }, 0);
   };
@@ -338,8 +340,8 @@
     Results.renderRouteFilter(); Results.renderDomainFilter(); Results.renderJobs();
     if (i > 0) {
       const payload={ role_id: ResultState.routes[i]?.famKey, recommendation_rank: i + 1 };
-      safeTrack("alternate_role_opened", payload);
-      safeTrack("result_alternate_role_opened", payload);
+      safeTrack(EVENTS.ALTERNATE_ROLE_OPENED, payload);
+      safeTrack(EVENTS.RESULT_ALTERNATE_ROLE_OPENED, payload);
     }
   };
 
@@ -354,7 +356,7 @@
   Results.selectDomain = function(d){
     ResultState.selectedDomain = d || null;
     const route = ResultState.routes[ResultState.selectedRoute ?? 0];
-    safeTrack("domain_selected", { domain_id: d || "all", role_id: route?.famKey, selection_action:"select" });
+    safeTrack(EVENTS.DOMAIN_SELECTED, { domain_id: d || "all", role_id: route?.famKey, selection_action:"select" });
     Results.renderDomainFilter(); Results.renderJobs();
   };
 
@@ -370,8 +372,8 @@
   const baseTrackExternalJob = trackExternalJob;
   trackExternalJob = function(jobId, listPos){
     const t = State.careers?.tracks?.find(x => x.id === jobId);
-    safeTrack("job_opened", { job_id:jobId, role_id:t?.job_family, domain_id:t?.domain, company_name:t?.company, list_position:listPos });
-    safeTrack("result_job_card_clicked", { job_id:jobId, role_id:t?.job_family, domain_id:t?.domain, list_position:listPos });
+    safeTrack(EVENTS.JOB_OPENED, { job_id:jobId, role_id:t?.job_family, domain_id:t?.domain, company_name:t?.company, list_position:listPos });
+    safeTrack(EVENTS.RESULT_JOB_CARD_CLICKED, { job_id:jobId, role_id:t?.job_family, domain_id:t?.domain, list_position:listPos });
     return baseTrackExternalJob(jobId, listPos);
   };
 
@@ -390,8 +392,8 @@
   Results.openRoute = function(i){
     if (i > 0) {
       const payload={ role_id:ResultState.routes[i]?.famKey, recommendation_rank:i + 1 };
-      safeTrack("alternate_role_opened", payload);
-      safeTrack("result_alternate_role_opened", payload);
+      safeTrack(EVENTS.ALTERNATE_ROLE_OPENED, payload);
+      safeTrack(EVENTS.RESULT_ALTERNATE_ROLE_OPENED, payload);
     }
     return baseOpenRoute(i);
   };
@@ -409,9 +411,9 @@
     const fb = ResultState.feedback;
     if (fb.after === null && fb.acc === null){ document.getElementById("fb-msg").textContent = "至少選一項再送出。"; return; }
     const top = ResultState.routes[0]?.famKey;
-    if (fb.after !== null) safeTrack("clarity_after_submitted", { clarity_before:State.baselineClarity, clarity_after:fb.after, clarity_uplift:State.baselineClarity == null ? undefined : fb.after - State.baselineClarity, role_id:top });
-    if (fb.acc !== null) safeTrack("accuracy_rating_submitted", { accuracy_rating:fb.acc, role_id:top });
-    safeTrack("result_feedback_submitted", { clarity_before:State.baselineClarity, clarity_after:fb.after, accuracy_rating:fb.acc, role_id:top });
+    if (fb.after !== null) safeTrack(EVENTS.CLARITY_AFTER_SUBMITTED, { clarity_before:State.baselineClarity, clarity_after:fb.after, clarity_uplift:State.baselineClarity == null ? undefined : fb.after - State.baselineClarity, role_id:top });
+    if (fb.acc !== null) safeTrack(EVENTS.ACCURACY_RATING_SUBMITTED, { accuracy_rating:fb.acc, role_id:top });
+    safeTrack(EVENTS.RESULT_FEEDBACK_SUBMITTED, { clarity_before:State.baselineClarity, clarity_after:fb.after, accuracy_rating:fb.acc, role_id:top });
     fb.submitted = true;
     Results.renderFeedback();
   };
@@ -419,7 +421,7 @@
   const baseCompute = Results.compute.bind(Results);
   Results.compute = function(){
     baseCompute();
-    if (sharedQuizStarted) safeTrack("shared_result_quiz_completed", { role_id:ResultState.routes[0]?.famKey });
+    if (sharedQuizStarted) safeTrack(EVENTS.SHARED_RESULT_QUIZ_COMPLETED, { role_id:ResultState.routes[0]?.famKey });
   };
 
   /* ------------------------------------------------------------------
@@ -467,7 +469,7 @@
       const keys = Object.keys(State.careers.meta.family_profiles);
       const a = firstFam && keys.includes(firstFam) ? firstFam : keys[0];
       const b = keys.find(k => k !== a) || keys[1];
-      safeTrack("role_compare_started", { role_id:a });
+      safeTrack(EVENTS.ROLE_COMPARE_STARTED, { role_id:a });
       Modal.open(`<div id="role-compare-root"></div>`);
       RoleCompare.render(a,b);
     },
@@ -489,10 +491,10 @@
       RoleCompare.current = [a,b];
     },
     change(index,value){ const next = [...RoleCompare.current]; next[index]=value; if(next[0]===next[1]) next[1-index]=Object.keys(State.careers.meta.family_profiles).find(k=>k!==value); RoleCompare.render(next[0],next[1]); },
-    complete(a,b){ safeTrack("role_compare_completed", { role_id:a, role_pair:`${a}__${b}` }); Toast.show("已完成角色比較"); },
+    complete(a,b){ safeTrack(EVENTS.ROLE_COMPARE_COMPLETED, { role_id:a, role_pair:`${a}__${b}` }); Toast.show("已完成角色比較"); },
     openRole(fam){ Modal.open(familyDetailHTML(fam)); },
     jobs(fam){
-      safeTrack("role_compare_job_opened", { role_id:fam });
+      safeTrack(EVENTS.ROLE_COMPARE_JOB_OPENED, { role_id:fam });
       const i=ResultState.routes.findIndex(r=>r.famKey===fam);
       if(i>=0){ Modal.close(); Nav.show("results"); Results.selectRoute(i); Results.scrollToJobs(); return; }
       const p=State.careers.meta.family_profiles[fam];
@@ -542,18 +544,18 @@
     async open(){
       const main=ResultState.routes[0]; if(!main) return;
       ResultShare.referralUrl=ResultShare.shareUrl(main.famKey);
-      safeTrack("result_share_clicked", { role_id:main.famKey });
-      safeTrack("share_preview_opened", { role_id:main.famKey });
+      safeTrack(EVENTS.RESULT_SHARE_CLICKED, { role_id:main.famKey });
+      safeTrack(EVENTS.SHARE_PREVIEW_OPENED, { role_id:main.famKey });
       Modal.open(`<div class="share-preview"><div id="share-image-wrap" class="loading-state">正在產生分享圖片…</div><div class="share-actions"><h2>分享探索結果</h2><p>會產生 1080 × 1920 的限時動態圖片。</p><button class="btn btn-primary" id="native-share-btn" onclick="ResultShare.nativeShare()" disabled>分享圖片</button><button class="btn btn-ghost" id="download-share-btn" onclick="ResultShare.download()" disabled>下載圖片</button><button class="btn btn-ghost" id="copy-share-btn" onclick="ResultShare.copyLink()">複製分享連結</button></div></div>`);
       try{
-        safeTrack("share_image_generation_started", { role_id:main.famKey });
+        safeTrack(EVENTS.SHARE_IMAGE_GENERATION_STARTED, { role_id:main.famKey });
         const output=await ResultShare.generate();
         document.getElementById("share-image-wrap").innerHTML=`<img src="${output.dataUrl}" alt="${escapeHTML(output.alt)}">`;
         ["native-share-btn","download-share-btn"].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=false;});
-        safeTrack("share_image_generated", { role_id:main.famKey });
+        safeTrack(EVENTS.SHARE_IMAGE_GENERATED, { role_id:main.famKey });
       }catch(err){
         document.getElementById("share-image-wrap").innerHTML=`<div class="error-state">圖片產生失敗，仍可複製分享連結。</div>`;
-        safeTrack("share_image_generation_failed", { role_id:main.famKey, error_type:String(err.name||"error").slice(0,40) });
+        safeTrack(EVENTS.SHARE_IMAGE_GENERATION_FAILED, { role_id:main.famKey, error_type:String(err.name||"error").slice(0,40) });
       }
     },
     async generate(){
@@ -581,17 +583,17 @@
     },
     async nativeShare(){
       const main=ResultState.routes[0]; if(!ResultShare.file) return;
-      safeTrack("share_native_started", { role_id:main?.famKey });
+      safeTrack(EVENTS.SHARE_NATIVE_STARTED, { role_id:main?.famKey });
       const payload={files:[ResultShare.file],title:"Data Matters 探索結果",text:`我測出來是「${State.careers.meta.family_profiles[main.famKey].class_title}」，你是哪一種資料職涯角色？`,url:ResultShare.referralUrl};
       try{
-        if(navigator.share && navigator.canShare && navigator.canShare({files:payload.files})){await navigator.share(payload);safeTrack("share_native_completed",{role_id:main.famKey});}
+        if(navigator.share && navigator.canShare && navigator.canShare({files:payload.files})){await navigator.share(payload);safeTrack(EVENTS.SHARE_NATIVE_COMPLETED,{role_id:main.famKey});}
         else{ResultShare.download();await ResultShare.copyLink();Toast.show("圖片已儲存，網站連結也已複製。打開 Instagram 後加入限時動態即可。");}
-      }catch(err){if(err.name==="AbortError")safeTrack("share_native_cancelled",{role_id:main.famKey});else{safeTrack("share_image_generation_failed",{role_id:main.famKey,error_type:"native_share"});Toast.show("分享未完成，請改用下載圖片。");}}
+      }catch(err){if(err.name==="AbortError")safeTrack(EVENTS.SHARE_NATIVE_CANCELLED,{role_id:main.famKey});else{safeTrack(EVENTS.SHARE_IMAGE_GENERATION_FAILED,{role_id:main.famKey,error_type:"native_share"});Toast.show("分享未完成，請改用下載圖片。");}}
     },
-    download(){ if(!ResultShare.dataUrl)return;const a=document.createElement("a");a.href=ResultShare.dataUrl;a.download=ResultShare.file?.name||"data-matters-story.png";a.click();safeTrack("share_image_downloaded",{role_id:ResultState.routes[0]?.famKey}); },
+    download(){ if(!ResultShare.dataUrl)return;const a=document.createElement("a");a.href=ResultShare.dataUrl;a.download=ResultShare.file?.name||"data-matters-story.png";a.click();safeTrack(EVENTS.SHARE_IMAGE_DOWNLOADED,{role_id:ResultState.routes[0]?.famKey}); },
     async copyLink(){
       const url=ResultShare.referralUrl||location.href;
-      try{await navigator.clipboard.writeText(url);Toast.show("分享連結已複製");safeTrack("share_link_copied",{role_id:ResultState.routes[0]?.famKey});return true;}catch(_){const ta=document.createElement("textarea");ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();Toast.show("分享連結已複製");safeTrack("share_link_copied",{role_id:ResultState.routes[0]?.famKey});return true;}
+      try{await navigator.clipboard.writeText(url);Toast.show("分享連結已複製");safeTrack(EVENTS.SHARE_LINK_COPIED,{role_id:ResultState.routes[0]?.famKey});return true;}catch(_){const ta=document.createElement("textarea");ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();Toast.show("分享連結已複製");safeTrack(EVENTS.SHARE_LINK_COPIED,{role_id:ResultState.routes[0]?.famKey});return true;}
     }
   };
   window.ResultShare=ResultShare;
@@ -624,7 +626,7 @@
   ------------------------------------------------------------------ */
   const params=new URLSearchParams(location.search);
   sharedReferral=params.get("utm_campaign")==="result_share";
-  if(sharedReferral) safeTrack("shared_result_landed", { role_id:params.get("utm_content")||undefined, utm_source:params.get("utm_source"), utm_medium:params.get("utm_medium") });
+  if(sharedReferral) safeTrack(EVENTS.SHARED_RESULT_LANDED, { role_id:params.get("utm_content")||undefined, utm_source:params.get("utm_source"), utm_medium:params.get("utm_medium") });
 
   window.addEventListener("load",()=>{
     const route=location.hash.replace("#","");
@@ -632,7 +634,7 @@
     setTimeout(()=>{
       const observerTarget=document.getElementById("result-hero");
       if(observerTarget&&window.IntersectionObserver){
-        const obs=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)&&ResultState.routes[0]){safeTrack("result_hero_viewed",{role_id:ResultState.routes[0].famKey});obs.disconnect();}},{threshold:.45});obs.observe(observerTarget);
+        const obs=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)&&ResultState.routes[0]){safeTrack(EVENTS.RESULT_HERO_VIEWED,{role_id:ResultState.routes[0].famKey});obs.disconnect();}},{threshold:.45});obs.observe(observerTarget);
       }
     },500);
   });

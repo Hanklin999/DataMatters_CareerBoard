@@ -12,40 +12,19 @@
   var UTM_KEY = "data_matters_utm";
   var ONCE_KEY_PREFIX = "dm_once_";
 
-  var ALLOWED_EVENTS = [
-    /* Core funnel */
-    "landing_viewed", "page_viewed", "quiz_started", "quiz_step_viewed",
-    "quiz_step_completed", "quiz_question_answered", "quiz_completed",
-    "result_viewed", "result_hero_viewed", "role_opened",
-    "alternate_role_opened", "domain_selected", "industry_selected",
-    "job_opened", "job_viewed", "external_job_clicked", "quiz_restarted",
+  var analyticsRegistry = window.DMAnalyticsEvents || {};
+  var ALLOWED_EVENTS = Array.isArray(analyticsRegistry.EVENT_NAMES)
+    ? analyticsRegistry.EVENT_NAMES
+    : [];
+  var EVENT_REGISTRY_VALID = ALLOWED_EVENTS.length > 0;
 
-    /* Result actions and feedback */
-    "result_primary_cta_clicked", "result_share_clicked",
-    "result_alternate_role_opened", "result_profile_expanded",
-    "result_profile_collapsed", "result_job_card_clicked",
-    "result_feedback_viewed", "result_feedback_submitted",
-    "clarity_before_submitted", "clarity_after_submitted",
-    "accuracy_rating_submitted",
-
-    /* Role comparison */
-    "role_compare_started", "role_compare_completed", "role_compare_job_opened",
-
-    /* Result sharing */
-    "share_preview_opened", "share_image_generation_started",
-    "share_image_generated", "share_image_generation_failed",
-    "share_native_started", "share_native_completed", "share_native_cancelled",
-    "share_image_downloaded", "share_link_copied", "shared_result_landed",
-    "shared_result_quiz_started", "shared_result_quiz_completed",
-
-    /* Community */
-    "community_viewed", "community_filter_selected", "community_sort_changed",
-    "community_post_form_opened", "community_post_submitted",
-    "community_post_failed", "community_post_opened",
-    "community_reply_form_opened", "community_reply_submitted",
-    "community_reply_failed", "community_report_opened",
-    "community_report_submitted"
-  ];
+  if (!EVENT_REGISTRY_VALID) {
+    try {
+      if (cfg.ANALYTICS_DEBUG === true) {
+        console.warn("[analytics] Event registry is missing. Analytics has been disabled.");
+      }
+    } catch (e) {}
+  }
 
   var COLUMN_FIELDS = [
     "quiz_step", "role_id", "recommendation_rank", "domain_id", "industry_id",
@@ -128,7 +107,7 @@
   }
 
   /* local 預設不寫入 production；debug 僅用於明確的本機測試 */
-  var sendAllowed = configured && (ENV !== "local" || cfg.ANALYTICS_DEBUG === true);
+  var sendAllowed = configured && EVENT_REGISTRY_VALID && (ENV !== "local" || cfg.ANALYTICS_DEBUG === true);
 
   function uuid() {
     try {

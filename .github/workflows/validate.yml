@@ -13,15 +13,13 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
+          cache: npm
 
-      - name: Static lint
-        run: npm run lint
+      - name: Install
+        run: npm ci
 
-      - name: Data validation
-        run: npm run validate:data
+      - name: Verify generated analytics schema is committed
+        run: npm run check:analytics-schema
 
-      - name: Existing and v3 tests
-        run: npm test
-
-      - name: Production build
-        run: npm run build
+      - name: Full validation
+        run: npm run validate

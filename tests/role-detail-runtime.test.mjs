@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 
 test("atlas role detail opens the shared modal through an exported global API",()=>{
+  const registry=readFileSync("analytics-events.js","utf8");
   const app=readFileSync("app.js","utf8");
   const start=app.indexOf("const Encyclopedia = {");
   const end=app.indexOf("/* ---------------------------------------------------------------------\n   Boot",start);
@@ -34,6 +35,8 @@ test("atlas role detail opens the shared modal through an exported global API",(
   };
   context.window=context;
   vm.createContext(context);
+  vm.runInContext(registry,context);
+  context.APP_EVENTS=context.window.DMAnalyticsEvents.EVENTS;
   vm.runInContext(source,context);
 
   assert.equal(typeof context.window.Encyclopedia.openFamily,"function");

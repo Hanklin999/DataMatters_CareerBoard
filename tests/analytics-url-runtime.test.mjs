@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 
+const registryCode=readFileSync("analytics-events.js","utf8");
 const code=readFileSync("analytics.js","utf8");
 
 function run(url){
@@ -22,8 +23,9 @@ function run(url){
   };
   Object.assign(context.window,{window:context.window,location:context.location,document:context.document,navigator:context.navigator,screen:context.screen,sessionStorage:context.sessionStorage,fetch:context.fetch,URL,URLSearchParams,setTimeout});
   vm.createContext(context);
+  vm.runInContext(registryCode,context);
   vm.runInContext(code,context);
-  context.window.DMAnalytics.track("landing_viewed",{});
+  context.window.DMAnalytics.track(context.window.DMAnalyticsEvents.EVENTS.LANDING_VIEWED,{});
   return calls;
 }
 

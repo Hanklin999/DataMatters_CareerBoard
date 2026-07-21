@@ -120,7 +120,9 @@ resetState();
 /* ---------------------------------------------------------------------
    匿名使用分析 hooks（analytics.js 未載入或未設定時自動略過，不影響功能）
 --------------------------------------------------------------------- */
+const APP_EVENTS = (window.DMAnalyticsEvents && window.DMAnalyticsEvents.EVENTS) || {};
 function track(name, payload){
+  if (!name) return;
   try { window.DMAnalytics && window.DMAnalytics.track(name, payload); } catch (e) {}
 }
 const QuizTiming = { quizStartTs: null, stepEnterTs: {}, lastStation: null, resultRun: 0 };
@@ -131,7 +133,7 @@ function enterStation(sid, direction){
   if (!step) return;
   QuizTiming.stepEnterTs[sid] = Date.now();
   if (QuizTiming.lastStation !== sid){ // 同站 re-render 不重複觸發
-    track("quiz_step_viewed", { quiz_step: step, navigation_direction: direction });
+    track(APP_EVENTS.QUIZ_STEP_VIEWED, { quiz_step: step, navigation_direction: direction });
   }
   QuizTiming.lastStation = sid;
 }
@@ -149,7 +151,7 @@ function trackExternalJob(jobId, listPos){
     if (!t) return;
     let host = null;
     try { host = new URL(t.source_url).hostname; } catch (e) {}
-    track("external_job_clicked", {
+    track(APP_EVENTS.EXTERNAL_JOB_CLICKED, {
       job_id: t.id, role_id: t.job_family, domain_id: t.domain, company_name: t.company,
       destination_domain: host, list_position: listPos ?? undefined
     });
@@ -440,7 +442,7 @@ const Nav = {
     Stations.renderAll();
     QuizTiming.quizStartTs = Date.now();
     QuizTiming.lastStation = null;
-    track("quiz_started", { entry_point: entryPoint || "unknown" });
+    track(APP_EVENTS.QUIZ_STARTED, { entry_point: entryPoint || "unknown" });
     Nav.show("station1");
     enterStation("station1", "initial");
   }
@@ -505,7 +507,7 @@ const Stations = {
   },
   next(fromId, toId){
     const step = STEP_NUM[fromId];
-    if (step) track("quiz_step_completed", Object.assign({ quiz_step: step }, stationStats(fromId)));
+    if (step) track(APP_EVENTS.QUIZ_STEP_COMPLETED, Object.assign({ quiz_step: step }, stationStats(fromId)));
     Nav.show(toId);
     enterStation(toId, "forward");
   },
@@ -527,12 +529,12 @@ const Stations = {
   },
   restart(){
     const prevTop = ResultState.routes[0] ? ResultState.routes[0].famKey : null;
-    track("quiz_restarted", { previous_top_role_id: prevTop, source: "result_page" });
+    track(APP_EVENTS.QUIZ_RESTARTED, { previous_top_role_id: prevTop, source: "result_page" });
     resetState();
     Stations.renderAll();
     QuizTiming.quizStartTs = Date.now();
     QuizTiming.lastStation = null;
-    track("quiz_started", { entry_point: "unknown" });
+    track(APP_EVENTS.QUIZ_STARTED, { entry_point: "unknown" });
     Nav.show("station1");
     enterStation("station1", "initial");
   }
@@ -1045,7 +1047,7 @@ const ROUTE_META = [
 
 const Results = {
   compute(){
-    track("quiz_step_completed", Object.assign({ quiz_step: 3 }, stationStats("station3")));
+    track(APP_EVENTS.QUIZ_STEP_COMPLETED, Object.assign({ quiz_step: 3 }, stationStats("station3")));
 
     computeAllScores();
     ResultState.selectedRoute = null;
@@ -1080,8 +1082,8 @@ const Results = {
     // quiz_completed + result_viewed：每次「完成新測驗」各一次（re-render 不會重跑 compute）
     const totalT = QuizTiming.quizStartTs
       ? Math.max(0, Math.min(3600, Math.round((Date.now() - QuizTiming.quizStartTs) / 1000))) : undefined;
-    track("quiz_completed", { total_time_spent_sec: totalT, completed_step_count: 3, result_count: 3 });
-    track("result_viewed", {
+    track(APP_EVENTS.QUIZ_COMPLETED, { total_time_spent_sec: totalT, completed_step_count: 3, result_count: 3 });
+    track(APP_EVENTS.RESULT_VIEWED, {
       role_id: main, recommendation_rank: 1,
       top_role_id: main, second_role_id: near, third_role_id: challenge,
       result_count: 3, scoring_version: (window.ANALYTICS_CONFIG && window.ANALYTICS_CONFIG.SCORING_VERSION) || "v2"
@@ -1150,7 +1152,7 @@ const Results = {
   openRoute(i){
     const r = ResultState.routes[i];
     if (!r) return;
-    track("role_opened", { role_id: r.famKey, recommendation_rank: i + 1, source: "result_page" });
+    track(APP_EVENTS.ROLE_OPENED, { role_id: r.famKey, recommendation_rank: i + 1, source: "result_page" });
     Modal.open(familyDetailHTML(r.famKey, {
       routeLabel: r.label,
       matchLevel: r.matchLevel,
@@ -1237,7 +1239,7 @@ const Results = {
     const willSelect = ResultState.selectedDomain !== d; // 使用者主動點擊，非 UI 初始化
     ResultState.selectedDomain = willSelect ? d : null;
     const route = ResultState.routes[ResultState.selectedRoute];
-    track("domain_selected", {
+    track(APP_EVENTS.DOMAIN_SELECTED, {
       domain_id: d, role_id: route ? route.famKey : undefined,
       selection_action: willSelect ? "select" : "deselect"
     });
@@ -1262,7 +1264,7 @@ const Results = {
     jobsEl.innerHTML = matches.length
       ? matches.map((t, i) => jobCardHTML(t, { routes: ResultState.routes }, i + 1)).join("")
       : `<div class="job-hint">這個組合目前還沒有種子職缺，歡迎換個領域看看。</div>`;
-    matches.forEach((t, i) => track("job_viewed", {
+    matches.forEach((t, i) => track(APP_EVENTS.JOB_VIEWED, {
       job_id: t.id, role_id: fam, domain_id: t.domain, company_name: t.company,
       source_section: "result_jobs", list_position: i + 1
     }));
@@ -1322,13 +1324,13 @@ const Results = {
       if (window.IntersectionObserver && card){
         const obs = new IntersectionObserver((entries) => {
           if (entries.some(e => e.isIntersecting)){
-            window.DMAnalytics && window.DMAnalytics.trackOncePerRun(runKey, "result_feedback_viewed", {});
+            APP_EVENTS.RESULT_FEEDBACK_VIEWED && window.DMAnalytics && window.DMAnalytics.trackOncePerRun(runKey, APP_EVENTS.RESULT_FEEDBACK_VIEWED, {});
             obs.disconnect();
           }
         });
         obs.observe(card);
       } else {
-        window.DMAnalytics && window.DMAnalytics.trackOncePerRun(runKey, "result_feedback_viewed", {});
+        APP_EVENTS.RESULT_FEEDBACK_VIEWED && window.DMAnalytics && window.DMAnalytics.trackOncePerRun(runKey, APP_EVENTS.RESULT_FEEDBACK_VIEWED, {});
       }
     } catch (e) {}
   },
@@ -1354,7 +1356,7 @@ const Results = {
     if (btn) btn.disabled = true; // 防 double click
     const top = ResultState.routes[0] ? ResultState.routes[0].famKey : null;
     const top3 = ResultState.routes.map(r => r.famKey);
-    track("result_feedback_submitted", {
+    track(APP_EVENTS.RESULT_FEEDBACK_SUBMITTED, {
       accuracy_rating: fb.acc,
       clarity_before: before,
       clarity_after: fb.after,
@@ -1717,7 +1719,7 @@ function openRoleDetail(famKey, source="unknown"){
     console.warn("Unknown role detail",famKey);
     return false;
   }
-  track("role_opened", { role_id:famKey, source });
+  track(APP_EVENTS.ROLE_OPENED, { role_id:famKey, source });
   Modal.open(familyDetailHTML(famKey));
   return true;
 }
@@ -1747,7 +1749,7 @@ async function boot(){
 
   // landing_viewed：每個 session 僅一次
   try {
-    window.DMAnalytics && window.DMAnalytics.trackOncePerSession("landing_viewed", { landing_variant: "default" });
+    APP_EVENTS.LANDING_VIEWED && window.DMAnalytics && window.DMAnalytics.trackOncePerSession(APP_EVENTS.LANDING_VIEWED, { landing_variant: "default" });
   } catch (e) {}
 }
 

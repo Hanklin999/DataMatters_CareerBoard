@@ -1,6 +1,6 @@
 {
   "name": "data-matters-career-board",
-  "version": "3.9.0",
+  "version": "3.10.0",
   "private": true,
   "description": "Mobile-first data career exploration product",
   "engines": {
@@ -10,12 +10,15 @@
     "dev": "node scripts/serve.mjs",
     "lint": "node scripts/static-lint.mjs",
     "validate:data": "node validate-data.mjs",
+    "generate:analytics-schema": "node scripts/generate-analytics-event-constraint.mjs",
+    "check:analytics-schema": "node scripts/generate-analytics-event-constraint.mjs --check",
+    "test:analytics-contract": "node tests/analytics-event-contract.test.mjs",
     "test:analytics": "node test-analytics.mjs",
     "test:matching": "node test-cases.mjs",
     "test:product": "node --test tests/*.test.mjs",
     "test": "npm run test:analytics && npm run test:matching && npm run test:product",
     "build": "node scripts/build.mjs",
     "build:overlay": "OVERLAY_BUILD=true node scripts/build.mjs",
-    "validate": "npm run lint && npm run validate:data && npm test && npm run build"
+    "validate": "npm run generate:analytics-schema && npm run test:analytics-contract && npm run lint && npm run validate:data && npm test && npm run build"
   }
 }

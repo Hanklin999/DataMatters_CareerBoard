@@ -12,6 +12,7 @@ const html = readFileSync("index.html","utf8");
 const css = readFileSync("product-v3.css","utf8");
 const sql = readFileSync("supabase/migrations/002_community_board.sql","utf8");
 const analytics = readFileSync("analytics.js","utf8");
+const analyticsEvents = readFileSync("analytics-events.js","utf8");
 
 const questionIds = [...app.matchAll(/\bid:\s*"([a-z_]+)"\s*,\s*type:\s*"(?:single|slider)"/g)].map(m=>m[1]);
 
@@ -82,15 +83,20 @@ test("mobile CSS includes 390px handling, focus and 44px controls", () => {
   assert.match(css,/overflow-x:\s*hidden/);
 });
 
-test("analytics includes required result, sharing and community events", () => {
+test("analytics events come from the shared registry", () => {
   const all = app + product + community;
-  const names = [
-    "result_primary_cta_clicked","result_share_clicked","result_alternate_role_opened","result_profile_expanded","result_profile_collapsed","result_job_card_clicked",
-    "role_compare_started","role_compare_completed","role_compare_job_opened",
-    "share_preview_opened","share_image_generated","share_native_started","share_image_downloaded","share_link_copied",
-    "community_viewed","community_post_submitted","community_reply_submitted","community_report_submitted"
+  const keys = [
+    "RESULT_PRIMARY_CTA_CLICKED","RESULT_SHARE_CLICKED","RESULT_ALTERNATE_ROLE_OPENED","RESULT_PROFILE_EXPANDED","RESULT_PROFILE_COLLAPSED","RESULT_JOB_CARD_CLICKED",
+    "ROLE_COMPARE_STARTED","ROLE_COMPARE_COMPLETED","ROLE_COMPARE_JOB_OPENED",
+    "SHARE_PREVIEW_OPENED","SHARE_IMAGE_GENERATED","SHARE_NATIVE_STARTED","SHARE_IMAGE_DOWNLOADED","SHARE_LINK_COPIED",
+    "COMMUNITY_VIEWED","COMMUNITY_POST_SUBMITTED","COMMUNITY_REPLY_SUBMITTED","COMMUNITY_REPORT_SUBMITTED"
   ];
-  for (const name of names) assert.match(all,new RegExp(name));
+  for (const key of keys) {
+    assert.match(analyticsEvents, new RegExp(`${key}:`));
+    assert.match(all, new RegExp(`(?:APP_EVENTS|EVENTS)\\.${key}`));
+  }
+  assert.match(analytics, /analyticsRegistry\.EVENT_NAMES/);
+  assert.doesNotMatch(analytics, /ALLOWED_EVENTS\s*=\s*\[/);
 });
 
 
