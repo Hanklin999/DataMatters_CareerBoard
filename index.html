@@ -115,17 +115,23 @@
 
     <section id="encyclopedia" class="view" style="display:none" aria-labelledby="ency-title">
       <div class="page-head"><span class="eyebrow">九種常見工作重心</span><h1 id="ency-title">職涯圖鑑</h1><p>先看真實職能，再用角色設定幫你記住差異。</p><button class="btn btn-ghost" onclick="RoleCompare.open()">比較兩個角色</button></div>
-      <div class="carousel-shell"><button class="carousel-arrow" aria-label="往左" onclick="Encyclopedia.scroll(-1)">‹</button><div id="ency-carousel" class="ency-carousel"></div><button class="carousel-arrow" aria-label="往右" onclick="Encyclopedia.scroll(1)">›</button></div>
+      <div class="ency-deck" aria-label="九種資料職涯角色卡">
+        <button class="carousel-arrow" type="button" aria-label="上一個角色" onclick="Encyclopedia.scroll(-1)">‹</button>
+        <div id="ency-carousel" class="ency-carousel" tabindex="0" aria-roledescription="carousel"></div>
+        <button class="carousel-arrow" type="button" aria-label="下一個角色" onclick="Encyclopedia.scroll(1)">›</button>
+      </div>
+      <div id="ency-pagination" class="ency-pagination" aria-live="polite"></div>
+      <p class="ency-swipe-hint">左右滑動查看下一個角色</p>
       <details class="method-details tech-levels"><summary>技術投入怎麼看？</summary><p>較少：以試算表、報表與溝通為主。中等：常用 SQL 或 Python 做分析。較多：需要模型、系統或軟體工程。</p></details>
       <section class="focus-map-section" aria-labelledby="focus-map-title">
         <div class="section-heading"><div><span class="eyebrow">比較工作重心</span><h2 id="focus-map-title">你的工作重心</h2><p>每天主要做什麼，以及工作影響的範圍。</p></div></div>
         <div class="focus-map-layout">
+          <div class="focus-y-label top"><strong>改變整個組織</strong><small>跨團隊流程、公司制度、共用平台、長期決策</small></div>
           <div class="focus-y-title">工作主要影響誰？</div>
-          <div class="focus-y-label top">改變整個組織<small>跨團隊流程、共用平台、長期決策</small></div>
           <div id="spectrum-plot" class="spectrum-plot focus-plot" role="group" aria-label="九種資料工作的工作重心位置"></div>
-          <div class="focus-y-label bottom">解決單一問題<small>單一專案、特定團隊、眼前問題</small></div>
+          <div class="focus-y-label bottom"><strong>解決單一問題</strong><small>單一專案、特定團隊、眼前問題</small></div>
           <div class="focus-x-title">每天主要在做什麼？</div>
-          <div class="focus-x-labels"><span>找答案<small>找原因、看資料、提出建議</small></span><span>做出可用的東西<small>設計流程、建立工具、改善產品</small></span></div>
+          <div class="focus-x-labels"><span><strong>找答案</strong><small>找原因、看資料、回答問題、提出建議</small></span><span><strong>做出可用的東西</strong><small>設計流程、建立工具、改善產品、維護系統</small></span></div>
         </div>
         <p class="map-disclaimer">位置代表常見工作重心，不代表能力、薪資或職涯高低。</p>
       </section>
@@ -157,10 +163,9 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script>window.DATA_MATTERS_APP_VERSION = "v3";</script>
+  <script>window.DATA_MATTERS_APP_VERSION = "v3.1";</script>
   <script src="analytics-config.js"></script>
   <script src="analytics.js"></script>
-  <script src="vendor/qrcode.js"></script>
   <script src="app.js"></script>
   <script src="product-v3.js"></script>
   <script src="community.js"></script>

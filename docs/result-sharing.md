@@ -1,48 +1,46 @@
-# 探索結果分享
+# Result Sharing
 
 ## 圖片生成架構
 
-QR Code 使用 repository 內的 `vendor/qrcode.js`（qrcode-generator 1.4.4，MIT），不依賴外部 CDN。
+`product-v3.js` 使用 Canvas API 建立固定 1080 × 1920 PNG，不直接截取結果頁。生成前等待 `document.fonts.ready`，再載入 repository 內的角色圖片。
 
-`product-v3.js` 使用 Canvas API 建立固定 1080 × 1920 PNG，不直接截取結果頁。生成前等待 `document.fonts.ready`，再載入本地角色圖片與 QR Code。
+內容包含 Data Matters 品牌、RPG 名稱、中文與英文真實職能名稱、放大的正方形角色圖片、一句描述、三個偏好標籤、邀請文字與網站網域。第一版不放 QR Code。檔名為 `data-matters-[role-id]-story.png`。
 
-內容只有品牌、RPG 名稱、真實職能名稱、角色圖片、一句描述、三個偏好標籤、邀請文字、網域與 QR Code。檔名為 `data-matters-[role-id]-story.png`。
+## Story safe area
 
-## Story Safe Area
-
-- 上方至少 180px。
-- 下方至少 250px。
-- 左右至少 90px。
-- QR Code 位於安全區內，保持白底與足夠 quiet zone。
-
-## Referral URL
-
-```text
-/?utm_source=instagram
- &utm_medium=story
- &utm_campaign=result_share
- &utm_content=[role_id]
-```
-
-URL 不包含答案、session ID、清楚度評分、暱稱或任何個人資料。
+- 上方主要內容避開至少 180px。
+- 下方保留約 150–250px，降低 Instagram UI 遮擋風險。
+- 左右保留至少 90px。
+- 角色圖片以 `contain` 完整顯示，不裁掉角色。
 
 ## Web Share
 
-先檢查 `navigator.share`、`navigator.canShare` 與 file support。支援時分享 PNG、短文與 referral URL。
+分享按鈕先檢查：
 
-純網頁無法保證直接發布到 Instagram Stories。作業系統與 Instagram 是否出現在分享面板，由瀏覽器、裝置與已安裝 App 決定。
+- `navigator.share`
+- `navigator.canShare`
+- File sharing support
 
-## Fallback
+支援時分享 PNG 與文字；不支援時提供下載圖片與複製連結。
 
-不支援 file share 時：
+## Download fallback
 
-1. 下載 PNG。
-2. 複製 referral URL。
-3. 顯示「圖片已儲存，網站連結也已複製。打開 Instagram 後加入限時動態即可。」
+桌面與不支援檔案分享的瀏覽器會提供：
 
-桌面版提供下載圖片與複製連結。
+- 下載 PNG
+- 複製 referral URL
 
-## Analytics Funnel
+## Referral URL
+
+格式：
+
+```text
+/?utm_source=instagram&utm_medium=story&utm_campaign=result_share&utm_content=[role_id]
+```
+
+不得包含完整答案、session ID、評分、暱稱或其他個人資料。
+
+## Analytics funnel
 
 - `share_preview_opened`
 - `share_image_generation_started`
@@ -57,11 +55,8 @@ URL 不包含答案、session ID、清楚度評分、暱稱或任何個人資料
 - `shared_result_quiz_started`
 - `shared_result_quiz_completed`
 
-開啟分享面板不視為完成分享。Web Share 成功回傳只代表系統分享流程完成，不保證使用者真的發布到特定 App。
+開啟面板不視為完成分享。
 
-## Browser 限制
+## Browser limits
 
-- Web Share file support 依瀏覽器與 OS 而異。
-- Clipboard API 通常需要 HTTPS 與使用者手勢。
-- Canvas 若載入未允許 CORS 的遠端圖片會污染；本專案只使用同源本地角色資產。
-- CDN QR 元件載入失敗時，圖片生成會停止，但不影響結果頁與複製連結。
+Web Share 的檔案支援依瀏覽器與作業系統而異。分享失敗不得影響結果頁；使用者仍可下載圖片或複製連結。

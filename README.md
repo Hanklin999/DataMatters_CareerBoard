@@ -113,7 +113,6 @@ Supabase 儲存匿名事件與 session ID，用於：
 - Supabase Postgres／REST／RLS。
 - Netlify Hosting／Functions。
 - Canvas API、Web Share API、Clipboard API。
-- qrcode-generator（前端 QR Code）。
 
 ## 12. Local Development
 
@@ -189,3 +188,12 @@ npm run validate
 - 建立受保護的管理後台與 fingerprint blocklist。
 - 依異常流量加入 Turnstile 前端 challenge。
 - 建立自動化跨瀏覽器與真機分享圖測試。
+
+
+## v3.1 介面修正
+
+- 結果頁保留英文職能名稱，角色圖改為更大的正方形完整顯示。
+- 分享圖放大角色圖片，移除 QR Code 與 Instagram 限制提示。
+- 職涯圖鑑改為一次聚焦一張卡的左右滑動牌組。
+- 重建工作重心圖的 X／Y 軸與四象限標示。
+- 留言板移除分類篩選與分類欄位，後端統一儲存為「一般討論」。

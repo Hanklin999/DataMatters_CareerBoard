@@ -1,12 +1,10 @@
-const {json,supabase,ALLOWED_CATEGORIES,originAllowed}=require("./_community-utils");
+const {json,supabase,originAllowed}=require("./_community-utils");
 exports.handler=async(event)=>{
   if(!originAllowed(event))return json(403,{message:"origin_not_allowed"});
   if(event.httpMethod!=="GET")return json(405,{message:"method_not_allowed"});
   try{
-    const category=event.queryStringParameters?.category;
     const sort=event.queryStringParameters?.sort==="replies"?"reply_count.desc,created_at.desc":"created_at.desc";
-    const filter=category&&ALLOWED_CATEGORIES.has(category)?`&category=eq.${encodeURIComponent(category)}`:"";
-    const posts=await supabase(`public_visible_community_posts?select=*&order=${sort}&limit=50${filter}`);
+    const posts=await supabase(`public_visible_community_posts?select=*&order=${sort}&limit=50`);
     const ids=(posts||[]).map(p=>p.id);
     let replies=[];
     if(ids.length){replies=await supabase(`public_visible_community_replies?select=*&post_id=in.(${ids.join(",")})&order=created_at.asc&limit=250`);}

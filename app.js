@@ -788,7 +788,7 @@ function portraitHTML(p, sizeClass){
   const cls = sizeClass ? `square-portrait ${sizeClass}` : "square-portrait";
   return `
     <div class="${cls}">
-      <img src="${file}" data-alts="${altPaths(file)}" alt="${p.class_title}" loading="lazy" onerror="${IMG_ONERROR}">
+      <img src="${file}" data-alts="${altPaths(file)}" alt="${p.class_title}｜${p.cn_name}" loading="lazy" onerror="${IMG_ONERROR}">
       <span class="portrait-fallback" style="background:${p.color};">${p.icon}</span>
     </div>`;
 }
@@ -1402,23 +1402,73 @@ const Encyclopedia = {
   renderCarousel(){
     const profiles = State.careers.meta.family_profiles;
     const track = document.getElementById("ency-carousel");
-    track.innerHTML = Object.entries(profiles).map(([famKey, p]) => `
-      <div class="ency-card" style="${famVars(p)}" onclick="Encyclopedia.openFamily('${famKey.replace(/'/g,"\\'")}')">
-        ${portraitHTML(p)}
-        <div class="ency-rpg" style="color:${p.glow};">${p.class_title}</div>
-        <div class="official-zh" style="font-size:15px;">${p.cn_name}</div>
-        <div class="route-oneliner">${p.tagline}</div>
-        <div class="tl-chip" style="margin:10px auto 0;">${p.tlevel_range||""}</div>
-        <button class="btn btn-ghost route-btn" onclick="event.stopPropagation(); Encyclopedia.openFamily('${famKey.replace(/'/g,"\\'")}')">認識這個角色</button>
-      </div>
+    const entries = Object.entries(profiles);
+    track.innerHTML = entries.map(([famKey, p], index) => `
+      <article class="ency-card" style="${famVars(p)}" data-card-index="${index}" role="group" aria-label="${index + 1} / ${entries.length}：${p.class_title}，${p.cn_name}" onclick="Encyclopedia.openFamily('${famKey.replace(/'/g,"\'")}')">
+        <div class="ency-card-visual">${portraitHTML(p)}</div>
+        <div class="ency-card-copy">
+          <span class="eyebrow">角色 ${index + 1} / ${entries.length}</span>
+          <div class="ency-rpg" style="color:${p.glow};">${p.class_title}</div>
+          <div class="official-zh">${p.cn_name}</div>
+          <div class="official-en">${p.en_name || ""}</div>
+          <p class="route-oneliner">${p.tagline}</p>
+          <div class="tl-chip">${p.tlevel_range||""}</div>
+          <button class="btn btn-ghost route-btn" onclick="event.stopPropagation(); Encyclopedia.openFamily('${famKey.replace(/'/g,"\'")}')">認識這個角色</button>
+        </div>
+      </article>
     `).join("");
+    Encyclopedia.bindCarousel();
+    Encyclopedia.syncCarousel();
+  },
+
+  bindCarousel(){
+    const track = document.getElementById("ency-carousel");
+    if (!track || track.dataset.bound) return;
+    track.dataset.bound = "1";
+    let raf = 0;
+    track.addEventListener("scroll", () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => Encyclopedia.syncCarousel());
+    }, { passive:true });
+    track.addEventListener("keydown", event => {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight"){
+        event.preventDefault();
+        Encyclopedia.scroll(event.key === "ArrowRight" ? 1 : -1);
+      }
+    });
+  },
+
+  currentIndex(){
+    const track = document.getElementById("ency-carousel");
+    const cards = [...track.querySelectorAll(".ency-card")];
+    if (!cards.length) return 0;
+    const center = track.scrollLeft + track.clientWidth / 2;
+    let best = 0, distance = Infinity;
+    cards.forEach((card, index) => {
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const d = Math.abs(center - cardCenter);
+      if (d < distance){ distance = d; best = index; }
+    });
+    return best;
+  },
+
+  syncCarousel(){
+    const track = document.getElementById("ency-carousel");
+    const cards = [...track.querySelectorAll(".ency-card")];
+    const current = Encyclopedia.currentIndex();
+    cards.forEach((card,index) => card.classList.toggle("is-active", index === current));
+    const pager = document.getElementById("ency-pagination");
+    if (pager) pager.innerHTML = cards.map((_, index) => `<button type="button" class="ency-dot ${index===current?"active":""}" aria-label="前往第 ${index+1} 個角色" aria-current="${index===current?"true":"false"}" onclick="Encyclopedia.goTo(${index})"></button>`).join("");
+  },
+
+  goTo(index){
+    const track = document.getElementById("ency-carousel");
+    const card = track.querySelectorAll(".ency-card")[index];
+    if (card) card.scrollIntoView({ behavior:"smooth", block:"nearest", inline:"center" });
   },
 
   scroll(dir){
-    const track = document.getElementById("ency-carousel");
-    const card = track.querySelector(".ency-card");
-    const step = card ? card.offsetWidth + 16 : 280;
-    track.scrollBy({ left: dir * step, behavior: "smooth" });
+    Encyclopedia.goTo(Math.max(0, Math.min(document.querySelectorAll("#ency-carousel .ency-card").length - 1, Encyclopedia.currentIndex() + dir)));
   },
 
   renderMap(){

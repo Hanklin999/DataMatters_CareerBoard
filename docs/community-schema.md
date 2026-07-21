@@ -6,7 +6,7 @@ Migration：`supabase/migrations/002_community_board.sql`
 
 ### community_posts
 
-儲存暱稱、選填身分、分類、純文字內容、狀態、回覆數、匿名 session 與雜湊後的防濫用訊號。
+儲存暱稱、選填身分、純文字內容、狀態、回覆數、匿名 session 與雜湊後的防濫用訊號。`category` 欄位只為向下相容保留，前端不要求使用者分類，統一寫入「一般討論」。
 
 ### community_replies
 

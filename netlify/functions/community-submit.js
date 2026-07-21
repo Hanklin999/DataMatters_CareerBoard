@@ -1,4 +1,4 @@
-const {ALLOWED_CATEGORIES,ALLOWED_USER_TYPES,json,normalizeText,originAllowed,clientMeta,validateNickname,validateContent,supabase,verifyTurnstile,recentRows}=require("./_community-utils");
+const {ALLOWED_USER_TYPES,json,normalizeText,originAllowed,clientMeta,validateNickname,validateContent,supabase,verifyTurnstile,recentRows}=require("./_community-utils");
 exports.handler=async(event)=>{
   if(!originAllowed(event))return json(403,{message:"origin_not_allowed"});
   if(event.httpMethod==="OPTIONS")return json(200,{ok:true});
@@ -13,7 +13,6 @@ exports.handler=async(event)=>{
     const nickError=validateNickname(nickname);if(nickError)return json(400,{message:nickError});
     const contentError=validateContent(content,type==="post"?10:2,type==="post"?500:300);if(contentError)return json(400,{message:contentError});
     const userType=body.user_type&&ALLOWED_USER_TYPES.has(body.user_type)?body.user_type:null;
-    if(type==="post"&&!ALLOWED_CATEGORIES.has(body.category))return json(400,{message:"invalid_category"});
     if(type==="reply"&&!/^[0-9a-f-]{36}$/i.test(String(body.post_id||"")))return json(400,{message:"invalid_post"});
     const meta=clientMeta(event,sessionId);
     const now=Date.now(),minute=new Date(now-60_000).toISOString(),tenMin=new Date(now-600_000).toISOString(),day=new Date(now-86_400_000).toISOString();
@@ -23,7 +22,7 @@ exports.handler=async(event)=>{
     if(lastMinute.length>=limits.minute||lastTen.length>=limits.ten||lastDay.length>=limits.day)return json(429,{message:"rate_limited"});
     if(lastTen.some(r=>normalizeText(r.content)===content))return json(409,{message:"duplicate_content"});
     const row={nickname,user_type:userType,content,status:"visible",session_id:/^[0-9a-f-]{36}$/i.test(sessionId)?sessionId:null,fingerprint_hash:meta.fingerprintHash,ip_hash:meta.ipHash};
-    if(type==="post")Object.assign(row,{category:body.category,user_agent_hash:meta.uaHash});else row.post_id=body.post_id;
+    if(type==="post")Object.assign(row,{category:"一般討論",user_agent_hash:meta.uaHash});else row.post_id=body.post_id;
     const inserted=await supabase(table,{method:"POST",body:JSON.stringify(row)});
     return json(201,{ok:true,id:inserted?.[0]?.id});
   }catch(err){console.error(err);return json(err.message==="server_not_configured"?503:500,{message:"submit_failed"});}

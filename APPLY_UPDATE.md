@@ -44,3 +44,18 @@ git push origin master
 ## 部署
 
 程式 push 前後都可先看 `DEPLOYMENT.md`。留言板真正可用前，必須先做 Supabase migration 與 Netlify Functions environment variables。
+
+
+## v3.1 額外資料庫步驟
+
+若正式 Supabase 已建立 `community_posts`，請再執行：
+
+```text
+supabase/migrations/004_simplify_community_category.sql
+```
+
+它只把前端隱藏的 `category` 欄位預設值改為「一般討論」，不刪除既有留言。
+
+## 本次介面修正
+
+詳細內容請看 `V3_1_CHANGE_REPORT.md`。

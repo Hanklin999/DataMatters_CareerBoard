@@ -2,7 +2,7 @@
 
 ## 1. 必須做｜Supabase
 
-1. 在 staging 專案先執行 `supabase/migrations/002_community_board.sql`。
+1. 在 staging 專案先執行 `supabase/migrations/002_community_board.sql`；若留言板已存在，再執行 `004_simplify_community_category.sql`。
 2. 檢查三張 table、兩個 public view、trigger 與 index。
 3. 確認 base tables 的 RLS 為 enabled。
 4. 用 anon key 驗證：
@@ -81,7 +81,7 @@ Node version: 24
 - 第一推薦、其他方向與職缺正常。
 - Accordion 鍵盤操作與 `aria-expanded` 正確。
 - Compare modal focus trap、Escape 與焦點返回。
-- 分享圖中文字、九角色圖片與 QR Code 正常。
+- 分享圖中文字與九角色圖片正常，角色圖完整且未被裁切。
 - iPhone Safari／Android Chrome 的下載與 native share fallback。
 - 留言、回覆、重複內容、速率限制、個資攔截與檢舉。
 - 使用者看不到 Supabase 原始錯誤。

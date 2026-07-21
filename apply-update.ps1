@@ -31,6 +31,16 @@ $files = Get-ChildItem -LiteralPath $Source -Recurse -File | Where-Object {
   $excluded -notcontains $relative
 }
 
+$obsoleteFiles = @(
+  (Join-Path $Repo "vendor\qrcode.js")
+)
+foreach ($obsolete in $obsoleteFiles) {
+  if (Test-Path $obsolete) {
+    Remove-Item -LiteralPath $obsolete -Force
+    Write-Host "Removed obsolete $obsolete"
+  }
+}
+
 foreach ($file in $files) {
   $relative = $file.FullName.Substring($Source.Length).TrimStart('\')
   $destination = Join-Path $Repo $relative

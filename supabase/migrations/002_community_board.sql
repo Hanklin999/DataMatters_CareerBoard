@@ -8,7 +8,7 @@ create table if not exists public.community_posts (
   updated_at timestamptz not null default now(),
   nickname text not null check (char_length(btrim(nickname)) between 2 and 20),
   user_type text check (user_type is null or user_type in ('高中生','大學生','研究生','轉職中','在職','其他')),
-  category text not null check (category in ('職涯方向','科系與課程','實習與求職','技能學習','網站建議')),
+  category text not null default '一般討論' check (category in ('一般討論','職涯方向','科系與課程','實習與求職','技能學習','網站建議')),
   content text not null check (char_length(btrim(content)) between 10 and 500),
   status text not null default 'visible' check (status in ('visible','pending','hidden','deleted')),
   reply_count integer not null default 0 check (reply_count >= 0),

@@ -426,7 +426,7 @@ footer{
   box-shadow: 0 0 0 4px rgba(255,255,255,0.03), 0 0 18px var(--fam-glow-soft, rgba(212,175,55,0.25));
   background: var(--fam-color, #1a1a2e);
 }
-.square-portrait img{ width:100%; height:100%; object-fit: cover; display:block; }
+.square-portrait img{ width:100%; height:100%; object-fit: contain; display:block; }
 .square-portrait .portrait-fallback{
   width:100%; height:100%; display:none; align-items:center; justify-content:center; font-size: 52px;
 }

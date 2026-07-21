@@ -38,16 +38,16 @@ test("result information architecture follows the requested order", () => {
   assert.deepEqual([...positions].sort((a,b)=>a-b),positions);
 });
 
-test("sharing uses fixed Story dimensions and referral fields", () => {
+test("sharing uses fixed Story dimensions, a larger role image and no QR code", () => {
   assert.match(product,/canvas\.width=1080/);
   assert.match(product,/canvas\.height=1920/);
   for (const value of ["instagram","story","result_share","utm_content"]) assert.match(product,new RegExp(value));
   assert.match(product,/navigator\.canShare/);
   assert.match(product,/data-matters-\$\{shareRoleId\}-story\.png/);
-  assert.match(product,/fillText\("DATA MATTERS",90,230\)/);
-  assert.match(product,/fillText\(location\.host,90,1645\)/);
-  assert.match(html,/vendor\/qrcode\.js/);
-  assert.doesNotMatch(html,/cdn\.jsdelivr|cdnjs\.cloudflare/);
+  assert.match(product,/const size=720/);
+  assert.doesNotMatch(product,/window\.qrcode|qr\.getModuleCount/);
+  assert.doesNotMatch(html,/vendor\/qrcode\.js/);
+  assert.doesNotMatch(product,/純網頁無法保證直接發布到 Instagram Stories/);
 });
 
 test("work focus map defines nine distinct positions", () => {
@@ -88,7 +88,7 @@ test("analytics includes required result, sharing and community events", () => {
     "result_primary_cta_clicked","result_share_clicked","result_alternate_role_opened","result_profile_expanded","result_profile_collapsed","result_job_card_clicked",
     "role_compare_started","role_compare_completed","role_compare_job_opened",
     "share_preview_opened","share_image_generated","share_native_started","share_image_downloaded","share_link_copied",
-    "community_viewed","community_filter_selected","community_post_submitted","community_reply_submitted","community_report_submitted"
+    "community_viewed","community_post_submitted","community_reply_submitted","community_report_submitted"
   ];
   for (const name of names) assert.match(all,new RegExp(name));
 });
@@ -101,4 +101,24 @@ test("community validation blocks personal data and obvious spam", () => {
   assert.equal(validateContent("台北市信義區松仁路100號", 2, 300), "personal_data");
   assert.equal(validateContent("保證獲利，加入投資群組", 2, 300), "blocked_content");
   assert.equal(validateContent("我想了解資料分析和產品分析的差別", 2, 300), null);
+});
+
+
+test("community no longer asks users to classify posts", () => {
+  assert.doesNotMatch(community,/community-category|CATEGORIES|setCategory/);
+  assert.doesNotMatch(community,/community_filter_selected/);
+  assert.match(community,/community-sort/);
+});
+
+test("result hero keeps the English function name and square uncropped artwork", () => {
+  assert.match(product,/real-role-en/);
+  assert.match(css,/object-fit:contain/);
+  assert.match(css,/width:min\(440px,100%\)/);
+});
+
+test("encyclopedia behaves as a one-card-at-a-time horizontal deck", () => {
+  assert.match(app,/syncCarousel/);
+  assert.match(app,/scrollIntoView/);
+  assert.match(css,/scroll-snap-align:center/);
+  assert.match(html,/ency-pagination/);
 });

@@ -1,6 +1,5 @@
 const crypto = require("crypto");
 
-const ALLOWED_CATEGORIES = new Set(["職涯方向","科系與課程","實習與求職","技能學習","網站建議"]);
 const ALLOWED_USER_TYPES = new Set(["高中生","大學生","研究生","轉職中","在職","其他"]);
 const REPORT_REASONS = new Set(["垃圾訊息","不當內容","人身攻擊","洩露個人資料","廣告或詐騙","其他"]);
 const PII_PATTERNS = [
@@ -69,4 +68,4 @@ async function recentRows(table,fingerprintHash,sinceIso,select="created_at,cont
   const q=`${table}?select=${encodeURIComponent(select)}&fingerprint_hash=eq.${fingerprintHash}&created_at=gte.${encodeURIComponent(sinceIso)}&order=created_at.desc`;
   return await supabase(q);
 }
-module.exports={ALLOWED_CATEGORIES,ALLOWED_USER_TYPES,REPORT_REASONS,json,normalizeText,originAllowed,clientMeta,validateNickname,validateContent,supabase,verifyTurnstile,recentRows};
+module.exports={ALLOWED_USER_TYPES,REPORT_REASONS,json,normalizeText,originAllowed,clientMeta,validateNickname,validateContent,supabase,verifyTurnstile,recentRows};

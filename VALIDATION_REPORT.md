@@ -1,45 +1,77 @@
-# Data Matters v3 驗證報告
+# Data Matters v3.1 Validation Report
 
 執行日期：2026-07-21
 
-## 已實際執行並通過
+## 已實際執行
 
-- `npm run lint`
-  - 8 個自有 JavaScript 檔案 syntax 通過。
-  - 47 個 HTML ID，無重複。
-- 現有 Analytics contract 相容測試：19／19 通過。
-  - 含 `env`、`enabled`、`sessionId()`、array POST body、UTM、referrer、allowlist、once guards、local disable。
-- `npm run test:product`：10／10 通過。
-- Netlify Functions `node --check`：通過。
-- QR generator smoke test：通過，正式 referral URL 產生 53×53 modules。
-- PostgreSQL migration parser：
-  - `002_community_board.sql` 通過。
-  - `002_community_board_rollback.sql` 通過。
-- `npm run build`：在暫時的整合 fixture（9 family／jobs／data folder）下通過。
+### JavaScript syntax / static lint
 
-## 套回目前 repository 後由 CI 執行
+```text
+Static lint passed: 8 JavaScript files, 48 unique HTML ids.
+```
 
-更新後 workflow 會在真正的 `data/careers.json`、`data/skills.json`、`images/` 上執行：
+結果：通過。
 
-- `node validate-data.mjs`
-- `node test-analytics.mjs`
-- `node test-cases.mjs`
-- `node --test tests/*.test.mjs`
-- `npm run build`
+### Product tests
 
-本工作環境沒有取得 repository 的完整 JSON／圖片二進位資產，因此沒有聲稱上述三個原始腳本已在真實資料上通過。
+```text
+13 tests
+13 passed
+0 failed
+```
 
-## 未實際完成
+涵蓋：
 
-- Supabase staging／production migration execution。
-- 真實 Netlify Functions＋Supabase E2E。
-- 390px 與 desktop 的瀏覽器視覺截圖檢查。
-- Modal／Accordion 的真實瀏覽器鍵盤操作。
-- iPhone Safari、Android Chrome、Desktop Chrome 實機測試。
-- 九張角色圖的 1080×1920 真實 Canvas 輸出。
-- 手機相機 QR 掃描。
-- 留言／回覆／檢舉／rate-limit 的真實資料庫測試。
+- 18 題與三分數系統
+- 環境題不影響職能排名
+- 結果頁資訊順序
+- 1080 × 1920 分享圖
+- 分享圖角色圖放大且移除 QR Code
+- 九個工作重心座標
+- Community server functions／RLS
+- 390px 與 44px controls
+- Analytics 事件
+- 個資與垃圾訊息阻擋
+- 留言板不再要求分類
+- 結果頁英文職能名稱與完整正方形圖片
+- 職涯圖鑑單卡橫向牌組
 
-## 未通過項目
+結果：13 / 13 通過。
 
-沒有已執行但失敗且未修復的靜態／單元測試。瀏覽器 E2E 在此執行環境被瀏覽器管理政策阻擋，因此列為「未執行」，不是通過。
+### Production build
+
+使用整合測試用 `analytics-config.js`、`data/` 與 `images/` 執行：
+
+```text
+Built /mnt/data/_v31_validate/dist
+```
+
+結果：通過。
+
+## 未實際執行
+
+目前交付包刻意不包含使用者 repository 的：
+
+- `analytics-config.js`
+- 真實 `data/`
+- 真實 `images/`
+- 原 repository 的 `test-analytics.mjs`
+- 原 repository 的 `test-cases.mjs`
+- 原 repository 的 `validate-data.mjs`
+
+因此套用到實際 repository 後仍需執行：
+
+```powershell
+npm run validate
+```
+
+並在真實圖片與資料上做瀏覽器視覺確認。
+
+## 尚需人工／實機驗證
+
+- 真實九角色圖片是否全部完整顯示
+- 390px 手機圖鑑滑動手感
+- iPhone Safari／Android Chrome Web Share
+- 分享 PNG 實際下載結果
+- Supabase `004_simplify_community_category.sql`
+- 真實留言、回覆、檢舉與 rate limit

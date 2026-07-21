@@ -187,6 +187,7 @@
           <div>你最像</div>
           <h2 id="result-role-title">${escapeHTML(p.class_title)}</h2>
           <div class="real-role">${escapeHTML(p.cn_name)}</div>
+          <div class="real-role-en">${escapeHTML(p.en_name || "")}</div>
           <p class="hero-tagline">${escapeHTML(p.tagline || p.role_description)}</p>
           <ul class="hero-reasons">${reasons.map(r => `<li>${escapeHTML(r)}</li>`).join("")}</ul>
           <div class="cta-row">
@@ -384,7 +385,7 @@
     document.getElementById("spectrum-plot").innerHTML = Object.entries(profiles).map(([famKey,p]) => {
       const pos = MAP_POSITIONS[famKey] || {x:50,y:50};
       return `<button type="button" class="map-node" style="left:${pos.x}%;top:${pos.y}%;background:none;border:0;color:inherit" title="${escapeHTML(p.class_title)}｜${escapeHTML(p.cn_name)}" onclick="Encyclopedia.openFamily('${String(famKey).replace(/'/g,"\\'")}')">${iconDotHTML(p)}<span class="map-label">${escapeHTML(p.cn_name)}</span></button>`;
-    }).join("");
+    }).join("") + `<span class="quadrant-label q-tl">決策與規劃</span><span class="quadrant-label q-tr">平台與制度</span><span class="quadrant-label q-bl">分析與洞察</span><span class="quadrant-label q-br">產品與執行</span>`;
   };
 
   /* ------------------------------------------------------------------
@@ -452,7 +453,7 @@
   window.RoleCompare = RoleCompare;
 
   /* ------------------------------------------------------------------
-     Instagram Story image (Canvas + QR library) and Web Share fallback.
+     Instagram Story image (Canvas) and Web Share fallback.
   ------------------------------------------------------------------ */
   function loadImage(src){
     return new Promise((resolve,reject) => { const img=new Image(); img.onload=()=>resolve(img); img.onerror=reject; img.src=src; });
@@ -482,7 +483,7 @@
       const main=ResultState.routes[0]; if(!main) return;
       safeTrack("result_share_clicked", { role_id:main.famKey });
       safeTrack("share_preview_opened", { role_id:main.famKey });
-      Modal.open(`<div class="share-preview"><div id="share-image-wrap" class="loading-state">正在產生分享圖片…</div><div class="share-actions"><h2>分享探索結果</h2><p>會產生 1080 × 1920 的限時動態圖片。</p><button class="btn btn-primary" id="native-share-btn" onclick="ResultShare.nativeShare()" disabled>分享圖片</button><button class="btn btn-ghost" id="download-share-btn" onclick="ResultShare.download()" disabled>下載圖片</button><button class="btn btn-ghost" id="copy-share-btn" onclick="ResultShare.copyLink()">複製分享連結</button><p id="share-status" class="share-status">純網頁無法保證直接發布到 Instagram Stories。</p></div></div>`);
+      Modal.open(`<div class="share-preview"><div id="share-image-wrap" class="loading-state">正在產生分享圖片…</div><div class="share-actions"><h2>分享探索結果</h2><p>會產生 1080 × 1920 的限時動態圖片。</p><button class="btn btn-primary" id="native-share-btn" onclick="ResultShare.nativeShare()" disabled>分享圖片</button><button class="btn btn-ghost" id="download-share-btn" onclick="ResultShare.download()" disabled>下載圖片</button><button class="btn btn-ghost" id="copy-share-btn" onclick="ResultShare.copyLink()">複製分享連結</button></div></div>`);
       try{
         safeTrack("share_image_generation_started", { role_id:main.famKey });
         const output=await ResultShare.generate();
@@ -497,21 +498,23 @@
     async generate(){
       const main=ResultState.routes[0]; const p=State.careers.meta.family_profiles[main.famKey];
       if(document.fonts?.ready) await document.fonts.ready;
-      if(typeof window.qrcode!=="function") throw new Error("QR Code 元件尚未載入");
       const canvas=document.createElement("canvas"); canvas.width=1080; canvas.height=1920; const ctx=canvas.getContext("2d");
       const referral=new URL(location.origin+location.pathname); referral.searchParams.set("utm_source","instagram"); referral.searchParams.set("utm_medium","story"); referral.searchParams.set("utm_campaign","result_share"); const shareRoleId=roleShareId(main.famKey); referral.searchParams.set("utm_content",shareRoleId);
       ResultShare.referralUrl=referral.toString();
       const grad=ctx.createLinearGradient(0,0,1080,1920); grad.addColorStop(0,p.color||"#172033"); grad.addColorStop(.58,"#10152a"); grad.addColorStop(1,"#090c16"); ctx.fillStyle=grad;ctx.fillRect(0,0,1080,1920);
       ctx.fillStyle="rgba(255,255,255,.05)";ctx.beginPath();ctx.arc(900,370,430,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(150,1550,360,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle="#f0ecdd";ctx.font="700 32px 'Noto Sans TC', sans-serif";ctx.fillText("DATA MATTERS",90,230);
-      ctx.fillStyle="#b7bfd9";ctx.font="500 44px 'Noto Sans TC', sans-serif";ctx.fillText("我的資料職涯角色是",90,350);
-      ctx.fillStyle="#ffffff";ctx.font="900 84px 'Noto Sans TC', sans-serif";drawWrapped(ctx,p.class_title,90,470,900,96,2);
-      ctx.fillStyle=p.glow||"#d4af37";ctx.font="700 44px 'Noto Sans TC', sans-serif";ctx.fillText(p.cn_name,90,625);
-      const img=await loadRoleImage(p); const size=600,x=240,y=690;ctx.save();roundedRect(ctx,x,y,size,size,56);ctx.clip();const scale=Math.max(size/img.width,size/img.height);const sw=size/scale,sh=size/scale,sx=(img.width-sw)/2,sy=(img.height-sh)/2;ctx.drawImage(img,sx,sy,sw,sh,x,y,size,size);ctx.restore();
-      ctx.fillStyle="#f0ecdd";ctx.font="600 32px 'Noto Sans TC', sans-serif";drawWrapped(ctx,p.tagline||p.role_description,90,1370,660,44,2);
-      const tags=compactReasons(main);ctx.font="600 32px 'Noto Sans TC', sans-serif";let tx=90;tags.forEach(tag=>{const w=ctx.measureText(tag).width+48;ctx.fillStyle="rgba(255,255,255,.10)";roundedRect(ctx,tx,1490,w,62,31);ctx.fill();ctx.fillStyle="#f0ecdd";ctx.fillText(tag,tx+24,1532);tx+=w+14;});
-      ctx.fillStyle="#f0ecdd";ctx.font="700 32px 'Noto Sans TC', sans-serif";ctx.fillText("你是哪一種資料職涯角色？",90,1600);ctx.fillStyle="#9aa3c4";ctx.font="500 32px 'Noto Sans TC', sans-serif";ctx.fillText(location.host,90,1645);
-      const qr=window.qrcode(0,"M");qr.addData(ResultShare.referralUrl);qr.make();const modules=qr.getModuleCount(),qrSize=180,cell=qrSize/modules,qx=810,qy=1400;ctx.fillStyle="#ffffff";ctx.fillRect(qx-14,qy-14,qrSize+28,qrSize+28);ctx.fillStyle="#111111";for(let r=0;r<modules;r++)for(let c=0;c<modules;c++)if(qr.isDark(r,c))ctx.fillRect(qx+c*cell,qy+r*cell,Math.ceil(cell),Math.ceil(cell));
+      ctx.fillStyle="#f0ecdd";ctx.font="700 32px 'Noto Sans TC', sans-serif";ctx.fillText("DATA MATTERS",90,220);
+      ctx.fillStyle="#b7bfd9";ctx.font="500 42px 'Noto Sans TC', sans-serif";ctx.fillText("我的資料職涯角色是",90,330);
+      ctx.fillStyle="#ffffff";ctx.font="900 82px 'Noto Sans TC', sans-serif";drawWrapped(ctx,p.class_title,90,445,900,92,2);
+      ctx.fillStyle=p.glow||"#d4af37";ctx.font="700 42px 'Noto Sans TC', sans-serif";ctx.fillText(p.cn_name,90,610);
+      ctx.fillStyle="#aeb7d4";ctx.font="500 28px Inter, sans-serif";drawWrapped(ctx,p.en_name||"",90,655,900,36,2);
+      const img=await loadRoleImage(p); const size=720,x=180,y=700;
+      ctx.save();roundedRect(ctx,x,y,size,size,58);ctx.clip();ctx.fillStyle="rgba(255,255,255,.035)";ctx.fillRect(x,y,size,size);
+      const scale=Math.min(size/img.width,size/img.height);const dw=img.width*scale,dh=img.height*scale,dx=x+(size-dw)/2,dy=y+(size-dh)/2;ctx.drawImage(img,dx,dy,dw,dh);ctx.restore();
+      ctx.strokeStyle=p.glow||"#d4af37";ctx.lineWidth=4;roundedRect(ctx,x,y,size,size,58);ctx.stroke();
+      ctx.fillStyle="#f0ecdd";ctx.font="600 30px 'Noto Sans TC', sans-serif";drawWrapped(ctx,p.tagline||p.role_description,90,1490,900,42,2);
+      const tags=compactReasons(main);ctx.font="600 28px 'Noto Sans TC', sans-serif";let tx=90;tags.forEach(tag=>{const w=ctx.measureText(tag).width+44;ctx.fillStyle="rgba(255,255,255,.10)";roundedRect(ctx,tx,1590,w,58,29);ctx.fill();ctx.fillStyle="#f0ecdd";ctx.fillText(tag,tx+22,1629);tx+=w+12;});
+      ctx.fillStyle="#f0ecdd";ctx.font="700 30px 'Noto Sans TC', sans-serif";ctx.fillText("你是哪一種資料職涯角色？",90,1725);ctx.fillStyle="#9aa3c4";ctx.font="500 28px Inter, sans-serif";ctx.fillText(location.host,90,1770);
       ResultShare.dataUrl=canvas.toDataURL("image/png"); const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png")); ResultShare.file=new File([blob],`data-matters-${shareRoleId}-story.png`,{type:"image/png"});
       return {dataUrl:ResultShare.dataUrl,alt:`我的資料職涯角色是${p.class_title}，${p.cn_name}`};
     },
