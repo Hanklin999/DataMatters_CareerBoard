@@ -38,8 +38,16 @@
       if(!state.loaded)trackCommunity("community_viewed");
       try{
         const url=new URL(`${location.origin}${API_BASE}/community-read`);url.searchParams.set("sort",state.sort);
-        const res=await fetch(url,{headers:{"Accept":"application/json"}});if(!res.ok)throw new Error("read_failed");const data=await res.json();state.posts=Array.isArray(data.posts)?data.posts:[];state.loaded=true;Community.renderList();
-      }catch(_){document.getElementById("community-list").innerHTML='<div class="error-state">留言板目前無法載入。請稍後再試；測驗與其他頁面不受影響。<br><button class="btn btn-ghost" onclick="Community.load(true)">重新載入</button></div>';}
+        const res=await fetch(url,{headers:{"Accept":"application/json"}});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.message||"read_failed");state.posts=Array.isArray(data.posts)?data.posts:[];state.loaded=true;Community.renderList();
+      }catch(err){
+        const setupMessages={
+          server_not_configured:"留言板尚未完成伺服器環境變數設定。",
+          community_schema_missing:"留言板資料表尚未建立。",
+          community_permission_missing:"留言板資料庫權限尚未完成設定。"
+        };
+        const message=setupMessages[err.message]||"留言板目前無法載入。請稍後再試；測驗與其他頁面不受影響。";
+        document.getElementById("community-list").innerHTML=`<div class="error-state">${message}<br><button class="btn btn-ghost" onclick="Community.load(true)">重新載入</button>${setupMessages[err.message]?'<div class="community-setup-note">網站管理者可查看部署文件完成設定。</div>':''}</div>`;
+      }
       finally{state.loading=false;}
     },
     renderControls(){

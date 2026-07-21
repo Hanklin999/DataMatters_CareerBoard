@@ -53,6 +53,7 @@
     if (["home","encyclopedia","community","about"].includes(id)) history.replaceState(null, "", id === "home" ? location.pathname + location.search : `#${id}`);
     window.scrollTo({ top:0, behavior:"smooth" });
     safeTrack("page_viewed", { source_page: id });
+    if (id === "encyclopedia") requestAnimationFrame(() => Encyclopedia.refreshCarousel && Encyclopedia.refreshCarousel());
     if (id === "community" && window.Community) Community.load();
   };
 

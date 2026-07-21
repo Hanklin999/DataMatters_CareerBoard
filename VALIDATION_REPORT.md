@@ -1,77 +1,21 @@
-# Data Matters v3.1 Validation Report
-
-執行日期：2026-07-21
+# Data Matters v3.2 驗證結果
 
 ## 已實際執行
 
-### JavaScript syntax / static lint
+- `npm run lint`：通過；8 個 JavaScript 檔案語法正確，48 個 HTML ID 無重複。
+- `npm run test:product`：16／16 通過。
+- Community runtime fallback：通過；模擬公開 View 回傳 PostgreSQL `42P01`，成功改讀 visible base-table fields。
+- `npm run build:overlay`：通過。
+- 使用含真實 `data/`、`images/` 與 analytics config 的整合 fixture 執行 `npm run build`：通過。
 
-```text
-Static lint passed: 8 JavaScript files, 48 unique HTML ids.
-```
+## 本次修正涵蓋
 
-結果：通過。
+- Carousel 中心角色判定、連續下一張、pointer drag、active 狀態。
+- 工作重心 X／Y 軸結構與免責文字位置。
+- Community View fallback、錯誤分類與 service-role migration。
 
-### Product tests
+## 尚未聲稱通過
 
-```text
-13 tests
-13 passed
-0 failed
-```
-
-涵蓋：
-
-- 18 題與三分數系統
-- 環境題不影響職能排名
-- 結果頁資訊順序
-- 1080 × 1920 分享圖
-- 分享圖角色圖放大且移除 QR Code
-- 九個工作重心座標
-- Community server functions／RLS
-- 390px 與 44px controls
-- Analytics 事件
-- 個資與垃圾訊息阻擋
-- 留言板不再要求分類
-- 結果頁英文職能名稱與完整正方形圖片
-- 職涯圖鑑單卡橫向牌組
-
-結果：13 / 13 通過。
-
-### Production build
-
-使用整合測試用 `analytics-config.js`、`data/` 與 `images/` 執行：
-
-```text
-Built /mnt/data/_v31_validate/dist
-```
-
-結果：通過。
-
-## 未實際執行
-
-目前交付包刻意不包含使用者 repository 的：
-
-- `analytics-config.js`
-- 真實 `data/`
-- 真實 `images/`
-- 原 repository 的 `test-analytics.mjs`
-- 原 repository 的 `test-cases.mjs`
-- 原 repository 的 `validate-data.mjs`
-
-因此套用到實際 repository 後仍需執行：
-
-```powershell
-npm run validate
-```
-
-並在真實圖片與資料上做瀏覽器視覺確認。
-
-## 尚需人工／實機驗證
-
-- 真實九角色圖片是否全部完整顯示
-- 390px 手機圖鑑滑動手感
-- iPhone Safari／Android Chrome Web Share
-- 分享 PNG 實際下載結果
-- Supabase `004_simplify_community_category.sql`
-- 真實留言、回覆、檢舉與 rate limit
+- 此執行環境無法讓 Chromium 存取 localhost 或 file URL，因此未完成實際瀏覽器自動點擊／滑動測試。
+- 使用者 repository 內的 `validate-data.mjs`、`test-cases.mjs`、`test-analytics.mjs` 不在本更新包中；套用後仍須在完整 repository 執行 `npm run validate`。
+- 真實 Supabase 與 Netlify 環境需執行 `005_repair_community_read.sql` 並重新部署後再做 E2E 驗證。

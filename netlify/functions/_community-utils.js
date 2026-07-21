@@ -27,7 +27,7 @@ function originAllowed(event){
   const configured=(process.env.COMMUNITY_ALLOWED_ORIGINS||"https://datamatters-hanks-career-board.netlify.app,http://localhost:8888").split(",").map(v=>v.trim()).filter(Boolean);
   return configured.includes(origin);
 }
-function hash(value){ const salt=process.env.COMMUNITY_HASH_SALT;if(!salt||salt.length<32)throw new Error("server_not_configured");return crypto.createHash("sha256").update(`${salt}:${value || "unknown"}`).digest("hex"); }
+function hash(value){ const salt=process.env.COMMUNITY_HASH_SALT;if(!salt||salt.length<32){const error=new Error("server_not_configured");error.code="server_not_configured";throw error;}return crypto.createHash("sha256").update(`${salt}:${value || "unknown"}`).digest("hex"); }
 function clientMeta(event, sessionId){
   const headers = event.headers || {};
   const ip = headers["x-nf-client-connection-ip"] || String(headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
@@ -47,13 +47,21 @@ function validateContent(value,min,max){
 }
 function supabaseHeaders(){
   const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!process.env.SUPABASE_URL||!key)throw new Error("server_not_configured");
+  if(!process.env.SUPABASE_URL||!key){const error=new Error("server_not_configured");error.code="server_not_configured";throw error;}
   return { apikey:key, Authorization:`Bearer ${key}`, "Content-Type":"application/json", Prefer:"return=representation" };
 }
 async function supabase(path, options={}){
   const res=await fetch(`${process.env.SUPABASE_URL}/rest/v1/${path}`,{...options,headers:{...supabaseHeaders(),...(options.headers||{})}});
   const text=await res.text(); let data=null; try{data=text?JSON.parse(text):null;}catch(_){data=text;}
-  if(!res.ok){console.error("Supabase community error",res.status,data);throw new Error("database_error");}
+  if(!res.ok){
+    console.error("Supabase community error",res.status,data);
+    const pgCode=data&&typeof data==="object"?data.code:null;
+    const error=new Error("database_error");
+    error.status=res.status;
+    error.details=data;
+    error.code=pgCode==="42P01"?"relation_missing":pgCode==="42501"?"permission_denied":"database_error";
+    throw error;
+  }
   return data;
 }
 async function verifyTurnstile(event, token){

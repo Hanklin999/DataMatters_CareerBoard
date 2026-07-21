@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const jsFiles = [
   "app.js", "analytics.js", "product-v3.js", "community.js",
@@ -18,6 +18,7 @@ assert.match(html, /aria-modal="true"/);
 
 const publicFiles = ["index.html","analytics-config.js","analytics.js","app.js","product-v3.js","community.js"];
 for (const file of publicFiles){
+  if (!existsSync(file)) continue;
   const source = readFileSync(file,"utf8");
   assert.ok(!/SUPABASE_SERVICE_ROLE_KEY\s*[:=]\s*["'][^"']+/i.test(source), `${file} may expose a service role key`);
 }

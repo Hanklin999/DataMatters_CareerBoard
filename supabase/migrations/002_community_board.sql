@@ -105,7 +105,7 @@ revoke all on public.community_reports from anon, authenticated;
 
 create or replace view public.public_visible_community_posts
 with (security_barrier = true) as
-select id, created_at, nickname, user_type, category, content, reply_count, is_pinned
+select id, created_at, nickname, user_type, content, reply_count, is_pinned
 from public.community_posts
 where status = 'visible'
 order by is_pinned desc, created_at desc;
@@ -121,3 +121,13 @@ revoke all on public.public_visible_community_replies from public, anon, authent
 
 comment on view public.public_visible_community_posts is 'Public-only community fields; excludes hashes, session IDs and moderation fields.';
 comment on view public.public_visible_community_replies is 'Public-only reply fields; excludes hashes, session IDs and moderation fields.';
+
+-- Explicit server-only grants for Netlify Functions.
+grant usage on schema public to service_role;
+grant select, insert, update, delete on public.community_posts to service_role;
+grant select, insert, update, delete on public.community_replies to service_role;
+grant select, insert, update, delete on public.community_reports to service_role;
+grant select on public.public_visible_community_posts to service_role;
+grant select on public.public_visible_community_replies to service_role;
+
+notify pgrst, 'reload schema';

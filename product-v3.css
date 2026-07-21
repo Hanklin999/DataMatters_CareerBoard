@@ -72,19 +72,21 @@ footer{max-width:1080px;margin:0 auto;padding:30px 24px 50px;border-top:1px soli
   img,canvas,svg{max-width:100%}
 }
 
-
-/* v3.1 visual fixes */
+/* v3.2 visual and interaction fixes */
 .result-hero-v3{grid-template-columns:minmax(0,1fr) minmax(360px,1fr)}
 .result-hero-v3 .real-role-en{margin-top:4px;color:var(--sub);font-size:14px;font-weight:600;letter-spacing:.01em}
 .result-hero-art .square-portrait{width:min(440px,100%);max-width:440px;aspect-ratio:1/1}
 .result-hero-art .square-portrait img{object-fit:contain;background:var(--fam-color,#11182a)}
 
-.ency-deck{display:grid;grid-template-columns:52px minmax(0,1fr) 52px;gap:12px;align-items:center;max-width:940px;margin:0 auto}
-.ency-carousel{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:8%;padding:12px 8% 22px;scrollbar-width:none;overscroll-behavior-inline:contain}
+/* Career atlas: one centered active card, continuous native + pointer dragging. */
+.ency-deck{display:grid;grid-template-columns:52px minmax(0,1fr) 52px;gap:12px;align-items:center;max-width:980px;margin:0 auto}
+.ency-carousel{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:8%;padding:12px 8% 24px;scrollbar-width:none;overscroll-behavior-inline:contain;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+.ency-carousel.is-dragging{cursor:grabbing;scroll-snap-type:none}
 .ency-carousel::-webkit-scrollbar{display:none}
-.ency-card{flex:0 0 min(720px,84%);scroll-snap-align:center;display:grid;grid-template-columns:minmax(250px,.9fr) minmax(260px,1.1fr);gap:28px;align-items:center;min-height:430px;padding:28px;text-align:left;opacity:.56;transform:scale(.94);transition:opacity .2s ease,transform .2s ease,box-shadow .2s ease}
+.ency-card{flex:0 0 min(720px,84%);scroll-snap-align:center;scroll-snap-stop:always;display:grid;grid-template-columns:minmax(250px,.9fr) minmax(260px,1.1fr);gap:28px;align-items:center;min-height:430px;padding:28px;text-align:left;opacity:.5;transform:scale(.92);transition:opacity .22s ease,transform .22s ease,box-shadow .22s ease;will-change:transform,opacity}
 .ency-card.is-active{opacity:1;transform:scale(1);box-shadow:0 18px 42px rgba(0,0,0,.48),0 0 22px var(--fam-glow-soft,rgba(212,175,55,.2))}
-.ency-card:hover{transform:scale(1) translateY(-2px)}
+.ency-card.is-active:hover{transform:scale(1) translateY(-2px)}
+.ency-card:not(.is-active):hover{transform:scale(.94)}
 .ency-card-visual .square-portrait{max-width:310px;margin:0 auto}
 .ency-card-visual .square-portrait img{object-fit:contain;background:var(--fam-color,#11182a)}
 .ency-card-copy{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
@@ -94,27 +96,40 @@ footer{max-width:1080px;margin:0 auto;padding:30px 24px 50px;border-top:1px soli
 .ency-card .route-oneliner{font-size:15px;margin:16px 0;line-height:1.65}
 .ency-card .tl-chip{margin:0 0 18px}
 .ency-card .route-btn{width:auto;margin-top:auto}
+.carousel-arrow:disabled{opacity:.3;cursor:not-allowed;transform:none}
 .ency-pagination{display:flex;justify-content:center;gap:7px;margin:8px 0 0}
 .ency-dot{width:9px;height:9px;border:0;border-radius:999px;background:rgba(255,255,255,.2);padding:0;cursor:pointer;transition:.2s}
 .ency-dot.active{width:28px;background:var(--accent)}
 .ency-swipe-hint{text-align:center;color:var(--sub);font-size:12px;margin:8px 0 24px}
 
-.focus-map-layout{display:grid;grid-template-columns:64px minmax(0,1fr);grid-template-rows:auto minmax(460px,min(62vw,620px)) auto auto auto;grid-template-areas:". y-top" "y-title plot" ". y-bottom" ". x-title" ". x-labels";column-gap:12px;row-gap:10px;max-width:920px;margin:0 auto}
-.focus-y-title{grid-area:y-title;writing-mode:vertical-rl;transform:rotate(180deg);align-self:center;justify-self:center;text-align:center;font-weight:700}
-.focus-y-label{grid-column:auto;text-align:center;display:grid;gap:3px;color:var(--text);font-size:13px}
-.focus-y-label.top{grid-area:y-top}.focus-y-label.bottom{grid-area:y-bottom}
-.focus-y-label small,.focus-x-labels small{display:block;color:var(--sub);font-size:11px;line-height:1.45}
-.focus-plot{grid-area:plot;min-height:0;height:100%;overflow:hidden;isolation:isolate}
-.focus-plot:before,.focus-plot:after{content:none}
-.focus-x-title{grid-area:x-title;text-align:center;font-weight:700;margin-top:2px}
-.focus-x-labels{grid-area:x-labels;display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:0;text-align:left}
+/* Work-focus map: axis labels are outside the plot and cannot collide with nodes. */
+.focus-map-section{margin-top:58px}
+.focus-map-section .focus-map-layout{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;align-items:stretch;max-width:980px;margin:0 auto}
+.focus-y-axis{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;min-height:520px}
+.focus-axis-end{display:grid;gap:4px;color:var(--text);font-size:13px;line-height:1.4}
+.focus-axis-end small{display:block;color:var(--sub);font-size:10px;line-height:1.45}
+.focus-axis-end-top{align-self:start;text-align:right}
+.focus-axis-end-bottom{align-self:end;text-align:right}
+.focus-y-rail{position:relative;display:flex;align-items:center;justify-content:center;min-height:240px}
+.focus-y-rail::before{content:"";position:absolute;top:22px;bottom:10px;left:50%;width:1px;background:linear-gradient(to top,rgba(255,255,255,.16),rgba(255,255,255,.5))}
+.focus-y-arrow{position:absolute;top:-2px;left:50%;transform:translateX(-50%);color:var(--accent-2);font-size:22px;line-height:1}
+.focus-y-title{position:relative;z-index:1;writing-mode:vertical-rl;transform:none;padding:8px 5px;background:var(--bg);font-weight:800;letter-spacing:.05em}
+.focus-map-main{min-width:0;display:grid;grid-template-rows:minmax(460px,min(60vw,620px)) auto auto;gap:12px}
+.focus-map-section .focus-plot{position:relative;width:100%;height:100%;min-height:460px;grid-column:auto;grid-row:auto;overflow:hidden;isolation:isolate;border:1px solid var(--border);border-radius:16px;background-color:rgba(255,255,255,.025);background-image:linear-gradient(to right,rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(to right,transparent 49.85%,rgba(255,255,255,.16) 50%,transparent 50.15%),linear-gradient(to bottom,transparent 49.85%,rgba(255,255,255,.16) 50%,transparent 50.15%);background-size:12.5% 12.5%,12.5% 12.5%,100% 100%,100% 100%}
+.focus-map-section .focus-plot::before,.focus-map-section .focus-plot::after{content:none}
+.focus-x-axis{display:grid;gap:7px}
+.focus-x-title{grid-column:auto;grid-row:auto;text-align:center;font-weight:800;margin:0}
+.focus-x-labels{grid-column:auto;display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:0;text-align:left}
 .focus-x-labels span:last-child{text-align:right}
+.focus-x-labels small{display:block;color:var(--sub);font-size:10px;line-height:1.45;margin-top:3px}
 .quadrant-label{position:absolute;z-index:0;color:rgba(255,255,255,.27);font-size:12px;font-weight:800;pointer-events:none;letter-spacing:.03em}
 .q-tl{left:16px;top:14px}.q-tr{right:16px;top:14px}.q-bl{left:16px;bottom:14px}.q-br{right:16px;bottom:14px}
+.focus-map-main .map-disclaimer{text-align:center;color:var(--sub);font-size:12px;margin:0;padding-top:2px}
 
 .community-toolbar{display:flex;justify-content:flex-end;align-items:center}
 .community-sort-label{display:flex;align-items:center;gap:8px;color:var(--sub);font-size:13px}
 .user-type{padding:3px 7px;border-radius:999px;background:rgba(255,255,255,.055)}
+.community-setup-note{margin-top:10px;color:var(--sub);font-size:12px}
 
 @media(max-width:800px){
   .result-hero-art .square-portrait{width:min(310px,78vw);max-width:310px}
@@ -125,17 +140,24 @@ footer{max-width:1080px;margin:0 auto;padding:30px 24px 50px;border-top:1px soli
   .ency-card{flex-basis:86%;grid-template-columns:1fr;min-height:auto;text-align:center;padding:22px;gap:18px}
   .ency-card-copy{align-items:center}
   .ency-card-visual .square-portrait{max-width:min(300px,68vw)}
-  .focus-map-layout{grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto 460px auto auto auto;column-gap:6px}
-  .focus-y-label small,.focus-x-labels small{display:block;font-size:10px}
+  .focus-map-section .focus-map-layout{grid-template-columns:92px minmax(0,1fr);gap:8px}
+  .focus-y-axis{min-height:470px}
+  .focus-map-main{grid-template-rows:470px auto auto}
+  .focus-axis-end{font-size:11px}
+  .focus-axis-end small{font-size:9px}
+  .focus-map-section .focus-plot{min-height:470px}
   .focus-x-labels{gap:12px}
+  .focus-x-labels strong{font-size:12px}
+  .focus-x-labels small{font-size:9px}
 }
 @media(max-width:420px){
   .result-hero-art .square-portrait{width:min(280px,76vw);max-width:280px}
-  .focus-map-layout{grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto 430px auto auto auto}
+  .focus-map-section .focus-map-layout{grid-template-columns:76px minmax(0,1fr);gap:6px}
+  .focus-y-axis{min-height:440px}
+  .focus-map-main{grid-template-rows:440px auto auto}
   .focus-y-title{font-size:12px}
-  .focus-y-label{font-size:12px}
-  .focus-y-label small{font-size:9px}
-  .focus-x-labels strong{font-size:12px}
-  .focus-x-labels small{font-size:9px}
-  .quadrant-label{font-size:10px}
+  .focus-axis-end{font-size:10px}
+  .focus-axis-end small{font-size:8px;line-height:1.35}
+  .focus-map-section .focus-plot{min-height:440px}
+  .quadrant-label{font-size:9px}
 }

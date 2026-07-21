@@ -116,9 +116,31 @@ test("result hero keeps the English function name and square uncropped artwork",
   assert.match(css,/width:min\(440px,100%\)/);
 });
 
-test("encyclopedia behaves as a one-card-at-a-time horizontal deck", () => {
-  assert.match(app,/syncCarousel/);
-  assert.match(app,/scrollIntoView/);
+test("encyclopedia keeps the centered card active and supports continuous navigation", () => {
+  assert.match(app,/getBoundingClientRect/);
+  assert.match(app,/Encyclopedia\._activeIndex/);
+  assert.match(app,/track\.scrollTo/);
+  assert.match(app,/pointermove/);
   assert.match(css,/scroll-snap-align:center/);
+  assert.match(css,/scroll-snap-stop:always/);
   assert.match(html,/ency-pagination/);
+});
+
+test("work-focus axes and disclaimer use a dedicated non-overlapping layout", () => {
+  assert.match(html,/focus-y-axis/);
+  assert.match(html,/改變整個組織/);
+  assert.match(html,/解決單一問題/);
+  assert.match(html,/focus-map-main/);
+  assert.match(css,/focus-map-section \.focus-map-layout/);
+  assert.match(css,/focus-y-rail/);
+});
+
+test("community read falls back safely when public views are unavailable", () => {
+  const read = readFileSync("netlify/functions/community-read.js","utf8");
+  const repair = readFileSync("supabase/migrations/005_repair_community_read.sql","utf8");
+  assert.match(read,/readFromViews/);
+  assert.match(read,/readFromBaseTables/);
+  assert.match(read,/community_schema_missing/);
+  assert.match(repair,/grant select, insert, update, delete on public\.community_posts to service_role/);
+  assert.match(repair,/public_visible_community_posts/);
 });

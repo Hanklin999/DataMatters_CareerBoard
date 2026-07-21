@@ -22,13 +22,16 @@ foreach ($item in $required) {
 $excluded = @(
   "APPLY_UPDATE.md",
   "CHANGE_REPORT.md",
+  "V3_1_CHANGE_REPORT.md",
+  "V3_2_CHANGE_REPORT.md",
   "VALIDATION_REPORT.md",
+  "MANIFEST.sha256",
   "apply-update.ps1"
 )
 
 $files = Get-ChildItem -LiteralPath $Source -Recurse -File | Where-Object {
   $relative = $_.FullName.Substring($Source.Length).TrimStart('\')
-  $excluded -notcontains $relative
+  ($excluded -notcontains $relative) -and ($relative -notlike "dist\*")
 }
 
 $obsoleteFiles = @(
