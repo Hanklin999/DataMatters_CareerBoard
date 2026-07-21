@@ -46,7 +46,7 @@
           community_permission_missing:"留言板資料庫權限尚未完成設定。"
         };
         const message=setupMessages[err.message]||"留言板目前無法載入。請稍後再試；測驗與其他頁面不受影響。";
-        const diagnostics=[...(err.details?.missing||[]),...(err.details?.invalid||[])];
+        const diagnostics=[...(err.details?.missing||[]),...(err.details?.invalid||[]),...(err.details?.invalid_url_sources||[])];
         const diagnosticHTML=diagnostics.length?`<div class="community-setup-note">檢查項目：${diagnostics.map(esc).join("、")}</div>`:"";
         document.getElementById("community-list").innerHTML=`<div class="error-state">${message}<br><button class="btn btn-ghost" onclick="Community.load(true)">重新載入</button>${setupMessages[err.message]?'<div class="community-setup-note">網站管理者可查看部署文件完成設定。</div>':''}${diagnosticHTML}</div>`;
       }
@@ -94,7 +94,7 @@
           community_schema_outdated:"留言資料庫版本尚未更新，請通知網站管理者。"
         };
         const errorBox=document.getElementById("community-form-error");
-        if(errorBox){const diagnostics=[...(err.details?.missing||[]),...(err.details?.invalid||[])];errorBox.textContent=(messages[err.message]||"目前無法發布，請稍後再試。")+(diagnostics.length?`（檢查：${diagnostics.join("、")}）`:"");}
+        if(errorBox){const diagnostics=[...(err.details?.missing||[]),...(err.details?.invalid||[]),...(err.details?.invalid_url_sources||[])];errorBox.textContent=(messages[err.message]||"目前無法發布，請稍後再試。")+(diagnostics.length?`（檢查：${diagnostics.join("、")}）`:"");}
         trackCommunity(isPost?"community_post_failed":"community_reply_failed",{error_type:String(err.message||"unknown").slice(0,40)});
         btn.disabled=false;
       }

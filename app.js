@@ -1443,7 +1443,7 @@ const Encyclopedia = {
     const viewport = document.getElementById("ency-carousel");
     const entries = Object.entries(profiles);
     viewport.innerHTML = `<div class="ency-track">${entries.map(([famKey, p], index) => `
-      <article class="ency-card" style="${famVars(p)}" data-card-index="${index}" data-fam-key="${famKey}" role="button" aria-label="${index + 1} / ${entries.length}：${p.class_title}，${p.cn_name}。點擊查看完整介紹">
+      <article class="ency-card" style="${famVars(p)}" data-card-index="${index}" data-fam-key="${famKey}" role="button" tabindex="0" aria-label="${index + 1} / ${entries.length}：${p.class_title}，${p.cn_name}。點擊查看完整介紹">
         <div class="ency-card-visual">${portraitHTML(p)}</div>
         <div class="ency-card-copy">
           <span class="eyebrow">角色 ${index + 1} / ${entries.length}</span>
@@ -1505,6 +1505,8 @@ const Encyclopedia = {
     viewport.addEventListener("pointerdown", event => {
       if (event.button !== undefined && event.button !== 0) return;
       if (event.target?.closest?.("button,a,input,select,textarea")) return;
+      const card=event.target?.closest?.(".ency-card");
+      if(!card||!viewport.contains(card))return;
       const track = viewport.querySelector(".ency-track");
       if (!track) return;
       Encyclopedia._drag = {
@@ -1512,7 +1514,8 @@ const Encyclopedia = {
         startX: event.clientX,
         lastX: event.clientX,
         baseX: Encyclopedia._translateX || 0,
-        moved: false
+        moved: false,
+        card
       };
       viewport.classList.add("is-dragging");
       track.style.transition = "none";
@@ -1544,6 +1547,15 @@ const Encyclopedia = {
         if (dx <= -threshold) Encyclopedia.scroll(1);
         else if (dx >= threshold) Encyclopedia.scroll(-1);
         else Encyclopedia.goTo(Encyclopedia._activeIndex, { animate:true });
+        return;
+      }
+      // A genuine tap opens the card on pointerup. This avoids mobile browsers
+      // swallowing the later click after a transformed/drag-enabled carousel.
+      if(drag.card){
+        Encyclopedia._suppressClickUntil = Date.now() + 500;
+        const index=Number(drag.card.dataset.cardIndex);
+        if(Number.isInteger(index))Encyclopedia.goTo(index,{animate:true});
+        Encyclopedia.openFamily(drag.card.dataset.famKey);
       }
     };
     viewport.addEventListener("pointerup", finishDrag);

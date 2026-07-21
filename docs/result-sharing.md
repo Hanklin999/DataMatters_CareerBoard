@@ -35,8 +35,12 @@
 格式：
 
 ```text
-/?utm_source=instagram&utm_medium=story&utm_campaign=result_share&utm_content=[role_id]
+/share/[role_id]?utm_source=instagram&utm_medium=story&utm_campaign=result_share&utm_content=[role_id]
 ```
+
+`/share/[role_id]` 由 Netlify Function 輸出角色專屬 Open Graph metadata，社群預覽會顯示對應角色圖片，而不是網站通用圖片。使用者開啟連結後會回到首頁。
+
+下載按鈕仍提供瀏覽器即時產生的 1080 × 1920 PNG；複製連結的社群預覽使用 repository 內的角色卡圖片，以確保公開網址與跨平台相容性。
 
 不得包含完整答案、session ID、評分、暱稱或其他個人資料。
 

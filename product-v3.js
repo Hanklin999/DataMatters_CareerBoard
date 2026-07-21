@@ -529,8 +529,19 @@
 
   const ResultShare = {
     dataUrl:null, file:null, referralUrl:null,
+    shareUrl(famKey){
+      const shareRoleId=roleShareId(famKey);
+      const url=new URL(`/share/${encodeURIComponent(shareRoleId)}`,location.origin);
+      url.searchParams.set("utm_source","instagram");
+      url.searchParams.set("utm_medium","story");
+      url.searchParams.set("utm_campaign","result_share");
+      url.searchParams.set("utm_content",shareRoleId);
+      url.searchParams.set("v","38");
+      return url.toString();
+    },
     async open(){
       const main=ResultState.routes[0]; if(!main) return;
+      ResultShare.referralUrl=ResultShare.shareUrl(main.famKey);
       safeTrack("result_share_clicked", { role_id:main.famKey });
       safeTrack("share_preview_opened", { role_id:main.famKey });
       Modal.open(`<div class="share-preview"><div id="share-image-wrap" class="loading-state">正在產生分享圖片…</div><div class="share-actions"><h2>分享探索結果</h2><p>會產生 1080 × 1920 的限時動態圖片。</p><button class="btn btn-primary" id="native-share-btn" onclick="ResultShare.nativeShare()" disabled>分享圖片</button><button class="btn btn-ghost" id="download-share-btn" onclick="ResultShare.download()" disabled>下載圖片</button><button class="btn btn-ghost" id="copy-share-btn" onclick="ResultShare.copyLink()">複製分享連結</button></div></div>`);
@@ -549,8 +560,8 @@
       const main=ResultState.routes[0]; const p=State.careers.meta.family_profiles[main.famKey];
       if(document.fonts?.ready) await document.fonts.ready;
       const canvas=document.createElement("canvas"); canvas.width=1080; canvas.height=1920; const ctx=canvas.getContext("2d");
-      const referral=new URL(location.origin+location.pathname); referral.searchParams.set("utm_source","instagram"); referral.searchParams.set("utm_medium","story"); referral.searchParams.set("utm_campaign","result_share"); const shareRoleId=roleShareId(main.famKey); referral.searchParams.set("utm_content",shareRoleId);
-      ResultShare.referralUrl=referral.toString();
+      const shareRoleId=roleShareId(main.famKey);
+      ResultShare.referralUrl=ResultShare.shareUrl(main.famKey);
       const grad=ctx.createLinearGradient(0,0,1080,1920); grad.addColorStop(0,p.color||"#172033"); grad.addColorStop(.58,"#10152a"); grad.addColorStop(1,"#090c16"); ctx.fillStyle=grad;ctx.fillRect(0,0,1080,1920);
       ctx.fillStyle="rgba(255,255,255,.05)";ctx.beginPath();ctx.arc(900,370,430,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(150,1550,360,0,Math.PI*2);ctx.fill();
       ctx.fillStyle="#f0ecdd";ctx.font="700 32px 'Noto Sans TC', sans-serif";ctx.fillText("DATA MATTERS",90,220);

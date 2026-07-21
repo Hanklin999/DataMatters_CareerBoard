@@ -1,24 +1,38 @@
-# Data Matters v3.7 驗證報告
+# Validation Report — v3.8
 
-已在更新包內執行：
+實際執行：
 
-- `node --check app.js`
-- `node --check product-v3.js`
-- `node --check community.js`
-- `node --check netlify/functions/_community-utils.js`
-- `npm run lint`
-- `npm run test:product`
-- `npm run build:overlay`
+```text
+node --check app.js
+node --check product-v3.js
+node --check community.js
+node --check netlify/functions/_community-utils.js
+node --check netlify/functions/community-health.js
+node --check netlify/functions/role-share.js
+node --test tests/*.test.mjs
+npm run lint
+npm run build:overlay
+```
 
 結果：
 
 - JavaScript syntax：通過
-- Static lint：通過（8 個 JavaScript 檔、48 個唯一 HTML IDs）
-- Product/runtime tests：32 / 32 通過
+- Product/runtime tests：37 / 37 通過
+- Static lint：通過
+- JavaScript files checked by static lint：8
+- HTML IDs：48 個，無重複
 - Overlay build：通過
-- 非 active 角色卡單次點擊：測試確認同一次操作會置中並開啟詳情
-- 技術難度雙行格式：測試通過
-- COMMUNITY_HASH_SALT 過短診斷：測試通過
-- `sb_secret_...` 不再被當成 Bearer JWT：測試通過
 
-未執行完整 `npm run validate`，因為更新包刻意不包含你的正式 `data/`、`images/`、`analytics-config.js`、`test-analytics.mjs`、`test-cases.mjs` 與 `validate-data.mjs`。套入正式 repository 後仍需執行一次完整驗證。
+新增 regression tests：
+
+- 手機 pointer tap 點角色卡直接開詳情
+- 錯誤 `SUPABASE_URL` 不覆蓋正確 `VITE_SUPABASE_URL`
+- 角色分享網址輸出對應 Open Graph 圖片
+- 手機結果角色圖最終置中規則
+- 關於我與 JC 感謝資訊
+
+限制：
+
+- 此交付包不包含 repository 內的真實 `data/`、`images/`、`analytics-config.js` 與原始三個測試檔。
+- 完整 `npm run validate` 必須套用到正式 repository 後再執行。
+- 社群平台可能快取舊 Open Graph 預覽；首次部署後需用新的 `/share/[role-id]` 連結測試。

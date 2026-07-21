@@ -34,30 +34,56 @@ function firstEnv(names){
   }
   return "";
 }
+function inspectSupabaseUrl(value){
+  const raw=String(value||"").trim();
+  if(!raw)return {present:false,valid:false,url:"",host:""};
+  try{
+    const parsed=new URL(raw);
+    const cleanPath=parsed.pathname.replace(/\/+$/,"");
+    const valid=parsed.protocol==="https:" &&
+      /^[a-z0-9-]+\.supabase\.co$/i.test(parsed.hostname) &&
+      cleanPath==="" && !parsed.search && !parsed.hash;
+    return {present:true,valid,url:valid?parsed.origin:"",host:valid?parsed.hostname:""};
+  }catch(_){
+    return {present:true,valid:false,url:"",host:""};
+  }
+}
+function resolveSupabaseUrl(){
+  const candidates=["SUPABASE_URL","VITE_SUPABASE_URL"].map(name=>({
+    name,
+    ...inspectSupabaseUrl(process.env[name])
+  }));
+  const selected=candidates.find(item=>item.present&&item.valid)||null;
+  return {
+    url:selected?.url||"",
+    source:selected?.name||null,
+    host:selected?.host||null,
+    hasAny:candidates.some(item=>item.present),
+    invalidSources:candidates.filter(item=>item.present&&!item.valid).map(item=>item.name)
+  };
+}
 function serverKey(){
   return firstEnv(["SUPABASE_SERVICE_ROLE_KEY","SUPABASE_SECRET_KEY"]);
 }
 function communityConfigStatus(){
-  const url=firstEnv(["SUPABASE_URL","VITE_SUPABASE_URL"]);
+  const resolvedUrl=resolveSupabaseUrl();
   const key=serverKey();
   const explicitSalt=firstEnv(["COMMUNITY_HASH_SALT"]);
   const salt=explicitSalt || key;
   const missing=[];
   const invalid=[];
-  if(!url)missing.push("SUPABASE_URL_OR_VITE_SUPABASE_URL");
-  else{
-    try{
-      const parsed=new URL(url);
-      const cleanPath=parsed.pathname.replace(/\/+$/," ").trim();
-      if(parsed.protocol!=="https:"||!/^[a-z0-9-]+\.supabase\.co$/i.test(parsed.hostname)||cleanPath!==""||parsed.search||parsed.hash)invalid.push("SUPABASE_URL_INVALID");
-    }catch(_){invalid.push("SUPABASE_URL_INVALID");}
-  }
+  if(!resolvedUrl.hasAny)missing.push("SUPABASE_URL_OR_VITE_SUPABASE_URL");
+  else if(!resolvedUrl.url)invalid.push("SUPABASE_URL_INVALID");
   if(!key)missing.push("SUPABASE_SERVICE_ROLE_KEY_OR_SECRET_KEY");
   if(!salt)missing.push("COMMUNITY_HASH_SALT");
   else if(salt.length<32)invalid.push("COMMUNITY_HASH_SALT_MIN_32_CHARS");
   return {
-    configured:missing.length===0&&invalid.length===0,missing,invalid,
-    urlSource:process.env.SUPABASE_URL?"SUPABASE_URL":process.env.VITE_SUPABASE_URL?"VITE_SUPABASE_URL":null,
+    configured:missing.length===0&&invalid.length===0,
+    missing,
+    invalid,
+    invalidUrlSources:resolvedUrl.invalidSources,
+    urlSource:resolvedUrl.source,
+    urlHost:resolvedUrl.host,
     keySource:process.env.SUPABASE_SERVICE_ROLE_KEY?"SUPABASE_SERVICE_ROLE_KEY":process.env.SUPABASE_SECRET_KEY?"SUPABASE_SECRET_KEY":null,
     saltSource:explicitSalt?"COMMUNITY_HASH_SALT":key?"SERVER_KEY_FALLBACK":null
   };
@@ -93,13 +119,9 @@ function validateContent(value,min,max){
   return null;
 }
 function supabaseBaseUrl(){
-  try{
-    const raw=firstEnv(["SUPABASE_URL","VITE_SUPABASE_URL"]);
-    const parsed=new URL(raw);
-    const cleanPath=parsed.pathname.replace(/\/+$/,"");
-    if(parsed.protocol!=="https:"||!/^[a-z0-9-]+\.supabase\.co$/i.test(parsed.hostname)||cleanPath!==""||parsed.search||parsed.hash)throw new Error();
-    return parsed.origin;
-  }catch(_){throw configurationError();}
+  const resolved=resolveSupabaseUrl();
+  if(!resolved.url)throw configurationError();
+  return resolved.url;
 }
 function supabaseHeaders(){
   const key=serverKey();
@@ -137,4 +159,4 @@ async function recentRows(table,fingerprintHash,sinceIso,select="created_at,cont
   const q=`${table}?select=${encodeURIComponent(select)}&fingerprint_hash=eq.${fingerprintHash}&created_at=gte.${encodeURIComponent(sinceIso)}&order=created_at.desc`;
   return await supabase(q);
 }
-module.exports={ALLOWED_USER_TYPES,REPORT_REASONS,json,normalizeText,originAllowed,clientMeta,validateNickname,validateContent,supabase,verifyTurnstile,recentRows,communityConfigStatus,supabaseBaseUrl,supabaseHeaders};
+module.exports={ALLOWED_USER_TYPES,REPORT_REASONS,json,normalizeText,originAllowed,clientMeta,validateNickname,validateContent,supabase,verifyTurnstile,recentRows,communityConfigStatus,supabaseBaseUrl,supabaseHeaders,inspectSupabaseUrl,resolveSupabaseUrl};

@@ -17,3 +17,9 @@
   for = "/.netlify/functions/*"
   [headers.values]
     Cache-Control = "no-store"
+
+[[redirects]]
+  from = "/share/:role"
+  to = "/.netlify/functions/role-share?role=:role"
+  status = 200
+  force = true
