@@ -403,6 +403,12 @@ const HEX_AXES = [
 ];
 function clamp15(v){ return Math.max(1, Math.min(5, Math.round(v))); }
 
+function deferFrame(callback){
+  if (typeof requestAnimationFrame === "function") return requestAnimationFrame(callback);
+  callback();
+  return 0;
+}
+
 /* ---------------------------------------------------------------------
    Navigation
 --------------------------------------------------------------------- */
@@ -416,6 +422,18 @@ const Nav = {
     const link = document.querySelector('.navlinks a[data-nav="'+navId+'"]');
     if (link) link.classList.add("active");
     window.scrollTo({top:0, behavior:"smooth"});
+    if (id === "encyclopedia") {
+      deferFrame(() => deferFrame(() => Encyclopedia.refreshCarousel(false)));
+    }
+    if (id === "results") {
+      deferFrame(() => {
+        const heroImage = document.querySelector("#result-hero .result-hero-art img");
+        if (heroImage) {
+          heroImage.loading = "eager";
+          try { heroImage.fetchPriority = "high"; } catch (_) {}
+        }
+      });
+    }
   },
   startQuiz(entryPoint){
     resetState();
@@ -786,9 +804,12 @@ const IMG_ONERROR = `
 function portraitHTML(p, sizeClass){
   const file = p.card_image || `images/${slugify(p.class_title_en)}.jpg`;
   const cls = sizeClass ? `square-portrait ${sizeClass}` : "square-portrait";
+  const isHero = String(sizeClass || "").split(/\s+/).includes("hero");
+  const loading = isHero ? "eager" : "lazy";
+  const priority = isHero ? ' fetchpriority="high"' : "";
   return `
-    <div class="${cls}">
-      <img src="${file}" data-alts="${altPaths(file)}" alt="${p.class_title}｜${p.cn_name}" loading="lazy" onerror="${IMG_ONERROR}">
+    <div class="${cls}" aria-label="${p.class_title}｜${p.cn_name}角色圖片">
+      <img src="${file}" data-alts="${altPaths(file)}" alt="${p.class_title}｜${p.cn_name}" loading="${loading}" decoding="async"${priority} onerror="${IMG_ONERROR}">
       <span class="portrait-fallback" style="background:${p.color};">${p.icon}</span>
     </div>`;
 }
@@ -1394,6 +1415,11 @@ function jobCardHTML(t, ctx, listPos){
    Encyclopedia
 --------------------------------------------------------------------- */
 const Encyclopedia = {
+  _activeIndex: 0,
+  _translateX: 0,
+  _drag: null,
+  _suppressClickUntil: 0,
+
   render(){
     Encyclopedia.renderCarousel();
     Encyclopedia.renderMap();
@@ -1401,10 +1427,10 @@ const Encyclopedia = {
 
   renderCarousel(){
     const profiles = State.careers.meta.family_profiles;
-    const track = document.getElementById("ency-carousel");
+    const viewport = document.getElementById("ency-carousel");
     const entries = Object.entries(profiles);
-    track.innerHTML = entries.map(([famKey, p], index) => `
-      <article class="ency-card" style="${famVars(p)}" data-card-index="${index}" role="group" aria-label="${index + 1} / ${entries.length}：${p.class_title}，${p.cn_name}" onclick="Encyclopedia.openFamily('${famKey.replace(/'/g,"\'")}')">
+    viewport.innerHTML = `<div class="ency-track">${entries.map(([famKey, p], index) => `
+      <article class="ency-card" style="${famVars(p)}" data-card-index="${index}" role="group" aria-label="${index + 1} / ${entries.length}：${p.class_title}，${p.cn_name}" onclick="Encyclopedia.openCard(event,'${famKey.replace(/'/g,"\'")}')">
         <div class="ency-card-visual">${portraitHTML(p)}</div>
         <div class="ency-card-copy">
           <span class="eyebrow">角色 ${index + 1} / ${entries.length}</span>
@@ -1416,147 +1442,195 @@ const Encyclopedia = {
           <button class="btn btn-ghost route-btn" onclick="event.stopPropagation(); Encyclopedia.openFamily('${famKey.replace(/'/g,"\'")}')">認識這個角色</button>
         </div>
       </article>
-    `).join("");
+    `).join("")}</div>`;
     Encyclopedia.bindCarousel();
-    Encyclopedia.syncCarousel();
+    Encyclopedia.syncCarousel(Encyclopedia._activeIndex || 0);
+    deferFrame(() => deferFrame(() => Encyclopedia.refreshCarousel(false)));
+  },
+
+  cards(){
+    const viewport = document.getElementById("ency-carousel");
+    return viewport ? [...viewport.querySelectorAll(".ency-card")] : [];
   },
 
   bindCarousel(){
-    const track = document.getElementById("ency-carousel");
-    if (!track || track.dataset.bound) return;
-    track.dataset.bound = "1";
-    Encyclopedia._activeIndex = 0;
+    const viewport = document.getElementById("ency-carousel");
+    if (!viewport || typeof viewport.addEventListener !== "function") return;
+    if (viewport.dataset && viewport.dataset.bound) return;
+    if (viewport.dataset) viewport.dataset.bound = "1";
 
-    let raf = 0;
-    let drag = null;
-    let suppressClick = false;
-
-    const syncFromPosition = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => Encyclopedia.syncCarousel());
-    };
-
-    track.addEventListener("scroll", syncFromPosition, { passive:true });
-    if ("onscrollend" in track) track.addEventListener("scrollend", syncFromPosition, { passive:true });
-
-    track.addEventListener("keydown", event => {
-      if (event.key === "ArrowLeft" || event.key === "ArrowRight"){
-        event.preventDefault();
-        Encyclopedia.scroll(event.key === "ArrowRight" ? 1 : -1);
-      }
+    viewport.addEventListener("keydown", event => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      event.preventDefault();
+      Encyclopedia.scroll(event.key === "ArrowRight" ? 1 : -1);
     });
 
-    track.addEventListener("pointerdown", event => {
+    viewport.addEventListener("pointerdown", event => {
       if (event.button !== undefined && event.button !== 0) return;
-      drag = { id:event.pointerId, startX:event.clientX, startScroll:track.scrollLeft, moved:false };
-      track.classList.add("is-dragging");
-      try { track.setPointerCapture(event.pointerId); } catch (_) {}
+      const track = viewport.querySelector(".ency-track");
+      if (!track) return;
+      Encyclopedia._drag = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        lastX: event.clientX,
+        baseX: Encyclopedia._translateX || 0,
+        moved: false
+      };
+      viewport.classList.add("is-dragging");
+      track.style.transition = "none";
+      try { viewport.setPointerCapture(event.pointerId); } catch (_) {}
     });
 
-    track.addEventListener("pointermove", event => {
-      if (!drag || event.pointerId !== drag.id) return;
+    viewport.addEventListener("pointermove", event => {
+      const drag = Encyclopedia._drag;
+      if (!drag || drag.pointerId !== event.pointerId) return;
       const dx = event.clientX - drag.startX;
+      drag.lastX = event.clientX;
       if (Math.abs(dx) > 6) drag.moved = true;
       if (!drag.moved) return;
       event.preventDefault();
-      track.scrollLeft = drag.startScroll - dx;
-      syncFromPosition();
+      const track = viewport.querySelector(".ency-track");
+      if (track) track.style.transform = `translate3d(${drag.baseX + dx}px,0,0)`;
     }, { passive:false });
 
     const finishDrag = event => {
-      if (!drag || (event.pointerId !== undefined && event.pointerId !== drag.id)) return;
-      const moved = drag.moved;
-      drag = null;
-      track.classList.remove("is-dragging");
-      try { track.releasePointerCapture(event.pointerId); } catch (_) {}
-      if (moved){
-        suppressClick = true;
-        Encyclopedia.goTo(Encyclopedia.currentIndex(), { behavior:"smooth" });
-        setTimeout(() => { suppressClick = false; }, 320);
+      const drag = Encyclopedia._drag;
+      if (!drag || (event.pointerId !== undefined && drag.pointerId !== event.pointerId)) return;
+      const dx = drag.lastX - drag.startX;
+      const threshold = Math.min(90, Math.max(42, viewport.clientWidth * .12));
+      Encyclopedia._drag = null;
+      viewport.classList.remove("is-dragging");
+      try { viewport.releasePointerCapture(event.pointerId); } catch (_) {}
+      if (drag.moved) {
+        Encyclopedia._suppressClickUntil = Date.now() + 400;
+        if (dx <= -threshold) Encyclopedia.scroll(1);
+        else if (dx >= threshold) Encyclopedia.scroll(-1);
+        else Encyclopedia.goTo(Encyclopedia._activeIndex, { animate:true });
+      } else {
+        Encyclopedia.goTo(Encyclopedia._activeIndex, { animate:true });
       }
     };
-    track.addEventListener("pointerup", finishDrag);
-    track.addEventListener("pointercancel", finishDrag);
-    track.addEventListener("click", event => {
-      if (!suppressClick) return;
-      event.preventDefault();
-      event.stopPropagation();
-    }, true);
+    viewport.addEventListener("pointerup", finishDrag);
+    viewport.addEventListener("pointercancel", finishDrag);
 
-    if (typeof ResizeObserver === "function"){
-      Encyclopedia._resizeObserver = new ResizeObserver(() => Encyclopedia.refreshCarousel());
-      Encyclopedia._resizeObserver.observe(track);
+    viewport.addEventListener("wheel", event => {
+      if (Math.abs(event.deltaX) <= Math.abs(event.deltaY) || Math.abs(event.deltaX) < 18) return;
+      event.preventDefault();
+      const now = Date.now();
+      if (now < (Encyclopedia._wheelLockUntil || 0)) return;
+      Encyclopedia._wheelLockUntil = now + 360;
+      Encyclopedia.scroll(event.deltaX > 0 ? 1 : -1);
+    }, { passive:false });
+
+    if (typeof ResizeObserver === "function") {
+      let lastWidth = 0;
+      Encyclopedia._resizeObserver = new ResizeObserver(entries => {
+        const width = Math.round(entries[0]?.contentRect?.width || 0);
+        if (!width || width === lastWidth) return;
+        lastWidth = width;
+        Encyclopedia.refreshCarousel(false);
+      });
+      Encyclopedia._resizeObserver.observe(viewport);
     } else {
-      window.addEventListener("resize", () => Encyclopedia.refreshCarousel(), { passive:true });
+      window.addEventListener("resize", () => Encyclopedia.refreshCarousel(false), { passive:true });
     }
   },
 
-  currentIndex(){
-    const track = document.getElementById("ency-carousel");
-    const cards = track ? [...track.querySelectorAll(".ency-card")] : [];
-    if (!track || !cards.length) return 0;
-    const trackRect = track.getBoundingClientRect();
-    const center = trackRect.left + trackRect.width / 2;
-    let best = 0;
-    let distance = Infinity;
-    cards.forEach((card, index) => {
-      const rect = card.getBoundingClientRect();
-      const d = Math.abs(center - (rect.left + rect.width / 2));
-      if (d < distance){ distance = d; best = index; }
-    });
-    return best;
+  openCard(event, famKey){
+    if (Date.now() < Encyclopedia._suppressClickUntil) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    const index = Number(event.currentTarget?.dataset?.cardIndex);
+    if (Number.isInteger(index) && index !== Encyclopedia._activeIndex) {
+      event.preventDefault();
+      event.stopPropagation();
+      Encyclopedia.goTo(index, { animate:true });
+      return;
+    }
+    Encyclopedia.openFamily(famKey);
   },
 
   syncCarousel(forcedIndex){
-    const track = document.getElementById("ency-carousel");
-    const cards = track ? [...track.querySelectorAll(".ency-card")] : [];
+    const cards = Encyclopedia.cards();
     if (!cards.length) return;
-    const current = Number.isInteger(forcedIndex)
-      ? Math.max(0, Math.min(cards.length - 1, forcedIndex))
-      : Encyclopedia.currentIndex();
+    const current = Math.max(0, Math.min(cards.length - 1, Number.isFinite(Number(forcedIndex)) ? Number(forcedIndex) : 0));
     Encyclopedia._activeIndex = current;
     cards.forEach((card,index) => {
       const active = index === current;
       card.classList.toggle("is-active", active);
       card.setAttribute("aria-current", active ? "true" : "false");
+      card.tabIndex = active ? 0 : -1;
     });
     const pager = document.getElementById("ency-pagination");
     if (pager) pager.innerHTML = cards.map((_, index) => `<button type="button" class="ency-dot ${index===current?"active":""}" aria-label="前往第 ${index+1} 個角色" aria-current="${index===current?"true":"false"}" onclick="Encyclopedia.goTo(${index})"></button>`).join("");
-    const deck = track.closest(".ency-deck");
+    const viewport = document.getElementById("ency-carousel");
+    const deck = viewport?.closest(".ency-deck");
     const arrows = deck ? deck.querySelectorAll(".carousel-arrow") : [];
     if (arrows[0]) arrows[0].disabled = current === 0;
     if (arrows[1]) arrows[1].disabled = current === cards.length - 1;
   },
 
-  goTo(index, options){
-    const track = document.getElementById("ency-carousel");
-    const cards = track ? [...track.querySelectorAll(".ency-card")] : [];
-    if (!track || !cards.length) return;
-    const next = Math.max(0, Math.min(cards.length - 1, Number(index) || 0));
-    const card = cards[next];
-    const left = card.offsetLeft - (track.clientWidth - card.offsetWidth) / 2;
-    Encyclopedia.syncCarousel(next);
-    track.scrollTo({ left:Math.max(0, left), behavior:options?.behavior || "smooth" });
+  prepareCarouselGeometry(){
+    const viewport = document.getElementById("ency-carousel");
+    if (!viewport || viewport.clientWidth < 40) return false;
+    const mobile = window.matchMedia ? window.matchMedia("(max-width: 800px)").matches : viewport.clientWidth < 800;
+    const cardWidth = Math.round(Math.min(mobile ? 560 : 720, viewport.clientWidth * (mobile ? .88 : .82)));
+    viewport.style.setProperty("--ency-card-width", `${Math.max(250, cardWidth)}px`);
+    return true;
   },
 
-  refreshCarousel(){
-    const track = document.getElementById("ency-carousel");
-    if (!track || track.clientWidth === 0) return;
-    Encyclopedia.goTo(Number.isInteger(Encyclopedia._activeIndex) ? Encyclopedia._activeIndex : 0, { behavior:"auto" });
+  targetTranslate(index){
+    const viewport = document.getElementById("ency-carousel");
+    const cards = Encyclopedia.cards();
+    const card = cards[index];
+    if (!viewport || !card) return 0;
+    return Math.round(viewport.clientWidth / 2 - (card.offsetLeft + card.offsetWidth / 2));
   },
+
+  goTo(index, options={}){
+    const viewport = document.getElementById("ency-carousel");
+    const track = viewport?.querySelector(".ency-track");
+    const cards = Encyclopedia.cards();
+    if (!viewport || !track || !cards.length) return;
+    const next = Math.max(0, Math.min(cards.length - 1, Number(index) || 0));
+    Encyclopedia.syncCarousel(next); // active card grows immediately on the same click
+
+    if (!Encyclopedia.prepareCarouselGeometry() || viewport.clientWidth < 40) {
+      return; // hidden views are centered once Nav.show makes the viewport measurable
+    }
+
+    // Wait one frame after updating the card width so offsetLeft/offsetWidth are final.
+    deferFrame(() => {
+      const target = Encyclopedia.targetTranslate(next);
+      Encyclopedia._translateX = target;
+      track.style.transition = options.animate === false ? "none" : "transform .34s cubic-bezier(.2,.75,.25,1)";
+      track.style.transform = `translate3d(${target}px,0,0)`;
+    });
+  },
+
+  refreshCarousel(animate=false){
+    const viewport = document.getElementById("ency-carousel");
+    if (!viewport || viewport.clientWidth < 40) return;
+    Encyclopedia.goTo(Encyclopedia._activeIndex || 0, { animate });
+  },
+
+  currentIndex(){ return Encyclopedia._activeIndex || 0; },
 
   scroll(dir){
-    const track = document.getElementById("ency-carousel");
-    const count = track ? track.querySelectorAll(".ency-card").length : 0;
-    if (!count) return;
-    const base = Number.isInteger(Encyclopedia._activeIndex) ? Encyclopedia._activeIndex : Encyclopedia.currentIndex();
-    Encyclopedia.goTo(Math.max(0, Math.min(count - 1, base + dir)));
+    const cards = Encyclopedia.cards();
+    if (!cards.length) return;
+    const next = Math.max(0, Math.min(cards.length - 1, (Encyclopedia._activeIndex || 0) + Number(dir || 0)));
+    if (next === Encyclopedia._activeIndex) return;
+    Encyclopedia.goTo(next, { animate:true });
   },
 
   renderMap(){
     const profiles = State.careers.meta.family_profiles;
     const plot = document.getElementById("spectrum-plot");
-    plot.innerHTML = Object.entries(profiles).map(([famKey, p]) => {
+    const quadrantLabels = `<span class="quadrant-label q-tl">決策與規劃</span><span class="quadrant-label q-tr">平台與制度</span><span class="quadrant-label q-bl">分析與洞察</span><span class="quadrant-label q-br">產品與執行</span>`;
+    plot.innerHTML = quadrantLabels + Object.entries(profiles).map(([famKey, p]) => {
       const mp = p.map_position || { business_technical: 50, insight_automation: 50 };
       const left = 8 + (mp.business_technical / 100) * 84;
       const top = 8 + ((100 - mp.insight_automation) / 100) * 84;

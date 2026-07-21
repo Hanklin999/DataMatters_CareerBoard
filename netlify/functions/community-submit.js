@@ -22,8 +22,16 @@ exports.handler=async(event)=>{
     if(lastMinute.length>=limits.minute||lastTen.length>=limits.ten||lastDay.length>=limits.day)return json(429,{message:"rate_limited"});
     if(lastTen.some(r=>normalizeText(r.content)===content))return json(409,{message:"duplicate_content"});
     const row={nickname,user_type:userType,content,status:"visible",session_id:/^[0-9a-f-]{36}$/i.test(sessionId)?sessionId:null,fingerprint_hash:meta.fingerprintHash,ip_hash:meta.ipHash};
-    if(type==="post")Object.assign(row,{category:"一般討論",user_agent_hash:meta.uaHash});else row.post_id=body.post_id;
+    if(type==="post")Object.assign(row,{category:process.env.COMMUNITY_DEFAULT_CATEGORY||"職涯方向",user_agent_hash:meta.uaHash});else row.post_id=body.post_id;
     const inserted=await supabase(table,{method:"POST",body:JSON.stringify(row)});
     return json(201,{ok:true,id:inserted?.[0]?.id});
-  }catch(err){console.error(err);return json(err.message==="server_not_configured"?503:500,{message:"submit_failed"});}
+  }catch(err){
+    console.error("community-submit failed",err);
+    if(err.message==="server_not_configured"||err.code==="server_not_configured")return json(503,{message:"server_not_configured"});
+    if(err.code==="relation_missing")return json(503,{message:"community_schema_missing"});
+    if(err.code==="permission_denied")return json(503,{message:"community_permission_missing"});
+    if(err.pgCode==="23505")return json(409,{message:"duplicate_content"});
+    if(err.pgCode==="23514")return json(503,{message:"community_schema_outdated"});
+    return json(500,{message:"submit_failed"});
+  }
 };

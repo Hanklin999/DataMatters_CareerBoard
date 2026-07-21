@@ -76,7 +76,26 @@
       event.preventDefault();const form=event.currentTarget,fd=new FormData(form),isPost=type==="post";const nick=String(fd.get("nickname")||""),content=String(fd.get("content")||"");form.querySelector('[data-error="nickname"]').textContent=validateNickname(nick);form.querySelector('[data-error="content"]').textContent=validateContent(content,isPost?10:2,isPost?500:300);if(validateNickname(nick)||validateContent(content,isPost?10:2,isPost?500:300))return;
       const btn=form.querySelector('button[type="submit"]');btn.disabled=true;const payload={type,post_id:postId||undefined,nickname:nick.trim(),user_type:String(fd.get("user_type")||"")||null,content:content.trim(),consent:Boolean(fd.get("consent")),website:String(fd.get("website")||""),form_started_at:Number(started),session_id:sessionId};
       try{const res=await fetch(`${API_BASE}/community-submit`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.message||"submit_failed");try{sessionStorage.setItem("dm_community_nickname",nick.trim());}catch(_){}Modal.close();Toast.show(isPost?"留言已發布":"回覆已發布");trackCommunity(isPost?"community_post_submitted":"community_reply_submitted",{user_type:payload.user_type||"unspecified",content_length_bucket:content.length<50?"short":content.length<180?"medium":"long"});state.loaded=false;await Community.load(true);}
-      catch(err){document.getElementById("community-form-error").textContent=err.message==="rate_limited"?"發布太頻繁，請稍後再試。":err.message==="personal_data"?"請移除 Email、電話或其他個人資料後再發布。":"目前無法發布，請稍後再試。";trackCommunity(isPost?"community_post_failed":"community_reply_failed",{error_type:String(err.message||"unknown").slice(0,40)});btn.disabled=false;}
+      catch(err){
+        const messages={
+          rate_limited:"發布太頻繁，請稍後再試。",
+          personal_data:"請移除 Email、電話或其他個人資料後再發布。",
+          submitted_too_fast:"請確認內容後稍等一下再發布。",
+          blocked_content:"內容可能包含廣告、攻擊或垃圾訊息，請修改後再發布。",
+          invalid_content:"請確認內容長度與格式。",
+          invalid_nickname:"請使用 2–20 字的暱稱。",
+          duplicate_content:"相同內容剛剛已發布，請勿重複送出。",
+          consent_required:"請先同意留言板規範。",
+          server_not_configured:"留言功能尚未完成伺服器設定。",
+          community_schema_missing:"留言資料表尚未建立，請通知網站管理者。",
+          community_permission_missing:"留言資料庫權限尚未完成，請通知網站管理者。",
+          community_schema_outdated:"留言資料庫版本尚未更新，請通知網站管理者。"
+        };
+        const errorBox=document.getElementById("community-form-error");
+        if(errorBox)errorBox.textContent=messages[err.message]||"目前無法發布，請稍後再試。";
+        trackCommunity(isPost?"community_post_failed":"community_reply_failed",{error_type:String(err.message||"unknown").slice(0,40)});
+        btn.disabled=false;
+      }
     },
     openReport(targetType,targetId){trackCommunity("community_report_opened",{target_type:targetType});const reasons=["垃圾訊息","不當內容","人身攻擊","洩露個人資料","廣告或詐騙","其他"];Modal.open(`<form class="form-grid" onsubmit="Community.submitReport(event,'${targetType}','${targetId}')"><h2>檢舉內容</h2><div class="report-reasons">${reasons.map((r,i)=>`<label class="option"><input type="radio" name="reason" value="${r}" ${i===0?"required":""}><span>${r}</span></label>`).join("")}</div><div class="form-field"><label>補充說明（選填）</label><textarea name="detail" maxlength="200"></textarea></div><div id="report-error" class="field-error"></div><div class="form-actions"><button type="button" class="btn btn-ghost" onclick="Modal.close()">取消</button><button class="btn btn-primary" type="submit">送出檢舉</button></div></form>`);},
     async submitReport(event,targetType,targetId){event.preventDefault();const form=event.currentTarget,fd=new FormData(form),btn=form.querySelector('button[type="submit"]');btn.disabled=true;try{const res=await fetch(`${API_BASE}/community-report`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({target_type:targetType,target_id:targetId,reason:String(fd.get("reason")||""),detail:String(fd.get("detail")||"").trim(),session_id:sessionId})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.message||"report_failed");Modal.close();Toast.show("已收到檢舉，謝謝你協助維護留言板。");trackCommunity("community_report_submitted",{target_type:targetType,reason:String(fd.get("reason")||"")});}catch(_){document.getElementById("report-error").textContent="目前無法送出檢舉，請稍後再試。";btn.disabled=false;}}

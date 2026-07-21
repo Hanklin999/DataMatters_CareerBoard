@@ -13,6 +13,12 @@
     try { track(name, Object.assign({ app_version: APP_VERSION }, properties || {})); } catch (_) {}
   }
 
+  function nextFrame(callback){
+    if (typeof requestAnimationFrame === "function") return requestAnimationFrame(callback);
+    callback();
+    return 0;
+  }
+
   const Toast = {
     show(message){
       const el = document.getElementById("toast");
@@ -53,7 +59,8 @@
     if (["home","encyclopedia","community","about"].includes(id)) history.replaceState(null, "", id === "home" ? location.pathname + location.search : `#${id}`);
     window.scrollTo({ top:0, behavior:"smooth" });
     safeTrack("page_viewed", { source_page: id });
-    if (id === "encyclopedia") requestAnimationFrame(() => Encyclopedia.refreshCarousel && Encyclopedia.refreshCarousel());
+    if (id === "encyclopedia") nextFrame(() => nextFrame(() => Encyclopedia.refreshCarousel && Encyclopedia.refreshCarousel(false)));
+    if (id === "results") nextFrame(() => Results.ensureHeroArtwork && Results.ensureHeroArtwork());
     if (id === "community" && window.Community) Community.load();
   };
 
@@ -160,6 +167,22 @@
     document.getElementById("result-jobs-section")?.scrollIntoView({ behavior:"smooth", block:"start" });
   };
 
+  Results.ensureHeroArtwork = function(){
+    const wrapper = document.querySelector("#result-hero .result-hero-art");
+    const portrait = wrapper?.querySelector(".square-portrait");
+    const image = portrait?.querySelector("img");
+    if (!wrapper || !portrait || !image) return;
+    image.loading = "eager";
+    try { image.fetchPriority = "high"; } catch (_) {}
+    wrapper.style.display = "flex";
+    wrapper.style.visibility = "visible";
+    portrait.style.display = "block";
+    portrait.style.visibility = "visible";
+    if (image.complete && image.naturalWidth === 0) {
+      try { image.onerror && image.onerror(); } catch (_) {}
+    }
+  };
+
   Results.renderRoutes = function(){
     const [main, ...alternates] = ResultState.routes;
     if (!main) return;
@@ -183,22 +206,25 @@
 
     document.getElementById("result-hero").innerHTML = `
       <section class="result-hero-v3" style="${famVars(p)}" aria-labelledby="result-role-title">
-        <div class="result-hero-copy">
+        <div class="result-hero-heading">
           <span class="eyebrow">你的探索結果</span>
-          <div>你最像</div>
+          <div class="result-kicker">你最像</div>
           <h2 id="result-role-title">${escapeHTML(p.class_title)}</h2>
           <div class="real-role">${escapeHTML(p.cn_name)}</div>
           <div class="real-role-en">${escapeHTML(p.en_name || "")}</div>
+        </div>
+        <div class="result-hero-art" aria-live="polite">${portraitHTML(p, "hero")}</div>
+        <div class="result-hero-body">
           <p class="hero-tagline">${escapeHTML(p.tagline || p.role_description)}</p>
           <ul class="hero-reasons">${reasons.map(r => `<li>${escapeHTML(r)}</li>`).join("")}</ul>
-          <div class="cta-row">
+          <div class="cta-row result-hero-actions">
             <button class="btn btn-primary" onclick="Results.scrollToJobs()">看看你可能做的工作</button>
             <button class="btn btn-ghost" onclick="ResultShare.open()">分享我的結果</button>
           </div>
           <span class="result-confidence">${confidenceLabel()}${State.confidence?.clarity === "Exploratory" ? "｜建議先廣泛探索" : ""}</span>
         </div>
-        <div class="result-hero-art">${portraitHTML(p, "hero")}</div>
       </section>`;
+    nextFrame(() => Results.ensureHeroArtwork());
 
     document.getElementById("result-why").innerHTML = `
       <section class="result-section" aria-labelledby="why-title">
@@ -228,7 +254,7 @@
 
     document.getElementById("compare-entry").innerHTML = `<div class="compare-entry"><div><h3>還分不清兩個角色？</h3><p>把每天做什麼、技術投入與常見產出放在一起看。</p></div><button class="btn btn-ghost" onclick="RoleCompare.open('${escapeHTML(main.famKey)}')">比較兩個角色</button></div>`;
 
-    requestAnimationFrame(() => safeTrack("result_hero_viewed", { role_id: main.famKey, match_level: State.confidence?.matchLevel, result_clarity: State.confidence?.clarity }));
+    nextFrame(() => safeTrack("result_hero_viewed", { role_id: main.famKey, match_level: State.confidence?.matchLevel, result_clarity: State.confidence?.clarity }));
   };
 
   Results.renderProfile = function(){

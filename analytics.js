@@ -91,17 +91,40 @@
     }
   }
 
+  function normalizeSupabaseProjectUrl(value) {
+    try {
+      var raw = String(value || "").trim();
+      if (!raw || /^__/.test(raw)) return "";
+      var parsed = new URL(raw);
+      var validHost = /^[a-z0-9-]+\.supabase\.co$/i.test(parsed.hostname);
+      var cleanPath = parsed.pathname.replace(/\/+$/, "");
+      if (
+        parsed.protocol !== "https:" ||
+        !validHost ||
+        parsed.username ||
+        parsed.password ||
+        parsed.port ||
+        cleanPath !== "" ||
+        parsed.search ||
+        parsed.hash
+      ) return "";
+      return parsed.origin;
+    } catch (e) {
+      return "";
+    }
+  }
+
   var ENV = cfg.ANALYTICS_ENV || detectEnv();
+  var SUPABASE_PROJECT_URL = normalizeSupabaseProjectUrl(cfg.SUPABASE_URL);
   var configured = !!(
     cfg.ANALYTICS_ENABLED &&
-    cfg.SUPABASE_URL &&
+    SUPABASE_PROJECT_URL &&
     cfg.SUPABASE_ANON_KEY &&
-    !/^__/.test(String(cfg.SUPABASE_URL)) &&
     !/^__/.test(String(cfg.SUPABASE_ANON_KEY))
   );
 
-  if ((!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) && cfg.ANALYTICS_ENABLED) {
-    try { console.warn("[analytics] Supabase 設定未填，使用分析已停用；網站功能不受影響。"); } catch (e) {}
+  if (cfg.ANALYTICS_ENABLED && !configured) {
+    try { console.warn("[analytics] Supabase 設定無效或未填，使用分析已停用；網站功能不受影響。"); } catch (e) {}
   }
 
   /* local 預設不寫入 production；debug 僅用於明確的本機測試 */
@@ -229,7 +252,7 @@
   function send(row, isRetry) {
     if (!sendAllowed) return;
     try {
-      fetch(cfg.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/analytics_events", {
+      fetch(SUPABASE_PROJECT_URL + "/rest/v1/analytics_events", {
         method: "POST",
         keepalive: true,
         headers: {

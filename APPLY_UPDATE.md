@@ -1,37 +1,21 @@
-# 套用 Data Matters v3.2
+# Apply Data Matters v3.5
 
-在解壓後資料夾開啟 PowerShell：
+1. Extract this package.
+2. Open PowerShell in the extracted folder.
+3. Run:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
-
-.\apply-update.ps1 `
-  -RepoPath "C:\Users\chihh\OneDrive\文件\GitHub\DataMatters_CareerBoard"
+.\apply-update.ps1 -RepoPath "C:\Users\chihh\OneDrive\文件\GitHub\DataMatters_CareerBoard"
 ```
 
-腳本只覆蓋更新檔，不會修改：
-
-- `.git`
-- `analytics-config.js`
-- `data/`
-- `images/`
-
-接著在 repository 執行：
+4. In the repository run:
 
 ```powershell
 npm run validate
-git status
 git add -A
-git commit -m "Fix career atlas, work-focus map and community loading"
+git commit -m "Fix mobile result hero layout"
 git push origin master
 ```
 
-## Supabase 必做
-
-已建立 Community 表的專案，請執行：
-
-```text
-supabase/migrations/005_repair_community_read.sql
-```
-
-然後重新部署 Netlify。若未設定 `SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`、`COMMUNITY_HASH_SALT` 與 `COMMUNITY_ALLOWED_ORIGINS`，留言板仍無法連線。
+5. Trigger a fresh Netlify deploy. The updated asset query strings help bypass stale mobile Safari cache.

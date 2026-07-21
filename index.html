@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#090c16">
   <title>Data Matters｜找出適合你的資料職涯</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="product-v3.css">
+  <link rel="stylesheet" href="product-v3.css?v=3.5.0">
 </head>
 <body>
   <a class="skip-link" href="#main-content">跳到主要內容</a>
@@ -126,14 +126,16 @@
       <section class="focus-map-section" aria-labelledby="focus-map-title">
         <div class="section-heading"><div><span class="eyebrow">比較工作重心</span><h2 id="focus-map-title">你的工作重心</h2><p>每天主要做什麼，以及工作影響的範圍。</p></div></div>
         <div class="focus-map-layout">
-          <aside class="focus-y-axis" aria-label="工作主要影響誰：上方為改變整個組織，下方為解決單一問題">
+          <aside class="focus-y-axis" aria-label="工作主要影響誰">
             <div class="focus-axis-end focus-axis-end-top"><strong>改變整個組織</strong><small>跨團隊流程、公司制度、共用平台、長期決策</small></div>
             <div class="focus-y-rail"><span class="focus-y-arrow" aria-hidden="true">↑</span><span class="focus-y-title">工作主要影響誰？</span></div>
             <div class="focus-axis-end focus-axis-end-bottom"><strong>解決單一問題</strong><small>單一專案、特定團隊、眼前問題</small></div>
           </aside>
           <div class="focus-map-main">
-            <div id="spectrum-plot" class="spectrum-plot focus-plot" role="group" aria-label="九種資料工作的工作重心位置"></div>
-            <div class="focus-x-axis" aria-label="每天主要在做什麼：左側找答案，右側做出可用的東西">
+            <div id="spectrum-plot" class="spectrum-plot focus-plot" role="group" aria-label="九種資料工作的工作重心位置">
+              <span class="quadrant-label q-tl">決策與規劃</span><span class="quadrant-label q-tr">平台與制度</span><span class="quadrant-label q-bl">分析與洞察</span><span class="quadrant-label q-br">產品與執行</span>
+            </div>
+            <div class="focus-x-axis" aria-label="每天主要在做什麼">
               <div class="focus-x-title">每天主要在做什麼？</div>
               <div class="focus-x-labels"><span><strong>找答案</strong><small>找原因、看資料、回答問題、提出建議</small></span><span><strong>做出可用的東西</strong><small>設計流程、建立工具、改善產品、維護系統</small></span></div>
             </div>
@@ -169,11 +171,11 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script>window.DATA_MATTERS_APP_VERSION = "v3.2";</script>
+  <script>window.DATA_MATTERS_APP_VERSION = "v3.5";</script>
   <script src="analytics-config.js"></script>
   <script src="analytics.js"></script>
-  <script src="app.js"></script>
-  <script src="product-v3.js"></script>
+  <script src="app.js?v=3.5.0"></script>
+  <script src="product-v3.js?v=3.5.0"></script>
   <script src="community.js"></script>
 </body>
 </html>

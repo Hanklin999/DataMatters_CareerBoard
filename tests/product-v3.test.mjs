@@ -116,13 +116,17 @@ test("result hero keeps the English function name and square uncropped artwork",
   assert.match(css,/width:min\(440px,100%\)/);
 });
 
-test("encyclopedia keeps the centered card active and supports continuous navigation", () => {
-  assert.match(app,/getBoundingClientRect/);
+test("encyclopedia changes one card per click and centers the active card deterministically", () => {
+  assert.match(app,/class="ency-track"/);
   assert.match(app,/Encyclopedia\._activeIndex/);
-  assert.match(app,/track\.scrollTo/);
+  assert.match(app,/syncCarousel\(next\); \/\/ active card grows immediately/);
+  assert.match(app,/targetTranslate/);
+  assert.match(app,/translate3d/);
   assert.match(app,/pointermove/);
-  assert.match(css,/scroll-snap-align:center/);
-  assert.match(css,/scroll-snap-stop:always/);
+  assert.match(app,/if \(id === "encyclopedia"\)/);
+  assert.match(css,/\.ency-track/);
+  assert.match(css,/--ency-card-width/);
+  assert.match(css,/overflow:hidden!important/);
   assert.match(html,/ency-pagination/);
 });
 
@@ -143,4 +147,43 @@ test("community read falls back safely when public views are unavailable", () =>
   assert.match(read,/community_schema_missing/);
   assert.match(repair,/grant select, insert, update, delete on public\.community_posts to service_role/);
   assert.match(repair,/public_visible_community_posts/);
+});
+
+test("mobile result hero eagerly loads and always reserves visible artwork space", () => {
+  assert.match(app,/const isHero/);
+  assert.match(app,/loading = isHero \? "eager" : "lazy"/);
+  assert.match(app,/fetchpriority="high"/);
+  assert.match(css,/\.result-hero-art\{display:flex!important/);
+  assert.match(css,/min-height:min\(310px,78vw\)/);
+});
+
+test("analytics rejects malformed Supabase project URLs", () => {
+  assert.match(analytics,/parsed\.protocol !== "https:"/);
+  assert.match(analytics,/\^\[a-z0-9-\]\+\\.supabase\\.co\$/i);
+  assert.match(analytics,/cleanPath !== ""/);
+  assert.match(analytics,/parsed\.search/);
+  assert.match(analytics,/parsed\.hash/);
+});
+
+test("community submission uses a legacy-safe hidden category and exposes setup errors", () => {
+  const submit = readFileSync("netlify/functions/community-submit.js","utf8");
+  assert.match(submit,/COMMUNITY_DEFAULT_CATEGORY\|\|"職涯方向"/);
+  assert.match(submit,/community_schema_missing/);
+  assert.match(submit,/community_permission_missing/);
+  assert.match(submit,/community_schema_outdated/);
+  assert.match(community,/留言資料庫版本尚未更新/);
+});
+
+test("mobile result hero has deterministic heading-art-body order and full-width actions", () => {
+  assert.match(product,/result-hero-heading/);
+  assert.match(product,/result-hero-art/);
+  assert.match(product,/result-hero-body/);
+  const heading = product.indexOf('class="result-hero-heading"');
+  const art = product.indexOf('class="result-hero-art"');
+  const body = product.indexOf('class="result-hero-body"');
+  assert.ok(heading >= 0 && art > heading && body > art);
+  assert.match(css,/grid-template-areas:\s*\n\s*"heading"\s*\n\s*"art"\s*\n\s*"body"/);
+  assert.match(css,/\.result-hero-actions\{[\s\S]*grid-template-columns:1fr!important/);
+  assert.match(css,/\.result-hero-art \.square-portrait\{[\s\S]*aspect-ratio:1\/1!important/);
+  assert.match(css,/\.result-hero-body \.hero-tagline\{[\s\S]*overflow-wrap:anywhere/);
 });

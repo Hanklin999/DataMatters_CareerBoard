@@ -80,7 +80,7 @@ footer{max-width:1080px;margin:0 auto;padding:30px 24px 50px;border-top:1px soli
 
 /* Career atlas: one centered active card, continuous native + pointer dragging. */
 .ency-deck{display:grid;grid-template-columns:52px minmax(0,1fr) 52px;gap:12px;align-items:center;max-width:980px;margin:0 auto}
-.ency-carousel{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:8%;padding:12px 8% 24px;scrollbar-width:none;overscroll-behavior-inline:contain;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+.ency-carousel{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:var(--ency-side-pad,8%);padding:12px var(--ency-side-pad,8%) 24px;scrollbar-width:none;overscroll-behavior-inline:contain;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
 .ency-carousel.is-dragging{cursor:grabbing;scroll-snap-type:none}
 .ency-carousel::-webkit-scrollbar{display:none}
 .ency-card{flex:0 0 min(720px,84%);scroll-snap-align:center;scroll-snap-stop:always;display:grid;grid-template-columns:minmax(250px,.9fr) minmax(260px,1.1fr);gap:28px;align-items:center;min-height:430px;padding:28px;text-align:left;opacity:.5;transform:scale(.92);transition:opacity .22s ease,transform .22s ease,box-shadow .22s ease;will-change:transform,opacity}
@@ -136,7 +136,7 @@ footer{max-width:1080px;margin:0 auto;padding:30px 24px 50px;border-top:1px soli
   .result-hero-v3 .real-role-en{text-align:center}
   .ency-deck{grid-template-columns:minmax(0,1fr)}
   .ency-deck>.carousel-arrow{display:none}
-  .ency-carousel{scroll-padding-inline:7%;padding-inline:7%;gap:18px}
+  .ency-carousel{scroll-padding-inline:var(--ency-side-pad,7%);padding-inline:var(--ency-side-pad,7%);gap:18px}
   .ency-card{flex-basis:86%;grid-template-columns:1fr;min-height:auto;text-align:center;padding:22px;gap:18px}
   .ency-card-copy{align-items:center}
   .ency-card-visual .square-portrait{max-width:min(300px,68vw)}
@@ -160,4 +160,139 @@ footer{max-width:1080px;margin:0 auto;padding:30px 24px 50px;border-top:1px soli
   .focus-axis-end small{font-size:8px;line-height:1.35}
   .focus-map-section .focus-plot{min-height:440px}
   .quadrant-label{font-size:9px}
+}
+
+/* v3.4 hotfix: deterministic role deck and reliable mobile result artwork. */
+.result-hero-art{display:flex!important;width:100%;min-width:0;align-items:center;justify-content:center;visibility:visible!important;opacity:1!important}
+.result-hero-art .square-portrait{display:block!important;position:relative;visibility:visible!important;opacity:1!important;flex:0 0 auto}
+.result-hero-art .square-portrait img{display:block!important;width:100%!important;height:100%!important;visibility:visible!important;opacity:1!important;object-fit:contain!important}
+.result-hero-art .square-portrait .portrait-fallback{width:100%;height:100%;align-items:center;justify-content:center}
+
+.ency-carousel{position:relative;display:block;overflow:hidden!important;padding:14px 0 28px!important;scroll-snap-type:none!important;scroll-padding:0!important;overscroll-behavior:none;touch-action:pan-y pinch-zoom;cursor:grab}
+.ency-carousel.is-dragging{cursor:grabbing}
+.ency-track{display:flex;align-items:center;gap:28px;width:max-content;will-change:transform;transform:translate3d(0,0,0);transition:transform .34s cubic-bezier(.2,.75,.25,1)}
+.ency-carousel.is-dragging .ency-track{transition:none!important}
+.ency-card{flex:0 0 var(--ency-card-width,720px)!important;scroll-snap-align:none!important;scroll-snap-stop:normal!important;transform:scale(.9);opacity:.42;pointer-events:auto}
+.ency-card.is-active{transform:scale(1);opacity:1}
+.ency-card.is-active:hover{transform:scale(1) translateY(-2px)}
+.ency-card:not(.is-active):hover{transform:scale(.92)}
+
+@media(max-width:800px){
+  .result-hero-v3{display:flex!important;flex-direction:column!important;gap:22px}
+  .result-hero-art{order:0!important;min-height:min(310px,78vw)}
+  .result-hero-copy{order:1!important;width:100%}
+  .result-hero-art .square-portrait{width:min(310px,78vw)!important;max-width:310px!important;min-width:220px;aspect-ratio:1/1!important}
+  .ency-track{gap:18px}
+  .ency-card{grid-template-columns:1fr!important}
+}
+@media(max-width:420px){
+  .result-hero-art{min-height:min(280px,76vw)}
+  .result-hero-art .square-portrait{width:min(280px,76vw)!important;max-width:280px!important;min-width:210px}
+}
+
+/* v3.5 mobile result Hero: explicit three-part layout, not order-based patching. */
+.result-hero-v3{
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);
+  grid-template-areas:
+    "heading art"
+    "body art";
+  column-gap:40px;
+  row-gap:0;
+  align-items:center;
+  min-width:0;
+}
+.result-hero-heading{grid-area:heading;min-width:0;align-self:end}
+.result-hero-body{grid-area:body;min-width:0;align-self:start}
+.result-hero-art{grid-area:art;min-width:0}
+.result-hero-heading h2,
+.result-hero-heading .real-role,
+.result-hero-heading .real-role-en,
+.result-hero-body .hero-tagline,
+.result-hero-body .hero-reasons{max-width:100%;overflow-wrap:anywhere;word-break:normal}
+.result-hero-body .hero-tagline{white-space:normal;overflow:visible;text-overflow:clip}
+.result-hero-actions{display:flex;flex-wrap:wrap;gap:12px}
+.result-hero-actions .btn{min-width:0}
+
+@media(max-width:800px){
+  .result-hero-v3{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-areas:
+      "heading"
+      "art"
+      "body"!important;
+    gap:18px!important;
+    min-height:0!important;
+    padding:16px 0 42px!important;
+    overflow:visible!important;
+  }
+  .result-hero-heading,
+  .result-hero-body,
+  .result-hero-art{width:100%;min-width:0;max-width:100%}
+  .result-hero-heading{text-align:center}
+  .result-hero-heading .eyebrow,
+  .result-hero-heading .real-role,
+  .result-hero-heading .real-role-en{display:block;text-align:center}
+  .result-hero-heading h2{margin-left:auto;margin-right:auto;text-align:center;font-size:clamp(2.2rem,11vw,3.3rem)}
+  .result-hero-art{
+    display:flex!important;
+    min-height:0!important;
+    padding:0!important;
+    margin:0 auto!important;
+    align-items:center;
+    justify-content:center;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+  .result-hero-art .square-portrait{
+    display:block!important;
+    width:min(320px,82vw)!important;
+    max-width:320px!important;
+    min-width:0!important;
+    aspect-ratio:1/1!important;
+    margin:0 auto!important;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+  .result-hero-art .square-portrait img{
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+  .result-hero-body{overflow:visible!important}
+  .result-hero-body .hero-tagline{
+    width:100%;
+    max-width:100%;
+    margin:0;
+    font-size:16px;
+    line-height:1.65;
+    white-space:normal!important;
+    overflow:visible!important;
+    overflow-wrap:anywhere;
+  }
+  .result-hero-body .hero-reasons{margin:16px 0;gap:9px}
+  .result-hero-actions{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    width:100%;
+    gap:10px;
+  }
+  .result-hero-actions .btn{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    flex:none!important;
+  }
+  .result-confidence{max-width:100%;white-space:normal;text-align:center;justify-content:center}
+}
+
+@media(max-width:390px){
+  .result-hero-v3{padding-top:12px!important;gap:16px!important}
+  .result-hero-heading h2{font-size:clamp(2rem,12vw,2.85rem)}
+  .result-hero-art .square-portrait{width:min(286px,82vw)!important;max-width:286px!important}
+  .result-hero-body .hero-tagline{font-size:15.5px;line-height:1.6}
 }

@@ -24,6 +24,8 @@ $excluded = @(
   "CHANGE_REPORT.md",
   "V3_1_CHANGE_REPORT.md",
   "V3_2_CHANGE_REPORT.md",
+  "V3_4_CHANGE_REPORT.md",
+  "V3_5_CHANGE_REPORT.md",
   "VALIDATION_REPORT.md",
   "MANIFEST.sha256",
   "apply-update.ps1"
@@ -57,4 +59,4 @@ foreach ($file in $files) {
 
 Write-Host ""
 Write-Host "完成。已保留 analytics-config.js、data、images 與 .git。" -ForegroundColor Green
-Write-Host "下一步：cd 到 repository，執行 npm run validate。"
+Write-Host "下一步：cd 到 repository，執行 npm run validate；通過後再 commit 與 push。"

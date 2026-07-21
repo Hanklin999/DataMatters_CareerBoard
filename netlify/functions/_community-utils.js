@@ -27,7 +27,11 @@ function originAllowed(event){
   const configured=(process.env.COMMUNITY_ALLOWED_ORIGINS||"https://datamatters-hanks-career-board.netlify.app,http://localhost:8888").split(",").map(v=>v.trim()).filter(Boolean);
   return configured.includes(origin);
 }
-function hash(value){ const salt=process.env.COMMUNITY_HASH_SALT;if(!salt||salt.length<32){const error=new Error("server_not_configured");error.code="server_not_configured";throw error;}return crypto.createHash("sha256").update(`${salt}:${value || "unknown"}`).digest("hex"); }
+function hash(value){
+  const salt=process.env.COMMUNITY_HASH_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if(!salt||salt.length<32){const error=new Error("server_not_configured");error.code="server_not_configured";throw error;}
+  return crypto.createHmac("sha256",salt).update(String(value || "unknown")).digest("hex");
+}
 function clientMeta(event, sessionId){
   const headers = event.headers || {};
   const ip = headers["x-nf-client-connection-ip"] || String(headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
@@ -45,13 +49,20 @@ function validateContent(value,min,max){
   if(BLOCK_PATTERNS.some(r=>r.test(v)))return "blocked_content";
   return null;
 }
+function supabaseBaseUrl(){
+  try{
+    const parsed=new URL(String(process.env.SUPABASE_URL||"").trim());
+    if(parsed.protocol!=="https:"||!/^[a-z0-9-]+\.supabase\.co$/i.test(parsed.hostname))throw new Error();
+    return parsed.origin;
+  }catch(_){const error=new Error("server_not_configured");error.code="server_not_configured";throw error;}
+}
 function supabaseHeaders(){
   const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!process.env.SUPABASE_URL||!key){const error=new Error("server_not_configured");error.code="server_not_configured";throw error;}
+  if(!key){const error=new Error("server_not_configured");error.code="server_not_configured";throw error;}
   return { apikey:key, Authorization:`Bearer ${key}`, "Content-Type":"application/json", Prefer:"return=representation" };
 }
 async function supabase(path, options={}){
-  const res=await fetch(`${process.env.SUPABASE_URL}/rest/v1/${path}`,{...options,headers:{...supabaseHeaders(),...(options.headers||{})}});
+  const res=await fetch(`${supabaseBaseUrl()}/rest/v1/${path}`,{...options,headers:{...supabaseHeaders(),...(options.headers||{})}});
   const text=await res.text(); let data=null; try{data=text?JSON.parse(text):null;}catch(_){data=text;}
   if(!res.ok){
     console.error("Supabase community error",res.status,data);
@@ -59,6 +70,7 @@ async function supabase(path, options={}){
     const error=new Error("database_error");
     error.status=res.status;
     error.details=data;
+    error.pgCode=pgCode;
     error.code=pgCode==="42P01"?"relation_missing":pgCode==="42501"?"permission_denied":"database_error";
     throw error;
   }
