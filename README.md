@@ -71,7 +71,11 @@ python -m http.server 8000
 
 ## Privacy
 
-不需登入、不使用 Analytics、不使用 localStorage、不收集任何個資；所有測驗計算都在瀏覽器端完成，作答不會上傳。
+測驗與配對運算皆在瀏覽器內完成；不需登入、不使用 localStorage 建立永久識別、不收集姓名／Email／完整測驗答案等可直接識別個人的資料。為改善產品，本站以 Supabase 匿名記錄使用事件（頁面瀏覽、測驗進度、推薦角色與互動），僅用於整體使用分析。詳見網站「關於本站」的匿名使用分析說明與 [docs/analytics-setup.md](docs/analytics-setup.md)。
+
+## Analytics
+
+匿名埋點架構、Supabase 建立步驟、事件字典與驗證方式：[docs/analytics-setup.md](docs/analytics-setup.md)。分析查詢集：`supabase/analytics_queries.sql`。
 
 ## Roadmap
 
@@ -83,7 +87,7 @@ python -m http.server 8000
 
 ## 作者
 
-Hank Lin — [LinkedIn](https://www.linkedin.com/in/hank-lin-ch17/)｜[GitHub](https://github.com/Hanklin999)
+Hank Lin — 聯絡：data.matters.hank4@gmail.com
 
 ## License
 

@@ -20,7 +20,7 @@
   <div class="nav-right">
     <nav class="navlinks">
       <a data-nav="home" class="active" onclick="Nav.show('home')">首頁</a>
-      <a data-nav="quiz" onclick="Nav.startQuiz()">開始測驗</a>
+      <a data-nav="quiz" onclick="Nav.startQuiz('unknown')">開始測驗</a>
       <a data-nav="encyclopedia" onclick="Nav.show('encyclopedia')">職涯圖鑑</a>
       <a data-nav="about" onclick="Nav.show('about')">關於本站</a>
     </nav>
@@ -38,7 +38,7 @@
       用約 3 分鐘，找出適合你的資料工作、常見職稱，以及下一步可以學什麼。
     </p>
     <div class="cta-row">
-      <button class="btn btn-primary" onclick="Nav.startQuiz()">開始探索</button>
+      <button class="btn btn-primary" onclick="Nav.startQuiz('homepage_primary_cta')">開始探索</button>
       <button class="btn btn-ghost" onclick="Nav.show('encyclopedia')">先看職涯圖鑑</button>
     </div>
     <div class="cta-previews">
@@ -72,6 +72,10 @@
   <div class="quiz-wrap">
     <div class="quiz-progress-label"><span>第 1 / 3 站</span><span>你想解決什麼問題</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:8%"></div></div>
+    <div class="baseline-block">
+      <div class="q-text" style="font-size:14px;">開始前，你對自己適合哪類資料職涯有多清楚？<span class="q-hint" style="display:inline; margin-left:6px;">（選填，不影響配對）</span></div>
+      <div class="fb-scale" id="baseline-scale"></div>
+    </div>
     <div id="station1-mount"></div>
     <div class="quiz-nav">
       <button class="btn btn-ghost" onclick="Nav.show('home')">回首頁</button>
@@ -123,6 +127,8 @@
   <div id="next30"></div>
 
   <div id="env-profile"></div>
+
+  <div id="result-feedback"></div>
 
   <h3 class="also-consider-title">探索對應的真實職缺</h3>
   <p class="q-hint" style="margin-top:-6px;">兩層篩選都是單選，點同一個選項可取消。領域不分先後，只列出目前有真實職缺可看的選項。</p>
@@ -192,15 +198,18 @@
   <div class="about-card">
     <p>本站以「工作類型（Functional Job Family）× 應用領域（Domain）× 產業（Industry）× 程式與技術投入程度（T1–T5）」四個維度，重新整理數據科學家 / 資料分析師底下藏著的各種職涯路徑。分類架構、測驗設計與種子職缺由 Hank 設計、蒐集與確認。測驗依你的答案進行配對，是探索工具，不是能力、人格或錄用測驗。</p>
     <p>資料來源原則：薪資與職缺事實僅採用公司官方職缺頁、官方新聞稿、政府薪資調查，或 104、Cake、Yourator 等轉載官方職缺 / 提供聚合薪資統計的平台；不採用論壇、匿名或自評薪資網站。查無公開資料時一律標示「暫無公開資料」。職涯路徑、入行門檻與小提醒等內容為本站綜合產業常識撰寫的參考說明，非逐筆引用特定來源。</p>
-    <p>本站為靜態網站，所有測驗與配對計算都在你的瀏覽器端完成，不會收集、上傳或儲存你的任何個人資料。</p>
+    <p>本站的測驗與配對運算皆在你的瀏覽器內完成。我們不收集姓名、Email、完整測驗答案或其他可直接識別個人的資料。為改善網站體驗，本站會匿名記錄頁面瀏覽、測驗進度、推薦角色，以及角色、領域與職缺互動等使用事件。這些資料僅用於分析整體使用情況與改善產品。</p>
+    <details class="method-details">
+      <summary>匿名使用分析說明</summary>
+      <p><b>會蒐集：</b>匿名 session ID（關閉分頁即結束，不跨裝置追蹤）、頁面與互動事件、測驗階段完成資訊、推薦角色 ID、職涯／領域／職缺互動、粗略裝置類型（手機／平板／電腦）、來源網域與行銷參數（UTM）。</p>
+      <p><b>不會蒐集：</b>姓名、Email、電話、完整測驗答案、精確位置、IP 作為資料欄位、瀏覽器指紋、鍵盤輸入內容。</p>
+    </details>
   </div>
   <div class="contact-card">
     <h3>問題、建議、或想合作？</h3>
     <ul class="contact-list">
-      <li>Email：<a href="mailto:chihhanlin99@gmail.com">chihhanlin99@gmail.com</a></li>
-      <li>LinkedIn：<a href="https://www.linkedin.com/in/hank-lin-ch17/" target="_blank" rel="noopener noreferrer">linkedin.com/in/hank-lin-ch17</a></li>
+      <li>Email：<a href="mailto:data.matters.hank4@gmail.com">data.matters.hank4@gmail.com</a></li>
       <li>Threads：<a href="https://www.threads.com/@hank00117" target="_blank" rel="noopener noreferrer">@hank00117</a></li>
-      <li>GitHub：<a href="https://github.com/Hanklin999" target="_blank" rel="noopener noreferrer">github.com/Hanklin999</a></li>
     </ul>
   </div>
 </section>
@@ -219,6 +228,8 @@
   </div>
 </div>
 
+<script src="analytics-config.js"></script>
+<script src="analytics.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

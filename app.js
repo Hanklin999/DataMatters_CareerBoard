@@ -113,8 +113,48 @@ function resetState(){
   State.contrib = {};
   State.confidence = null;
   State.answers = {};
+  State.baselineClarity = null; // 測驗前 clarity baseline（選填，不影響配對）
 }
 resetState();
+
+/* ---------------------------------------------------------------------
+   匿名使用分析 hooks（analytics.js 未載入或未設定時自動略過，不影響功能）
+--------------------------------------------------------------------- */
+function track(name, payload){
+  try { window.DMAnalytics && window.DMAnalytics.track(name, payload); } catch (e) {}
+}
+const QuizTiming = { quizStartTs: null, stepEnterTs: {}, lastStation: null, resultRun: 0 };
+const STEP_NUM = { station1: 1, station2: 2, station3: 3 };
+
+function enterStation(sid, direction){
+  const step = STEP_NUM[sid];
+  if (!step) return;
+  QuizTiming.stepEnterTs[sid] = Date.now();
+  if (QuizTiming.lastStation !== sid){ // 同站 re-render 不重複觸發
+    track("quiz_step_viewed", { quiz_step: step, navigation_direction: direction });
+  }
+  QuizTiming.lastStation = sid;
+}
+function stationStats(sid){
+  const qs = STATIONS[sid];
+  const answered = qs.filter(q => State.answers[q.id] !== undefined).length;
+  const enter = QuizTiming.stepEnterTs[sid];
+  let t = enter ? Math.round((Date.now() - enter) / 1000) : null;
+  if (t !== null) t = Math.max(0, Math.min(1800, t)); // 上限 1800 秒、不接受負值
+  return { time_spent_sec: t, answered_question_count: answered, total_question_count: qs.length };
+}
+function trackExternalJob(jobId, listPos){
+  try {
+    const t = State.careers.tracks.find(x => x.id === jobId);
+    if (!t) return;
+    let host = null;
+    try { host = new URL(t.source_url).hostname; } catch (e) {}
+    track("external_job_clicked", {
+      job_id: t.id, role_id: t.job_family, domain_id: t.domain, company_name: t.company,
+      destination_domain: host, list_position: listPos ?? undefined
+    });
+  } catch (e) {} // 埋點失敗不得阻止連結開啟（連結本身照常運作）
+}
 
 /* ---------------------------------------------------------------------
    題庫 v2 — 18 題，三站
@@ -377,10 +417,14 @@ const Nav = {
     if (link) link.classList.add("active");
     window.scrollTo({top:0, behavior:"smooth"});
   },
-  startQuiz(){
+  startQuiz(entryPoint){
     resetState();
     Stations.renderAll();
+    QuizTiming.quizStartTs = Date.now();
+    QuizTiming.lastStation = null;
+    track("quiz_started", { entry_point: entryPoint || "unknown" });
     Nav.show("station1");
+    enterStation("station1", "initial");
   }
 };
 
@@ -424,6 +468,7 @@ const Stations = {
       const mount = document.getElementById(sid+"-mount");
       mount.innerHTML = STATIONS[sid].map(q => q.type === "slider" ? sliderRowHTML(q) : singleSelectHTML(q)).join("");
     });
+    Stations.renderBaseline();
   },
   onSlider(id, val){
     State.answers[id] = parseInt(val,10);
@@ -440,12 +485,38 @@ const Stations = {
       }
     }
   },
-  next(fromId, toId){ Nav.show(toId); },
-  show(id){ Nav.show(id); },
+  next(fromId, toId){
+    const step = STEP_NUM[fromId];
+    if (step) track("quiz_step_completed", Object.assign({ quiz_step: step }, stationStats(fromId)));
+    Nav.show(toId);
+    enterStation(toId, "forward");
+  },
+  show(id){
+    Nav.show(id);
+    enterStation(id, "backward");
+  },
+  setBaseline(v){
+    State.baselineClarity = (State.baselineClarity === v) ? null : v;
+    Stations.renderBaseline();
+  },
+  renderBaseline(){
+    const el = document.getElementById("baseline-scale");
+    if (!el) return;
+    const labels = ["1 完全不清楚", "2", "3", "4", "5 非常清楚"];
+    el.innerHTML = labels.map((l, i) => `
+      <button type="button" class="baseline-btn ${State.baselineClarity === i+1 ? "selected" : ""}"
+              onclick="Stations.setBaseline(${i+1})">${l}</button>`).join("");
+  },
   restart(){
+    const prevTop = ResultState.routes[0] ? ResultState.routes[0].famKey : null;
+    track("quiz_restarted", { previous_top_role_id: prevTop, source: "result_page" });
     resetState();
     Stations.renderAll();
+    QuizTiming.quizStartTs = Date.now();
+    QuizTiming.lastStation = null;
+    track("quiz_started", { entry_point: "unknown" });
     Nav.show("station1");
+    enterStation("station1", "initial");
   }
 };
 
@@ -941,9 +1012,13 @@ const ROUTE_META = [
 
 const Results = {
   compute(){
+    track("quiz_step_completed", Object.assign({ quiz_step: 3 }, stationStats("station3")));
+
     computeAllScores();
     ResultState.selectedRoute = null;
     ResultState.selectedDomain = null;
+    ResultState.feedback = { submitted: false, acc: null, before: State.baselineClarity, after: null, pref: null };
+    QuizTiming.resultRun += 1;
 
     const { main, near, challenge } = pickRoutes();
     ResultState.routes = [main, near, challenge].map((famKey, i) => ({
@@ -964,9 +1039,20 @@ const Results = {
     Results.renderRoutes();
     Results.renderNext30();
     Results.renderEnvProfile();
+    Results.renderFeedback();
     Results.renderRouteFilter();
     Results.renderDomainFilter();
     Results.renderJobs();
+
+    // quiz_completed + result_viewed：每次「完成新測驗」各一次（re-render 不會重跑 compute）
+    const totalT = QuizTiming.quizStartTs
+      ? Math.max(0, Math.min(3600, Math.round((Date.now() - QuizTiming.quizStartTs) / 1000))) : undefined;
+    track("quiz_completed", { total_time_spent_sec: totalT, completed_step_count: 3, result_count: 3 });
+    track("result_viewed", {
+      role_id: main, recommendation_rank: 1,
+      top_role_id: main, second_role_id: near, third_role_id: challenge,
+      result_count: 3, scoring_version: (window.ANALYTICS_CONFIG && window.ANALYTICS_CONFIG.SCORING_VERSION) || "v2"
+    });
 
     Nav.show("results");
   },
@@ -1044,6 +1130,7 @@ const Results = {
   openRoute(i){
     const r = ResultState.routes[i];
     if (!r) return;
+    track("role_opened", { role_id: r.famKey, recommendation_rank: i + 1, source: "result_page" });
     Modal.open(familyDetailHTML(r.famKey, {
       routeLabel: r.label,
       matchLevel: r.matchLevel,
@@ -1128,7 +1215,13 @@ const Results = {
   },
 
   selectDomain(d){
-    ResultState.selectedDomain = (ResultState.selectedDomain === d) ? null : d;
+    const willSelect = ResultState.selectedDomain !== d; // 使用者主動點擊，非 UI 初始化
+    ResultState.selectedDomain = willSelect ? d : null;
+    const route = ResultState.routes[ResultState.selectedRoute];
+    track("domain_selected", {
+      domain_id: d, role_id: route ? route.famKey : undefined,
+      selection_action: willSelect ? "select" : "deselect"
+    });
     Results.renderDomainFilter();
     Results.renderJobs();
   },
@@ -1148,15 +1241,119 @@ const Results = {
     const matches = State.careers.tracks.filter(t => t.job_family === fam && t.domain === ResultState.selectedDomain);
     hint.style.display = "none";
     jobsEl.innerHTML = matches.length
-      ? matches.map(t => jobCardHTML(t, { routes: ResultState.routes })).join("")
+      ? matches.map((t, i) => jobCardHTML(t, { routes: ResultState.routes }, i + 1)).join("")
       : `<div class="job-hint">這個組合目前還沒有種子職缺，歡迎換個領域看看。</div>`;
+    matches.forEach((t, i) => track("job_viewed", {
+      job_id: t.id, role_id: fam, domain_id: t.domain, company_name: t.company,
+      source_section: "result_jobs", list_position: i + 1
+    }));
+  },
+
+  /* ── 匿名結果回饋（選填，不影響瀏覽）── */
+  renderFeedback(){
+    const el = document.getElementById("result-feedback");
+    if (!el) return;
+    const fb = ResultState.feedback;
+    if (fb.submitted){
+      el.innerHTML = `<div class="env-card"><div class="detail-value">已收到你的回饋，謝謝！這會幫助我們校準推薦。</div></div>`;
+      return;
+    }
+    const routes = ResultState.routes;
+    const profiles = State.careers.meta.family_profiles;
+    const scale = (key, val) => [1,2,3,4,5].map(v => `
+      <button type="button" class="baseline-btn ${val === v ? "selected" : ""}"
+              onclick="Results.setFeedback('${key}', ${v})">${v}</button>`).join("");
+    const beforeBlock = (State.baselineClarity === null) ? `
+      <div class="fb-row">
+        <div class="fb-q">開始測驗前，你對自己適合的資料職涯方向有多清楚？<span class="fb-scale-hint">1 完全不清楚 → 5 非常清楚</span></div>
+        <div class="fb-scale">${scale("before", fb.before)}</div>
+      </div>` : "";
+    el.innerHTML = `
+      <div class="env-card">
+        <h3 class="next30-title">這次推薦準嗎？（選填・完全匿名）</h3>
+        <div class="fb-row">
+          <div class="fb-q">這次推薦符合你對自己的認知嗎？<span class="fb-scale-hint">1 完全不符合 → 5 非常符合</span></div>
+          <div class="fb-scale">${scale("acc", fb.acc)}</div>
+        </div>
+        ${beforeBlock}
+        <div class="fb-row">
+          <div class="fb-q">看完結果後，你現在有多清楚？<span class="fb-scale-hint">1 完全不清楚 → 5 非常清楚</span></div>
+          <div class="fb-scale">${scale("after", fb.after)}</div>
+        </div>
+        <div class="fb-row">
+          <div class="fb-q">你最想進一步探索哪個角色？</div>
+          <select class="fb-select" onchange="Results.setFeedback('pref', this.value)">
+            <option value="" ${!fb.pref ? "selected" : ""}>請選擇…</option>
+            ${routes.map(r => `<option value="${r.famKey}" ${fb.pref === r.famKey ? "selected" : ""}>${profiles[r.famKey].cn_name}（${r.label}）</option>`).join("")}
+            <option value="other" ${fb.pref === "other" ? "selected" : ""}>其他九大角色</option>
+            <option value="unsure" ${fb.pref === "unsure" ? "selected" : ""}>還不確定</option>
+          </select>
+        </div>
+        <div class="cta-row" style="justify-content:flex-start; margin-top:12px;">
+          <button class="btn btn-primary" id="fb-submit" onclick="Results.submitFeedback()">送出回饋</button>
+        </div>
+        <div class="detail-note" id="fb-msg" style="margin-top:8px;"></div>
+        <div class="detail-note">完全匿名、不需登入、不會記錄任何個人資料。</div>
+      </div>`;
+
+    // result_feedback_viewed：進入 viewport 時觸發，每次結果一次
+    try {
+      const runKey = "fb_viewed_" + QuizTiming.resultRun;
+      const card = el.querySelector(".env-card");
+      if (window.IntersectionObserver && card){
+        const obs = new IntersectionObserver((entries) => {
+          if (entries.some(e => e.isIntersecting)){
+            window.DMAnalytics && window.DMAnalytics.trackOncePerRun(runKey, "result_feedback_viewed", {});
+            obs.disconnect();
+          }
+        });
+        obs.observe(card);
+      } else {
+        window.DMAnalytics && window.DMAnalytics.trackOncePerRun(runKey, "result_feedback_viewed", {});
+      }
+    } catch (e) {}
+  },
+
+  setFeedback(key, val){
+    const fb = ResultState.feedback;
+    if (key === "pref") fb.pref = val || null;
+    else fb[key] = (fb[key] === val) ? null : Number(val);
+    Results.renderFeedback();
+  },
+
+  submitFeedback(){
+    const fb = ResultState.feedback;
+    if (fb.submitted) return; // 防重複送出
+    const before = State.baselineClarity !== null ? State.baselineClarity : fb.before;
+    const missing = fb.acc === null || fb.after === null || !fb.pref || before === null;
+    const msg = document.getElementById("fb-msg");
+    if (missing){
+      if (msg) msg.textContent = "還有題目沒填完——每一題都填好後再送出。";
+      return;
+    }
+    const btn = document.getElementById("fb-submit");
+    if (btn) btn.disabled = true; // 防 double click
+    const top = ResultState.routes[0] ? ResultState.routes[0].famKey : null;
+    const top3 = ResultState.routes.map(r => r.famKey);
+    track("result_feedback_submitted", {
+      accuracy_rating: fb.acc,
+      clarity_before: before,
+      clarity_after: fb.after,
+      preferred_role_id: fb.pref,
+      role_id: top,
+      preferred_role_was_top_1: fb.pref === top,
+      preferred_role_was_top_3: top3.includes(fb.pref),
+      clarity_uplift: fb.after - before
+    });
+    fb.submitted = true;
+    Results.renderFeedback();
   }
 };
 
 /* ---------------------------------------------------------------------
    職缺卡片（不顯示 RPG 名稱）
 --------------------------------------------------------------------- */
-function jobCardHTML(t, ctx){
+function jobCardHTML(t, ctx, listPos){
   const tl = State.careers.meta.technical_levels[t.technical_level];
   const fp = State.careers.meta.family_profiles[t.job_family];
   const salary = t.salary_range
@@ -1189,7 +1386,8 @@ function jobCardHTML(t, ctx){
       ${whyLine ? `<div class="job-why">${whyLine}</div>` : ""}
       <div class="row">
         ${salary}
-        <a class="source-link" href="${t.source_url}" target="_blank" rel="noopener noreferrer">查看來源 →</a>
+        <a class="source-link" href="${t.source_url}" target="_blank" rel="noopener noreferrer"
+           onclick="trackExternalJob('${t.id}', ${listPos ?? "null"})">查看來源 →</a>
       </div>
     </div>`;
 }
@@ -1243,6 +1441,7 @@ const Encyclopedia = {
   },
 
   openFamily(famKey){
+    track("role_opened", { role_id: famKey, source: "career_guide" });
     Modal.open(familyDetailHTML(famKey));
   }
 };
@@ -1281,6 +1480,11 @@ async function boot(){
 
   Stations.renderAll();
   Encyclopedia.render();
+
+  // landing_viewed：每個 session 僅一次
+  try {
+    window.DMAnalytics && window.DMAnalytics.trackOncePerSession("landing_viewed", { landing_variant: "default" });
+  } catch (e) {}
 }
 
 boot().catch(err => {
