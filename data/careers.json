@@ -86,7 +86,7 @@
     ],
     "radar_note": "雷達圖六軸分數（1–5）由測驗題目背後的同一套加權邏輯（如程式／演算法投入意願、面客程度、抗壓與工作生活平衡傾向、薪資天花板排序）換算而來，是主觀的啟發式呈現，不是統計量測結果，僅供直覺比較用。",
     "match_index_note": "配對程度反映你的回答與各角色「工作內容偏好」的相似程度，不代表能力、薪資或錄取機率；科系背景與環境偏好（收入、名聲、穩定、強度）不會影響配對排名。",
-    "map_note": "此圖用工作重心協助比較職涯，位置為主觀相對配置，不代表職涯價值、難度或薪資高低。",
+    "map_note": "比較九種工作的重心：每天在做什麼、影響範圍多大。位置為主觀相對配置，不代表價值、難度或薪資。",
     "domain_notes": {
       "Product": "分析使用者漏斗、留存、功能成效與 A/B test。",
       "Growth": "分析獲客、轉換與留存，找出產品成長的槓桿點。",
@@ -141,7 +141,7 @@
         "next_step": "先練習把一個模糊的商業問題拆成可分析的小題目，並做成一頁簡報——這比多學一個工具更重要。",
         "tradeoffs": ["常需要處理模糊、不斷變動的需求", "產出以簡報與溝通為主，技術累積相對較慢", "顧問業常見高工時文化"],
         "tlevel_range": "T1–T3",
-        "map_position": { "business_technical": 8, "insight_automation": 18 }
+        "map_position": { "business_technical": 15, "insight_automation": 90 }
       },
       "Finance, Risk & Quantitative Analytics": {
         "icon": "💳",
@@ -182,7 +182,7 @@
         "next_step": "先把統計基礎打穩，再用一個公開金融資料集做出「能解釋」的預測模型——可解釋性在這個領域比準確率更重要。",
         "tradeoffs": ["受金融法規與稽核高度約束，自由度較低", "模型出錯的後果直接連到金錢損失，壓力較大", "文件與合規工作占比不低"],
         "tlevel_range": "T3–T4",
-        "map_position": { "business_technical": 35, "insight_automation": 62 }
+        "map_position": { "business_technical": 22, "insight_automation": 68 }
       },
       "Product, Systems & Solutions": {
         "icon": "🧩",
@@ -225,7 +225,7 @@
         "next_step": "先完成一份能回答「使用者為什麼流失」的漏斗分析，不需要一開始就學機器學習。",
         "tradeoffs": ["分析影響力受產品方向牽動，好分析不一定被採納", "需要經常向非技術同事解釋數據", "埋點與資料品質問題會占掉不少時間"],
         "tlevel_range": "T2–T3",
-        "map_position": { "business_technical": 28, "insight_automation": 35 }
+        "map_position": { "business_technical": 72, "insight_automation": 35 }
       },
       "Data Analytics & Business Intelligence": {
         "icon": "📊",
@@ -266,7 +266,7 @@
         "next_step": "先完成一份能回答商業問題的 Dashboard——SQL 加一個 BI 工具，就足夠拿到第一次面試機會。",
         "tradeoffs": ["初階工作常包含大量資料清理與報表維護", "「人人都會一點 SQL」讓議價能力容易被稀釋", "要往上爬需補實驗設計，或更靠近業務決策"],
         "tlevel_range": "T2–T3",
-        "map_position": { "business_technical": 22, "insight_automation": 20 }
+        "map_position": { "business_technical": 12, "insight_automation": 18 }
       },
       "Data Governance, Quality & Responsible Data": {
         "icon": "🛡️",
@@ -307,7 +307,7 @@
         "next_step": "先練習幫一份混亂的資料集建立「資料字典」——清楚定義每個欄位的意義與規則，就是治理工作的縮影。",
         "tradeoffs": ["台灣獨立職缺較少，常併在資料工程或法遵底下", "成果不易被看見，屬於幕後把關型工作", "需要極高的細心與流程耐性"],
         "tlevel_range": "T1–T2",
-        "map_position": { "business_technical": 45, "insight_automation": 10 }
+        "map_position": { "business_technical": 55, "insight_automation": 88 }
       },
       "Data Science & Applied Modeling": {
         "icon": "🔬",
@@ -348,7 +348,7 @@
         "next_step": "先用一個公開資料集完整走過「問題定義 → 建模 → 解釋結果」的流程，一個講得清楚的專案勝過三個半成品。",
         "tradeoffs": ["頭銜定義混亂，實際內容依公司差異極大", "許多職缺隱性要求碩士學歷", "模型不落地時，成就感容易落空"],
         "tlevel_range": "T3–T4",
-        "map_position": { "business_technical": 58, "insight_automation": 72 }
+        "map_position": { "business_technical": 30, "insight_automation": 45 }
       },
       "Operations Research & Decision Optimization": {
         "icon": "⚙️",
@@ -389,7 +389,7 @@
         "next_step": "修一門作業研究課，並用 OR-Tools 重解課本的經典問題——這個領域的入場券是數學建模能力，不是工具。",
         "tradeoffs": ["台灣對口職缺少，多藏在供應鏈或 DS 職稱下", "門檻常是碩博士", "問題高度抽象，離終端使用者較遠"],
         "tlevel_range": "T4–T5",
-        "map_position": { "business_technical": 55, "insight_automation": 85 }
+        "map_position": { "business_technical": 48, "insight_automation": 58 }
       },
       "Data Engineering & Analytics Engineering": {
         "icon": "🧱",
@@ -432,7 +432,7 @@
         "next_step": "先把 SQL 練到進階，再用 Airflow 或 dbt 做出一條會自動跑的管線——穩定比華麗重要。",
         "tradeoffs": ["工作偏幕後，成果不如分析工作直觀可見", "管線故障排除與待命是日常的一部分", "知名度低於 Data Scientist，求職時容易被低估"],
         "tlevel_range": "T3–T4",
-        "map_position": { "business_technical": 82, "insight_automation": 40 }
+        "map_position": { "business_technical": 82, "insight_automation": 65 }
       },
       "Machine Learning & AI Engineering": {
         "icon": "🤖",
@@ -475,7 +475,7 @@
         "next_step": "先把軟體工程基礎打穩（Git、測試、API 設計）——ML 工程師首先是工程師。",
         "tradeoffs": ["入行門檻與面試難度是九個家族中最高", "主流門檻是資工／資料科學碩博士", "技術迭代快，需要持續高強度學習"],
         "tlevel_range": "T4–T5",
-        "map_position": { "business_technical": 90, "insight_automation": 90 }
+        "map_position": { "business_technical": 92, "insight_automation": 75 }
       }
     },
     "job_data_note": "職缺資料包含招募中職缺、學生計畫與具教育價值的資深職缺案例。job_status 與 verified_date 代表最後人工驗證狀態，不保證職缺之後仍持續開放。",

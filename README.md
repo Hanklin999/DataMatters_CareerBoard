@@ -1,184 +1,94 @@
-# Data Matters
+# Data Matters｜資料科學分析地圖
 
-> 幫助沒有背景知識的使用者，理解資料職涯差異並找到可探索方向。
+協助大學生與資料職涯探索者，理解不同資料工作的差異，並找出適合自己的方向。
 
-[Live Demo](https://datamatters-hanks-career-board.netlify.app/) · [方法說明](docs/methodology.md)
+**Live Demo**：https://datamatters-hanks-career-board.netlify.app/
 
-## 1. Problem
+## 解決的問題
 
-Data Analyst、BI、Data Scientist、Data Engineer、Product Analyst 等職稱經常重疊，同一職稱在不同公司也可能做完全不同的事。初學者容易從熱門工具、薪資或科系開始選，卻仍不知道每天實際會做什麼。
+Data Analyst、Data Scientist、Data Engineer、Product Analyst……這些職稱聽起來很像，實際工作內容卻天差地遠。本專案用「工作類型 × 應用領域 × 產業 × 程式與技術投入程度」整理資料職涯路徑，讓沒有背景的人也能看懂差別、找到起點。
 
-## 2. User
+## 主要功能
 
-- 正在探索資料職涯的大學生。
-- 沒有資訊或資料背景的學生。
-- 轉職初期、第一次理解資料工作的人。
-- 正在準備實習、課程或作品集的人。
+- 約 3 分鐘、18 題的職涯探索測驗（工作情境題，不需要懂術語）
+- 九大資料職涯角色（RPG 角色包裝＋正式職涯名稱）
+- 三條推薦探索路線（最適合／鄰近選項／挑戰選項）
+- 常見入門職稱與進階發展職稱（含 Architect 類職涯說明）
+- 工作偏好輪廓（六軸圖）與結果信心說明
+- 產業／領域兩層篩選，對照可查證來源的真實職缺
+- 全部於瀏覽器端即時計算，不上傳、不儲存任何作答
 
-## 3. Product Hypothesis
+## Demo 截圖
 
-若把抽象人格題改成生活情境題，並用九個角色、工作重心、真實職稱與職缺呈現差異，使用者能更快理解資料工作的實際內容，並找到下一個可執行行動。
+<!-- TODO：截圖後放入 docs/screenshots/（建議：首頁、測驗頁、結果頁、職涯圖鑑） -->
 
-## 4. Solution
+## 方法
 
-- 九角色 Job Family taxonomy。
-- 18 題、三站式生活情境測驗。
-- 最接近、鄰近與延伸三條探索路線。
-- 「你的工作重心」視覺化。
-- 雙角色比較。
-- 直接顯示常見工作與真實職缺。
-- 1080 × 1920 結果分享圖。
-- 匿名、一層回覆的低複雜度留言板。
-- 技能差距、環境偏好與下一步。
+測驗分三站：你想解決什麼問題、你喜歡如何工作、你想要什麼工作環境。系統把回答轉成與九種職涯角色「工作內容偏好」的相似程度，取前三名作為探索路線。科系背景只用於估計入門優勢與差距；環境偏好（收入、名聲、穩定、強度）只用於環境摘要與產業建議，都不影響職能排名。
 
-## 5. Information Architecture
+這是探索工具，不是能力、人格或錄用測驗。
 
-```text
-首頁
- ├─ 開始探索
- │   ├─ 工作問題與目前起點
- │   ├─ 工作方式
- │   ├─ 工作環境
- │   └─ 結果
- │       ├─ 第一推薦 Hero
- │       ├─ 為什麼像你
- │       ├─ 可能做的工作
- │       ├─ 其他方向
- │       ├─ 完整職涯輪廓（收合）
- │       ├─ 真實職缺
- │       ├─ 分享
- │       └─ 回饋
- ├─ 九大職涯
- ├─ 留言板
- └─ 關於／限制／隱私
-```
+## 分類架構
 
-## 6. Matching Logic
+- 工作類型（Functional Job Family）× 9
+- 應用領域（Domain）
+- 產業（Industry)
+- 程式與技術投入程度（Technical Depth，T1–T5）
 
-計分分為三個獨立系統：
+## 技術架構
 
-- **Preference**：工作內容偏好，主要決定 Job Family。
-- **Background**：目前起點，用於入門優勢、技能差距與延伸方向。
-- **Environment**：收入、品牌、穩定、生活平衡與強度，只用於環境摘要與 trade-off。
+HTML＋CSS＋Vanilla JavaScript＋JSON，無框架、無後端、無資料庫，部署於 Netlify。
 
-科系與環境題不直接決定最適合角色。Slider 只有在低分確實代表反向偏好時才對另一側加分。完整邏輯見 [docs/methodology.md](docs/methodology.md)。
+## 本機執行
 
-## 7. Product Analytics
-
-Supabase 儲存匿名事件與 session ID，用於：
-
-- Landing → Quiz → Result funnel。
-- Quiz completion 與每站退出率。
-- 題目作答時間、修改率與選項偏斜。
-- Clarity Before／After 與 Clarity Lift。
-- Role Open、Alternate Role Exploration 與 Job CTR。
-- 分享圖生成、分享與 referral conversion。
-- 留言板參與、回覆、檢舉與錯誤率。
-
-不傳姓名、Email、電話、留言、暱稱、完整答案或明文 IP。題目診斷見 [docs/question-diagnostics.md](docs/question-diagnostics.md)。
-
-## 8. Iterations
-
-- 簡化首頁與隱私聲明。
-- 把抽象題改為生活情境。
-- 拆分 Preference／Background／Environment。
-- 修正 Slider 假對立。
-- 結果頁改為漸進揭露。
-- 重做工作重心地圖。
-- 加入 Clarity Lift。
-- 加入雙角色比較。
-- 加入 Story 分享結果。
-- 加入匿名留言板與伺服器端防濫用。
-
-## 9. Success Metrics
-
-- Quiz Start Rate。
-- Quiz Completion Rate。
-- Qualified Exploration Rate。
-- Average Clarity Lift。
-- Role Open Rate。
-- Alternate Role Exploration Rate。
-- Job CTR。
-- Accuracy Rating。
-- Share Conversion。
-- Community Participation Rate。
-
-## 10. Limitations
-
-結果來自自陳偏好，不是能力或心理測驗；角色可能重疊，職缺也受地區與更新時間影響。目前尚未完成正式心理計量驗證。詳見 [方法說明](docs/methodology.md) 與網站「關於」。
-
-## 11. Tech Stack
-
-- HTML5、CSS3、Vanilla JavaScript。
-- Supabase Postgres／REST／RLS。
-- Netlify Hosting／Functions。
-- Canvas API、Web Share API、Clipboard API。
-- qrcode-generator（前端 QR Code）。
-
-## 12. Local Development
+因為網站以 fetch 載入 JSON，請用本機伺服器開啟（不要直接雙擊 index.html）：
 
 ```bash
-npm install
-npm run dev
+python -m http.server 8000
 ```
 
-或直接使用任一靜態伺服器：
+開啟 `http://localhost:8000`。
 
-```bash
-python -m http.server 8888
-```
-
-不要用 `file://` 開啟，否則 JSON、Clipboard 與部分瀏覽器 API 可能失效。
-
-## 13. Environment Variables
-
-### Public build variables
+## 專案結構
 
 ```text
-VITE_SUPABASE_URL
-VITE_SUPABASE_ANON_KEY
-VITE_ANALYTICS_ENABLED
-VITE_ANALYTICS_ENV
-VITE_ANALYTICS_DEBUG
-VITE_TURNSTILE_SITE_KEY       # 選配；前端挑戰 UI 完成後啟用
+├── index.html          # 單頁入口（首頁/測驗/結果/圖鑑/關於）
+├── app.js              # 題庫、三分數配對邏輯、渲染
+├── styles.css          # 深色科技奇幻主題
+├── data/
+│   ├── careers.json    # 9 角色資料＋真實職缺（含來源連結）
+│   └── skills.json     # 技能分類（保留供未來使用）
+├── images/             # 9 角色卡圖＋9 代表物小圖
+├── validate-data.mjs   # 資料驗證腳本（node validate-data.mjs）
+└── test-cases.mjs      # 演算法驗收測試（node test-cases.mjs）
 ```
 
-### Netlify Functions only
+## 資料來源與限制
 
-```text
-SUPABASE_URL
-SUPABASE_SERVICE_ROLE_KEY
-COMMUNITY_HASH_SALT
-COMMUNITY_ALLOWED_ORIGINS
-TURNSTILE_SECRET_KEY          # 選配
-COMMUNITY_REQUIRE_TURNSTILE   # 選配，true/false
-```
+- 職缺與薪資僅採用公司官方職缺頁、官方揭露、政府調查，或 104／Cake／Yourator 等轉載官方職缺的平台；查不到的資料標示「暫無公開資料」，不推估、不編造。
+- 職缺可能隨時間關閉或失效，申請前請以來源連結的官方頁面為準。
+- 職涯分類、角色說明與配對結果皆為探索用途，非經心理計量驗證的測驗。
 
-`SUPABASE_SERVICE_ROLE_KEY` 絕對不能使用 `VITE_` 前綴，也不能出現在瀏覽器 bundle 或 GitHub。
+## Privacy
 
-## 14. Build and Validation
+測驗與配對運算皆在瀏覽器內完成；不需登入、不使用 localStorage 建立永久識別、不收集姓名／Email／完整測驗答案等可直接識別個人的資料。為改善產品，本站以 Supabase 匿名記錄使用事件（頁面瀏覽、測驗進度、推薦角色與互動），僅用於整體使用分析。詳見網站「關於本站」的匿名使用分析說明與 [docs/analytics-setup.md](docs/analytics-setup.md)。
 
-```bash
-npm run lint
-npm test
-npm run build
-```
+## Analytics
 
-`build` 會將靜態檔案複製到 `dist/`，並把 public environment variables 注入 `analytics-config.js`。Migration 與 RLS 仍需在 Supabase 人工執行與檢查。
+匿名埋點架構、Supabase 建立步驟、事件字典與驗證方式：[docs/analytics-setup.md](docs/analytics-setup.md)。分析查詢集：`supabase/analytics_queries.sql`。
 
-## 15. Deployment
+## Roadmap
 
-部署順序與 rollback 見 [DEPLOYMENT.md](DEPLOYMENT.md)。留言板資料結構、安全與管理文件：
+- 使用者測試與題目辨識力驗證
+- 職缺資料定期更新與失效檢查
+- 角色比較功能
+- 無障礙持續改善
+- 配對規則校準
 
-- [Community Schema](docs/community-schema.md)
-- [Community Security](docs/community-security.md)
-- [Community Moderation](docs/community-moderation.md)
-- [Result Sharing](docs/result-sharing.md)
+## 作者
 
-## 16. Roadmap
+Hank Lin — 聯絡：data.matters.hank4@gmail.com
 
-- 用 30–50 位目標使用者做正式可用性測試。
-- 累積足夠樣本後檢查題目區辨力與重測穩定度。
-- 建立受保護的管理後台與 fingerprint blocklist。
-- 依異常流量加入 Turnstile 前端 challenge。
-- 建立自動化跨瀏覽器與真機分享圖測試。
+## License
+
+License 尚未決定，未經授權不得重製或重新散布。

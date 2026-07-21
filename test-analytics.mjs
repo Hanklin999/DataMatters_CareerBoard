@@ -119,5 +119,36 @@ C.track("landing_viewed", {});
 await new Promise(r => setTimeout(r, 10));
 check("localhost 預設不寫入 production", C.env === "local" && C.enabled === false && sent.length === before2);
 
+// URL validation：Dashboard 網址必須被拒絕並停用
+for (const [label, badUrl] of [
+  ["Dashboard 網址", "https://supabase.com/dashboard/project/rmflseoygadbocpkgxyi"],
+  ["含 /rest/v1", "https://rmflseoygadbocpkgxyi.supabase.co/rest/v1"],
+  ["http 非 https", "http://rmflseoygadbocpkgxyi.supabase.co"],
+  ["非 supabase.co 網域", "https://rmflseoygadbocpkgxyi.evil.com"]
+]){
+  window.ANALYTICS_CONFIG = { SUPABASE_URL: badUrl, SUPABASE_ANON_KEY: "k", ANALYTICS_ENABLED: true };
+  window.DMAnalytics = undefined;
+  const st = {}; global.sessionStorage = { getItem: k => st[k] ?? null, setItem: (k,v)=>{st[k]=String(v);}, removeItem: k=>{delete st[k];} };
+  global.location = { hostname: "datamatters-hanks-career-board.netlify.app", pathname: "/", search: "" };
+  (0, eval)(readFileSync("analytics.js", "utf8"));
+  const D = window.DMAnalytics;
+  const b = sent.length;
+  D.track("landing_viewed", {});
+  await new Promise(r => setTimeout(r, 10));
+  check(`URL validation 拒絕：${label}`, D.enabled === false && sent.length === b, badUrl);
+}
+// 正確 URL 通過 validation
+{
+  window.ANALYTICS_CONFIG = { SUPABASE_URL: "https://rmflseoygadbocpkgxyi.supabase.co", SUPABASE_ANON_KEY: "k", ANALYTICS_ENABLED: true };
+  window.DMAnalytics = undefined;
+  const st = {}; global.sessionStorage = { getItem: k => st[k] ?? null, setItem: (k,v)=>{st[k]=String(v);}, removeItem: k=>{delete st[k];} };
+  (0, eval)(readFileSync("analytics.js", "utf8"));
+  const E = window.DMAnalytics;
+  const b = sent.length;
+  E.track("landing_viewed", {});
+  await new Promise(r => setTimeout(r, 10));
+  check("正確 Project URL 通過並送至 .supabase.co/rest/v1", E.enabled === true && sent.length === b + 1 && sent[sent.length-1].url === "https://rmflseoygadbocpkgxyi.supabase.co/rest/v1/analytics_events");
+}
+
 console.log("\n" + (failures ? `✗ ${failures} 項未通過` : "✓ analytics 測試全部通過"));
 process.exit(failures ? 1 : 0);
