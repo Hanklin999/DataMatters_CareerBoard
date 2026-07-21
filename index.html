@@ -33,9 +33,9 @@
 <!-- HOME -->
 <section id="home" class="view">
   <div class="hero">
-    <h1>資料職涯那麼多，<br>你適合哪一種？</h1>
+    <h1>不知道 Data 工作<br>到底差在哪？</h1>
     <p class="hero-sub">
-      用約 3 分鐘，找出適合你的資料工作、常見職稱，以及下一步可以學什麼。
+      3 分鐘，帶你找到適合自己的方向。
     </p>
     <div class="cta-row">
       <button class="btn btn-primary" onclick="Nav.startQuiz('homepage_primary_cta')">開始探索</button>
@@ -70,7 +70,7 @@
 <!-- STATION 1 -->
 <section id="station1" class="view" style="display:none;">
   <div class="quiz-wrap">
-    <div class="quiz-progress-label"><span>第 1 / 3 站</span><span>你想解決什麼問題</span></div>
+    <div class="quiz-progress-label"><span>第 1 / 3 站</span><span>你會怎麼幫朋友？</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:8%"></div></div>
     <div class="baseline-block">
       <div class="q-text" style="font-size:14px;">開始前，你對自己適合哪類資料職涯有多清楚？<span class="q-hint" style="display:inline; margin-left:6px;">（選填，不影響配對）</span></div>
@@ -79,7 +79,7 @@
     <div id="station1-mount"></div>
     <div class="quiz-nav">
       <button class="btn btn-ghost" onclick="Nav.show('home')">回首頁</button>
-      <button class="btn btn-primary" onclick="Stations.next('station1','station2')">下一站：你喜歡如何工作</button>
+      <button class="btn btn-primary" onclick="Stations.next('station1','station2')">下一站：你平常怎麼做事</button>
     </div>
   </div>
 </section>
@@ -87,12 +87,12 @@
 <!-- STATION 2 -->
 <section id="station2" class="view" style="display:none;">
   <div class="quiz-wrap">
-    <div class="quiz-progress-label"><span>第 2 / 3 站</span><span>你喜歡如何工作</span></div>
+    <div class="quiz-progress-label"><span>第 2 / 3 站</span><span>你平常怎麼做事？</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:40%"></div></div>
     <div id="station2-mount"></div>
     <div class="quiz-nav">
       <button class="btn btn-ghost" onclick="Stations.show('station1')">上一站</button>
-      <button class="btn btn-primary" onclick="Stations.next('station2','station3')">下一站：你想要的工作環境</button>
+      <button class="btn btn-primary" onclick="Stations.next('station2','station3')">下一站：你想要的生活</button>
     </div>
   </div>
 </section>
@@ -100,9 +100,9 @@
 <!-- STATION 3 -->
 <section id="station3" class="view" style="display:none;">
   <div class="quiz-wrap">
-    <div class="quiz-progress-label"><span>第 3 / 3 站</span><span>你想要什麼工作環境</span></div>
+    <div class="quiz-progress-label"><span>第 3 / 3 站</span><span>你想要什麼生活？</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:75%"></div></div>
-    <p class="q-hint">最後，看看你適合什麼工作環境。<span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">這一站不影響職能配對結果，只用來整理環境偏好、提醒取捨與推薦產業方向。</span></span></p>
+    <p class="q-hint">最後，看看你適合什麼工作環境。<span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">這一站不影響配對結果，只用來整理環境偏好與產業建議。</span></span></p>
     <div id="station3-mount"></div>
     <div class="quiz-nav">
       <button class="btn btn-ghost" onclick="Stations.show('station2')">上一站</button>
@@ -173,21 +173,21 @@
     </div>
   </details>
 
-  <h3 class="also-consider-title">職涯地圖：用工作重心比較九個角色</h3>
+  <h3 class="also-consider-title">你的工作重心會在哪？</h3>
   <div class="plot-wrap">
     <div class="plot-ylabel">
-      <span>預測與自動化</span>
-      <span>描述與洞察</span>
+      <span>影響整個團隊／公司<span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">你的工作會改變：流程、產品、制度、平台。</span></span></span>
+      <span>解決眼前問題<span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">主要解決：單一專案、單一團隊、特定問題。</span></span></span>
     </div>
     <div class="plot-area-wrap">
       <div class="spectrum-plot" id="spectrum-plot"></div>
       <div class="plot-xlabel">
-        <span>◀ 商業與決策</span>
-        <span>系統與技術 ▶</span>
+        <span>◀ 分析資料<span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">每天花比較多時間：找原因、看數據、回答問題。</span></span></span>
+        <span><span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">每天花比較多時間：設計、建立、改善、維護。</span></span>打造產品／系統 ▶</span>
       </div>
     </div>
   </div>
-  <p class="detail-note" style="margin-top:8px;">此圖用工作重心協助比較職涯，位置為主觀相對配置，不代表職涯價值、難度或薪資高低。</p>
+  <p class="detail-note" style="margin-top:8px;">比較九種工作的重心：每天做什麼、影響範圍多大。位置為主觀配置，不代表價值或薪資。</p>
 </section>
 
 <!-- ABOUT -->

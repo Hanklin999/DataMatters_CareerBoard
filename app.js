@@ -191,46 +191,46 @@ const STATION1_QUESTIONS = [
   },
   {
     id: "coding_effort", type: "slider", system: "preference",
-    text: "你願意花多少時間練習寫程式？",
-    leftLabel: "完全不想碰程式", rightLabel: "願意花好幾年練到專精",
+    text: "有個技能要花好幾個月才學得會，但學會後超強（像寫程式）——你願意投入嗎？",
+    leftLabel: "不太想", rightLabel: "願意花好幾年練",
     high: [F.MLE, F.DE, F.DS], lowIsMeaningful: false
   },
   {
     id: "algorithm_effort", type: "slider", system: "preference",
-    text: "你想弄懂工具與模型「背後的數學原理」嗎？",
-    leftLabel: "會用就好", rightLabel: "想徹底搞懂原理",
+    text: "用一個好用的工具時，你會想知道它背後是怎麼運作的嗎？",
+    leftLabel: "會用就好", rightLabel: "會想徹底搞懂",
     high: [F.MLE, F.OR, F.DS], lowIsMeaningful: false
   },
   {
     id: "problem_type", type: "single", system: "preference", weight: 1.5,
-    text: "哪一類問題最吸引你？",
+    text: "朋友的飲料店生意變差，你最想幫忙做哪件事？",
     options: [
-      { label: "找出事情發生的原因", family: { [F.DABI]: 2, [F.DS]: 1 } },
-      { label: "預測接下來會發生什麼", family: { [F.DS]: 2, [F.MLE]: 1 } },
-      { label: "在有限資源下找出最好的安排", family: { [F.OR]: 2 } },
-      { label: "讓資料能穩定流動、隨時可用", family: { [F.DE]: 2 } },
-      { label: "把大家的需求變成產品或流程", family: { [F.PROD]: 2 } },
-      { label: "揪出錯誤、風險與不一致", family: { [F.GOV]: 2, [F.FIN]: 1 } }
+      { label: "找出生意變差的原因", family: { [F.DABI]: 2, [F.DS]: 1 } },
+      { label: "預測接下來哪幾天生意會好", family: { [F.DS]: 2, [F.MLE]: 1 } },
+      { label: "用有限的錢，排出最好的進貨和人力", family: { [F.OR]: 2 } },
+      { label: "建一套自動記帳、自動整理的系統", family: { [F.DE]: 2 } },
+      { label: "重新設計點餐流程和菜單", family: { [F.PROD]: 2 } },
+      { label: "檢查帳目和流程哪裡有錯或風險", family: { [F.GOV]: 2, [F.FIN]: 1 } }
     ]
   },
   {
     id: "system_type", type: "single", system: "preference",
-    text: "如果要動手做一套東西，你想做哪種？",
+    text: "如果要動手做一個東西給社團用，你想做哪種？",
     options: [
-      { label: "讓資料自動流動的幕後系統", family: { [F.DE]: 2 } },
-      { label: "會推薦、會生成內容的 AI 系統", family: { [F.MLE]: 2 } },
-      { label: "讓團隊一眼看懂數據的報表", family: { [F.DABI]: 2, [F.DE]: 1 } },
-      { label: "支撐產品運作的功能與流程", family: { [F.PROD]: 2 } }
+      { label: "大家丟資料進來就自動歸檔的小工具", family: { [F.DE]: 2 } },
+      { label: "會自動推薦、自動回覆的 AI 小幫手", family: { [F.MLE]: 2 } },
+      { label: "一張大家一看就懂的數據看板", family: { [F.DABI]: 2, [F.DE]: 1 } },
+      { label: "一套讓活動順利運作的報名流程", family: { [F.PROD]: 2 } }
     ]
   },
   {
     id: "math_pref", type: "single", system: "preference",
-    text: "下面哪種問題比較吸引你？",
+    text: "哪種謎題最吸引你？",
     options: [
-      { label: "用過去的資料預測未來", family: { [F.DS]: 2 } },
-      { label: "找出最省時、最省錢的安排", family: { [F.OR]: 2 } },
-      { label: "驗證某個做法到底有沒有效", family: { [F.DS]: 1, [F.PROD]: 1 } },
-      { label: "把現況解釋清楚就好，不用建模型", family: { [F.DABI]: 2 } }
+      { label: "從過去的紀錄，猜中接下來會發生什麼", family: { [F.DS]: 2 } },
+      { label: "在預算和時間限制下，排出最好的計畫", family: { [F.OR]: 2 } },
+      { label: "驗證某個改變是不是真的有效", family: { [F.DS]: 1, [F.PROD]: 1 } },
+      { label: "把複雜的事情解釋到大家都懂", family: { [F.DABI]: 2 } }
     ]
   }
 ];
@@ -238,60 +238,60 @@ const STATION1_QUESTIONS = [
 const STATION2_QUESTIONS = [
   {
     id: "work_result", type: "single", system: "preference",
-    text: "你更想交出哪種成果？",
+    text: "期末分組報告，你最想負責哪個部分？",
     options: [
-      { label: "一份指出問題在哪的分析報告", family: { [F.DABI]: 2 } },
-      { label: "一份讓功能順利上線的規劃", family: { [F.PROD]: 2 } },
-      { label: "一個能做預測的模型", family: { [F.DS]: 2 } },
-      { label: "一套穩定的資料處理流程", family: { [F.DE]: 2 } }
+      { label: "分析數據、找出重點問題", family: { [F.DABI]: 2 } },
+      { label: "規劃流程，讓大家順利完成", family: { [F.PROD]: 2 } },
+      { label: "做預測或做實驗的部分", family: { [F.DS]: 2 } },
+      { label: "整理資料、建好大家共用的檔案", family: { [F.DE]: 2 } }
     ]
   },
   {
     id: "output_pref", type: "single", system: "preference",
-    text: "一個月後，你最希望手上完成的是？",
+    text: "努力一個月後，你最想拿出哪種成果？",
     options: [
-      { label: "能影響決策的分析與建議", family: { [F.DABI]: 2, [F.STRAT]: 1 } },
-      { label: "驗證過、能做預測的模型", family: { [F.DS]: 2 } },
-      { label: "穩定運作的資料或 AI 系統", family: { [F.DE]: 2, [F.MLE]: 1 } },
-      { label: "正式上線的產品功能或流程", family: { [F.PROD]: 2 } },
-      { label: "一套資料品質或風險的把關規則", family: { [F.GOV]: 2, [F.FIN]: 1 } },
-      { label: "最省資源的排程或分配方案", family: { [F.OR]: 2 } }
+      { label: "一份讓大家決定方向的分析", family: { [F.DABI]: 2, [F.STRAT]: 1 } },
+      { label: "一個被驗證有效的預測", family: { [F.DS]: 2 } },
+      { label: "一套自動運作、不用人顧的系統", family: { [F.DE]: 2, [F.MLE]: 1 } },
+      { label: "一個正式上線的作品或活動", family: { [F.PROD]: 2 } },
+      { label: "一套讓大家不出錯的規則", family: { [F.GOV]: 2, [F.FIN]: 1 } },
+      { label: "一個最省時省錢的計畫", family: { [F.OR]: 2 } }
     ]
   },
   {
     id: "responsibility", type: "single", system: "preference",
-    text: "哪一種責任你最願意扛？",
+    text: "社團要辦大型活動，你最想扛哪個責任？",
     options: [
-      { label: "確保資料正確、沒有錯誤", family: { [F.GOV]: 2 } },
-      { label: "評估詐騙與金錢相關的風險", family: { [F.FIN]: 2 } },
-      { label: "找出讓產品成長的機會", family: { [F.PROD]: 1, [F.DABI]: 1 } },
-      { label: "讓流程更快、更省資源", family: { [F.OR]: 1, [F.STRAT]: 1 } }
+      { label: "檢查所有名單和資料，確保零錯誤", family: { [F.GOV]: 2 } },
+      { label: "管錢，評估哪裡可能出包賠錢", family: { [F.FIN]: 2 } },
+      { label: "想辦法讓更多人來參加", family: { [F.PROD]: 1, [F.DABI]: 1 } },
+      { label: "讓流程更快、更省人力", family: { [F.OR]: 1, [F.STRAT]: 1 } }
     ]
   },
   {
     id: "stakeholder_freq", type: "slider", system: "preference",
-    text: "常常和不同部門開會、解釋你的發現——你喜歡嗎？",
-    leftLabel: "希望大部分時間自己做", rightLabel: "喜歡常常討論、一起決定",
+    text: "做事的時候，你喜歡常常跟大家討論、一起做決定嗎？",
+    leftLabel: "希望大部分自己做", rightLabel: "喜歡一起討論決定",
     high: { [F.STRAT]: 1, [F.PROD]: 1, [F.FIN]: 1, [F.DABI]: 0.5 },
     lowIsMeaningful: false // 低互動偏好只記錄，不自動推向 DS / Engineering
   },
   {
     id: "deep_focus", type: "slider", system: "preference",
-    text: "一個人連續專注好幾個小時做同一件事，你享受嗎？",
-    leftLabel: "會坐不住", rightLabel: "很享受這種狀態",
+    text: "一個人專注做一件事好幾個小時，你？",
+    leftLabel: "會坐不住", rightLabel: "超享受",
     high: [F.DS, F.MLE, F.DE, F.OR], lowIsMeaningful: false
   },
   {
     id: "ambiguity", type: "slider", system: "preference",
-    text: "題目模糊、沒有標準答案的時候，你會？",
-    leftLabel: "希望先有明確指示", rightLabel: "享受自己摸索方向",
+    text: "老師出了一題沒有標準答案的作業，你？",
+    leftLabel: "希望先給明確方向", rightLabel: "更有趣，想自己摸索",
     high: [F.DS, F.PROD, F.STRAT, F.OR],
     lowIsMeaningful: true, low: [F.DE, F.GOV, F.DABI], lowWeight: 0.5
   },
   {
     id: "stable_delivery", type: "slider", system: "preference",
-    text: "把一件事做到穩定、每次都不出錯——你覺得？",
-    leftLabel: "還好，比較想做新東西", rightLabel: "很有成就感",
+    text: "先花時間把一件事做好，以後每次都不用重做——你覺得？",
+    leftLabel: "有點無聊", rightLabel: "很有成就感",
     high: [F.DE, F.GOV, F.DABI, F.MLE], lowIsMeaningful: false
   }
 ];
@@ -342,51 +342,51 @@ const STATIONS = {
    環境（收入/名聲/穩定/平衡/強度）與科系「不得」成為推薦理由。
 --------------------------------------------------------------------- */
 const REASON_TEXT = {
-  coding_effort:   { high: "你願意投入時間鑽研程式與技術實作" },
-  algorithm_effort:{ high: "你願意鑽研模型與系統背後的數學原理" },
-  stakeholder_freq:{ high: "你喜歡頻繁與非技術團隊討論需求、共同決策" },
-  deep_focus:      { high: "你享受長時間獨立分析、建模或開發" },
-  ambiguity:       { high: "你享受在沒有明確答案時自己定義問題", low: "你偏好需求與流程清楚、結構明確的工作" },
-  stable_delivery: { high: "你享受把流程與資料品質做得穩定、可重複" },
+  coding_effort:   { high: "你願意花時間練程式這種很難但很強的技能" },
+  algorithm_effort:{ high: "你會想搞懂工具背後是怎麼運作的" },
+  stakeholder_freq:{ high: "你喜歡和大家討論、一起做決定" },
+  deep_focus:      { high: "你享受長時間專注做一件事" },
+  ambiguity:       { high: "你喜歡沒有標準答案、自己摸索的問題", low: "你偏好方向明確、流程清楚的任務" },
+  stable_delivery: { high: "你享受把事情做到穩定、每次都不出錯" },
   problem_type: [
-    "你最想從資料找出發生了什麼、以及為什麼",
-    "你最想預測未來會發生什麼",
-    "你最想在限制條件下找出最佳方案",
-    "你最想建立可靠的資料平台與管線",
-    "你最想把需求轉成產品、流程或系統方案",
-    "你最想找出風險、錯誤與不一致"
+    "你喜歡找出事情背後的原因",
+    "你喜歡預測接下來會發生什麼",
+    "你喜歡在有限資源下排出最好的安排",
+    "你喜歡打造讓資料自動運作的系統",
+    "你喜歡把需求變成流程和作品",
+    "你擅長揪出錯誤與風險"
   ],
   system_type: [
-    "你想打造資料管線、資料倉儲與資料平台",
-    "你想打造推薦、搜尋或生成式 AI 系統",
-    "你想打造指標、報表與分析資料模型",
-    "你想打造業務流程、產品功能與系統方案"
+    "你想做讓資料自動歸檔流動的幕後工具",
+    "你想做會推薦、會回覆的 AI 系統",
+    "你想做讓大家一看就懂的數據看板",
+    "你想做支撐活動與產品運作的流程"
   ],
   math_pref: [
-    "「用歷史資料做預測」的問題最吸引你",
-    "「限制下找最佳方案」的問題最吸引你",
-    "你在意衡量行動是否真的造成改變",
-    "你偏好描述與解釋，不一定要建模型"
+    "「從紀錄猜中未來」的謎題最吸引你",
+    "「限制下排出最好計畫」的謎題最吸引你",
+    "你在意驗證改變是不是真的有效",
+    "你擅長把複雜的事解釋到大家都懂"
   ],
   work_result: [
-    "你偏好定義 KPI、分析趨勢、找出異常原因",
-    "你偏好釐清需求、畫流程、推動系統落地",
-    "你偏好建立模型、實驗或預測方法",
-    "你偏好建立資料管線、平台與可靠資料模型"
+    "你想負責分析數據、找出重點問題",
+    "你想負責規劃流程、讓大家順利完成",
+    "你想負責預測與實驗的部分",
+    "你想負責整理資料、建立共用系統"
   ],
   output_pref: [
-    "你希望完成一份能影響決策的分析與建議",
-    "你希望完成可驗證的預測模型或實驗結果",
-    "你希望完成一套穩定運行的資料或 AI 系統",
-    "你希望完成上線的產品功能或流程",
-    "你希望完成一套資料規則、品質標準或風險控制",
-    "你希望完成資源配置或排程的最佳方案"
+    "你想拿出一份讓大家決定方向的分析",
+    "你想拿出一個被驗證有效的預測",
+    "你想拿出一套自動運作的系統",
+    "你想拿出一個正式上線的作品",
+    "你想建立一套讓大家不出錯的規則",
+    "你想排出一個最省時省錢的計畫"
   ],
   responsibility: [
-    "你最想負責找出資料錯誤與品質問題",
-    "你最想負責評估信用、詐欺與財務風險",
-    "你最想負責找出產品或業務成長機會",
-    "你最想負責找出流程瓶頸並節省資源"
+    "你願意扛「確保零錯誤」的把關責任",
+    "你願意扛金錢與風險評估的責任",
+    "你想找出讓更多人參與、成長的機會",
+    "你想讓流程更快、更省資源"
   ]
 };
 
@@ -1115,6 +1115,7 @@ const Results = {
           <div class="official-zh">${p.cn_name}</div>
           <div class="rpg-badge">「${p.class_title}」</div>
           <div class="route-oneliner">${p.tagline}</div>
+          ${i === 0 && r.reasons.length ? `<ul class="route-why">${r.reasons.slice(0,3).map(x => `<li>${x}</li>`).join("")}</ul>` : ""}
           <div class="match-row">配對 <b>${MATCH_ZH[r.matchLevel]}</b>
             <span class="info-tip" tabindex="0" onclick="event.stopPropagation()">ⓘ<span class="info-bubble">${State.careers.meta.match_index_note}｜信心分數 ${State.confidence.score}／100（僅供參考）</span></span>
           </div>
@@ -1376,7 +1377,7 @@ function jobCardHTML(t, ctx, listPos){
       <div class="family-badge">${t.job_family}</div>
       <h4>${t.title}</h4>
       <div class="companies">${t.company}　·　${t.region}</div>
-      <div class="tl-badge">${t.technical_level} · ${tl ? tl.name : ""}</div>
+      <div class="tl-badge" title="${tl ? tl.criteria : ""}">${t.technical_level}</div>
       <div class="companies">領域：${t.domain}　·　產業：${t.industry}</div>
       <div class="result-desc" style="font-size:12.5px;"><b>這份工作在做什麼：</b>${t.what_they_do}</div>
       ${skills.length ? `<div class="result-skills"><b>你會需要什麼：</b>${skills.join("、")}</div>` : ""}
