@@ -40,17 +40,34 @@ function serverKey(){
 function communityConfigStatus(){
   const url=firstEnv(["SUPABASE_URL","VITE_SUPABASE_URL"]);
   const key=serverKey();
-  const salt=firstEnv(["COMMUNITY_HASH_SALT"]) || key;
+  const explicitSalt=firstEnv(["COMMUNITY_HASH_SALT"]);
+  const salt=explicitSalt || key;
   const missing=[];
-  if(!url)missing.push("SUPABASE_URL");
+  const invalid=[];
+  if(!url)missing.push("SUPABASE_URL_OR_VITE_SUPABASE_URL");
+  else{
+    try{
+      const parsed=new URL(url);
+      const cleanPath=parsed.pathname.replace(/\/+$/," ").trim();
+      if(parsed.protocol!=="https:"||!/^[a-z0-9-]+\.supabase\.co$/i.test(parsed.hostname)||cleanPath!==""||parsed.search||parsed.hash)invalid.push("SUPABASE_URL_INVALID");
+    }catch(_){invalid.push("SUPABASE_URL_INVALID");}
+  }
   if(!key)missing.push("SUPABASE_SERVICE_ROLE_KEY_OR_SECRET_KEY");
-  if(!salt||salt.length<32)missing.push("COMMUNITY_HASH_SALT");
-  return {configured:missing.length===0,missing,urlSource:process.env.SUPABASE_URL?"SUPABASE_URL":process.env.VITE_SUPABASE_URL?"VITE_SUPABASE_URL":null,keySource:process.env.SUPABASE_SERVICE_ROLE_KEY?"SUPABASE_SERVICE_ROLE_KEY":process.env.SUPABASE_SECRET_KEY?"SUPABASE_SECRET_KEY":null};
+  if(!salt)missing.push("COMMUNITY_HASH_SALT");
+  else if(salt.length<32)invalid.push("COMMUNITY_HASH_SALT_MIN_32_CHARS");
+  return {
+    configured:missing.length===0&&invalid.length===0,missing,invalid,
+    urlSource:process.env.SUPABASE_URL?"SUPABASE_URL":process.env.VITE_SUPABASE_URL?"VITE_SUPABASE_URL":null,
+    keySource:process.env.SUPABASE_SERVICE_ROLE_KEY?"SUPABASE_SERVICE_ROLE_KEY":process.env.SUPABASE_SECRET_KEY?"SUPABASE_SECRET_KEY":null,
+    saltSource:explicitSalt?"COMMUNITY_HASH_SALT":key?"SERVER_KEY_FALLBACK":null
+  };
 }
 function configurationError(){
   const error=new Error("server_not_configured");
   error.code="server_not_configured";
-  error.missing=communityConfigStatus().missing;
+  const status=communityConfigStatus();
+  error.missing=status.missing;
+  error.invalid=status.invalid;
   return error;
 }
 function hash(value){
@@ -87,7 +104,11 @@ function supabaseBaseUrl(){
 function supabaseHeaders(){
   const key=serverKey();
   if(!key)throw configurationError();
-  return { apikey:key, Authorization:`Bearer ${key}`, "Content-Type":"application/json", Prefer:"return=representation" };
+  const headers={apikey:key,"Content-Type":"application/json",Prefer:"return=representation"};
+  // Modern sb_secret_* keys are opaque API keys, not JWTs. Supabase requires
+  // them in the apikey header only; legacy service_role JWTs also use Bearer.
+  if(!key.startsWith("sb_secret_"))headers.Authorization=`Bearer ${key}`;
+  return headers;
 }
 async function supabase(path, options={}){
   const res=await fetch(`${supabaseBaseUrl()}/rest/v1/${path}`,{...options,headers:{...supabaseHeaders(),...(options.headers||{})}});
@@ -116,4 +137,4 @@ async function recentRows(table,fingerprintHash,sinceIso,select="created_at,cont
   const q=`${table}?select=${encodeURIComponent(select)}&fingerprint_hash=eq.${fingerprintHash}&created_at=gte.${encodeURIComponent(sinceIso)}&order=created_at.desc`;
   return await supabase(q);
 }
-module.exports={ALLOWED_USER_TYPES,REPORT_REASONS,json,normalizeText,originAllowed,clientMeta,validateNickname,validateContent,supabase,verifyTurnstile,recentRows,communityConfigStatus,supabaseBaseUrl};
+module.exports={ALLOWED_USER_TYPES,REPORT_REASONS,json,normalizeText,originAllowed,clientMeta,validateNickname,validateContent,supabase,verifyTurnstile,recentRows,communityConfigStatus,supabaseBaseUrl,supabaseHeaders};

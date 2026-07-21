@@ -1414,6 +1414,19 @@ function jobCardHTML(t, ctx, listPos){
 /* ---------------------------------------------------------------------
    Encyclopedia
 --------------------------------------------------------------------- */
+function roleTechnicalRequirement(profile){
+  const skills=(profile?.starter_skills||[])
+    .map(skill=>String(skill||"").trim())
+    .filter(Boolean)
+    .slice(0,3);
+  if(skills.length)return `需要 ${skills.join("、")} 能力`;
+  const range=String(profile?.tlevel_range||"").toUpperCase();
+  if(/T4|T5/.test(range))return "需要機器學習、軟體工程與資料系統能力";
+  if(/T3/.test(range))return "需要 SQL、Python／R、統計與實驗分析能力";
+  if(/T2/.test(range))return "需要 SQL、BI、指標設計與商業分析能力";
+  return "需要試算表、報表、流程分析與溝通能力";
+}
+
 const Encyclopedia = {
   _activeIndex: 0,
   _translateX: 0,
@@ -1430,7 +1443,7 @@ const Encyclopedia = {
     const viewport = document.getElementById("ency-carousel");
     const entries = Object.entries(profiles);
     viewport.innerHTML = `<div class="ency-track">${entries.map(([famKey, p], index) => `
-      <article class="ency-card" style="${famVars(p)}" data-card-index="${index}" data-fam-key="${famKey}" role="group" aria-label="${index + 1} / ${entries.length}：${p.class_title}，${p.cn_name}">
+      <article class="ency-card" style="${famVars(p)}" data-card-index="${index}" data-fam-key="${famKey}" role="button" aria-label="${index + 1} / ${entries.length}：${p.class_title}，${p.cn_name}。點擊查看完整介紹">
         <div class="ency-card-visual">${portraitHTML(p)}</div>
         <div class="ency-card-copy">
           <span class="eyebrow">角色 ${index + 1} / ${entries.length}</span>
@@ -1438,23 +1451,11 @@ const Encyclopedia = {
           <div class="official-zh">${p.cn_name}</div>
           <div class="official-en">${p.en_name || ""}</div>
           <p class="route-oneliner">${p.tagline}</p>
-          <div class="tl-chip">${p.tlevel_range||""}</div>
+          <div class="tl-chip tech-difficulty"><strong>技術難度：${p.tlevel_range||"—"}</strong><span>${roleTechnicalRequirement(p)}</span></div>
           <button type="button" class="btn btn-ghost route-btn" data-role-detail="${famKey}">認識這個角色</button>
         </div>
       </article>
     `).join("")}</div>`;
-    viewport.querySelectorAll(".ency-card").forEach(card => {
-      card.addEventListener("click", event => {
-        if(event.target.closest("[data-role-detail]"))return;
-        Encyclopedia.openCard(event, card.dataset.famKey);
-      });
-      const detailButton=card.querySelector("[data-role-detail]");
-      if(detailButton)detailButton.addEventListener("click", event => {
-        event.preventDefault();
-        event.stopPropagation();
-        Encyclopedia.openFamily(detailButton.dataset.roleDetail);
-      });
-    });
     Encyclopedia.bindCarousel();
     Encyclopedia.syncCarousel(Encyclopedia._activeIndex || 0);
     deferFrame(() => deferFrame(() => Encyclopedia.refreshCarousel(false)));
@@ -1471,7 +1472,31 @@ const Encyclopedia = {
     if (viewport.dataset && viewport.dataset.bound) return;
     if (viewport.dataset) viewport.dataset.bound = "1";
 
+    // One delegated handler survives rerenders. A simple tap/click always opens
+    // the selected role; it no longer requires a first click to center the card.
+    viewport.addEventListener("click", event => {
+      const card=event.target?.closest?.(".ency-card");
+      if(!card||!viewport.contains(card))return;
+      if(Date.now()<Encyclopedia._suppressClickUntil){
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      event.preventDefault();
+      const index=Number(card.dataset.cardIndex);
+      if(Number.isInteger(index))Encyclopedia.goTo(index,{animate:true});
+      Encyclopedia.openFamily(card.dataset.famKey);
+    });
+
     viewport.addEventListener("keydown", event => {
+      const card=event.target?.closest?.(".ency-card");
+      if(card&&(event.key==="Enter"||event.key===" ")){
+        event.preventDefault();
+        const index=Number(card.dataset.cardIndex);
+        if(Number.isInteger(index))Encyclopedia.goTo(index,{animate:true});
+        Encyclopedia.openFamily(card.dataset.famKey);
+        return;
+      }
       if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       event.preventDefault();
       Encyclopedia.scroll(event.key === "ArrowRight" ? 1 : -1);
@@ -1479,6 +1504,7 @@ const Encyclopedia = {
 
     viewport.addEventListener("pointerdown", event => {
       if (event.button !== undefined && event.button !== 0) return;
+      if (event.target?.closest?.("button,a,input,select,textarea")) return;
       const track = viewport.querySelector(".ency-track");
       if (!track) return;
       Encyclopedia._drag = {
@@ -1518,8 +1544,6 @@ const Encyclopedia = {
         if (dx <= -threshold) Encyclopedia.scroll(1);
         else if (dx >= threshold) Encyclopedia.scroll(-1);
         else Encyclopedia.goTo(Encyclopedia._activeIndex, { animate:true });
-      } else {
-        Encyclopedia.goTo(Encyclopedia._activeIndex, { animate:true });
       }
     };
     viewport.addEventListener("pointerup", finishDrag);
@@ -1550,17 +1574,12 @@ const Encyclopedia = {
 
   openCard(event, famKey){
     if (Date.now() < Encyclopedia._suppressClickUntil) {
-      event.preventDefault();
-      event.stopPropagation();
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
       return;
     }
-    const index = Number(event.currentTarget?.dataset?.cardIndex);
-    if (Number.isInteger(index) && index !== Encyclopedia._activeIndex) {
-      event.preventDefault();
-      event.stopPropagation();
-      Encyclopedia.goTo(index, { animate:true });
-      return;
-    }
+    const index = Number(event?.currentTarget?.dataset?.cardIndex);
+    if (Number.isInteger(index)) Encyclopedia.goTo(index, { animate:true });
     Encyclopedia.openFamily(famKey);
   },
 

@@ -1,21 +1,24 @@
-# Data Matters v3.6 驗證報告
+# Data Matters v3.7 驗證報告
 
-## 已實際執行
+已在更新包內執行：
 
-- `npm run lint`：通過；8 個 JavaScript 檔案、48 個唯一 HTML ID。
-- `npm run test:product`：28／28 通過。
-- `npm run build:overlay`：通過。
-- JavaScript syntax check：`app.js`、`product-v3.js`、`community.js`、所有 Community Functions 通過。
+- `node --check app.js`
+- `node --check product-v3.js`
+- `node --check community.js`
+- `node --check netlify/functions/_community-utils.js`
+- `npm run lint`
+- `npm run test:product`
+- `npm run build:overlay`
 
-## 新增 regression tests
+結果：
 
-- `VITE_SUPABASE_URL` + `SUPABASE_SECRET_KEY` server config fallback。
-- 職涯圖鑑角色詳情確實打開共用 Modal。
-- 第一名角色詳情入口存在於名稱、圖片與按鈕。
-- 手機角色圖最後一層置中規則。
+- JavaScript syntax：通過
+- Static lint：通過（8 個 JavaScript 檔、48 個唯一 HTML IDs）
+- Product/runtime tests：32 / 32 通過
+- Overlay build：通過
+- 非 active 角色卡單次點擊：測試確認同一次操作會置中並開啟詳情
+- 技術難度雙行格式：測試通過
+- COMMUNITY_HASH_SALT 過短診斷：測試通過
+- `sb_secret_...` 不再被當成 Bearer JWT：測試通過
 
-## 未聲稱通過
-
-此更新包不含正式 repository 的 `data/`、`images/`、`analytics-config.js`、`validate-data.mjs`、`test-cases.mjs` 與 `test-analytics.mjs`，因此必須套回完整 repository 後再執行 `npm run validate`。
-
-Netlify 的 Production 環境變數無法由更新包代替設定；部署後必須用 `/.netlify/functions/community-health` 驗證。
+未執行完整 `npm run validate`，因為更新包刻意不包含你的正式 `data/`、`images/`、`analytics-config.js`、`test-analytics.mjs`、`test-cases.mjs` 與 `validate-data.mjs`。套入正式 repository 後仍需執行一次完整驗證。

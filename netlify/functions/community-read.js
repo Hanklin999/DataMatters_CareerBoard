@@ -52,6 +52,6 @@ exports.handler=async(event)=>{
         : err.code==="permission_denied"
           ? "community_permission_missing"
           : "community_unavailable";
-    return json(503,{message});
+    return json(503,{message,missing:Array.isArray(err.missing)?err.missing:undefined,invalid:Array.isArray(err.invalid)?err.invalid:undefined});
   }
 };

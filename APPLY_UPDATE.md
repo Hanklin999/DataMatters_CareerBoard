@@ -1,24 +1,22 @@
-# 套用 Data Matters v3.6
-
-在解壓後資料夾開啟 PowerShell：
+# 套用 Data Matters v3.7
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
+.\apply-update.ps1 -RepoPath "C:\Users\chihh\OneDrive\文件\GitHub\DataMatters_CareerBoard"
 
-.\apply-update.ps1 `
-  -RepoPath "C:\Users\chihh\OneDrive\文件\GitHub\DataMatters_CareerBoard"
-```
-
-接著回到 repository：
-
-```powershell
+cd "C:\Users\chihh\OneDrive\文件\GitHub\DataMatters_CareerBoard"
 npm run validate
-git status
 git add -A
-git commit -m "Fix community server and role detail interactions"
+git commit -m "Fix direct role card details and community diagnostics"
 git push origin master
 ```
 
-Push 後讓 Netlify 重新部署。
+Push 後到 Netlify 重新 Deploy。
 
-留言功能還需要完成 Netlify server-only environment variables；詳見 `docs/community-server-setup.md`。
+部署完成後開啟：
+`https://datamatters-hanks-career-board.netlify.app/.netlify/functions/community-health`
+
+- `ok:true`：設定與資料庫正常。
+- `server_not_configured`：依 `missing`／`invalid` 欄位修正。
+- `community_schema_missing`：執行 Supabase migration。
+- `community_permission_missing`：執行 community read repair migration。

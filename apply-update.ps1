@@ -27,6 +27,7 @@ $excluded = @(
   "V3_4_CHANGE_REPORT.md",
   "V3_5_CHANGE_REPORT.md",
   "V3_6_CHANGE_REPORT.md",
+  "V3_7_CHANGE_REPORT.md",
   "VALIDATION_REPORT.md",
   "MANIFEST.sha256",
   "apply-update.ps1"

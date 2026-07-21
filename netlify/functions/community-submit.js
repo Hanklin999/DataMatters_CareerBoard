@@ -27,7 +27,7 @@ exports.handler=async(event)=>{
     return json(201,{ok:true,id:inserted?.[0]?.id});
   }catch(err){
     console.error("community-submit failed",err);
-    if(err.message==="server_not_configured"||err.code==="server_not_configured")return json(503,{message:"server_not_configured",missing:Array.isArray(err.missing)?err.missing:undefined});
+    if(err.message==="server_not_configured"||err.code==="server_not_configured")return json(503,{message:"server_not_configured",missing:Array.isArray(err.missing)?err.missing:undefined,invalid:Array.isArray(err.invalid)?err.invalid:undefined});
     if(err.code==="relation_missing")return json(503,{message:"community_schema_missing"});
     if(err.code==="permission_denied")return json(503,{message:"community_permission_missing"});
     if(err.pgCode==="23505")return json(409,{message:"duplicate_content"});

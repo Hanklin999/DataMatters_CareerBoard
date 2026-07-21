@@ -192,7 +192,7 @@ test("mobile result hero has deterministic heading-art-body order and full-width
 test("role detail actions are exported and available from atlas and primary result", () => {
   assert.match(app,/DataMattersRoleDetail:\{open:openRoleDetail\}/);
   assert.match(app,/data-role-detail=/);
-  assert.match(app,/detailButton\.addEventListener\("click"/);
+  assert.match(app,/One delegated handler survives rerenders/);
   assert.match(product,/Results\.openPrimaryRole/);
   assert.match(product,/data-primary-role-detail/);
   assert.match(product,/認識這個角色/);
@@ -211,4 +211,14 @@ test("mobile result artwork has a final hard-centering rule", () => {
   assert.match(css,/#result-hero \.result-hero-art\{[\s\S]*place-items:center!important/);
   assert.match(css,/#result-hero \.result-hero-art \.square-portrait\{[\s\S]*margin-inline:auto!important/);
   assert.match(css,/transform:none!important/);
+});
+
+
+test("community setup errors expose exact missing or invalid variable names",()=>{
+  const read=readFileSync("netlify/functions/community-read.js","utf8");
+  const utils=readFileSync("netlify/functions/_community-utils.js","utf8");
+  assert.match(read,/invalid:Array\.isArray\(err\.invalid\)/);
+  assert.match(utils,/COMMUNITY_HASH_SALT_MIN_32_CHARS/);
+  assert.match(utils,/if\(!key\.startsWith\("sb_secret_"\)\)/);
+  assert.match(community,/檢查項目/);
 });

@@ -38,7 +38,7 @@
       if(!state.loaded)trackCommunity("community_viewed");
       try{
         const url=new URL(`${location.origin}${API_BASE}/community-read`);url.searchParams.set("sort",state.sort);
-        const res=await fetch(url,{headers:{"Accept":"application/json"}});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.message||"read_failed");state.posts=Array.isArray(data.posts)?data.posts:[];state.loaded=true;Community.renderList();
+        const res=await fetch(url,{headers:{"Accept":"application/json"}});const data=await res.json().catch(()=>({}));if(!res.ok){const error=new Error(data.message||"read_failed");error.details=data;throw error;}state.posts=Array.isArray(data.posts)?data.posts:[];state.loaded=true;Community.renderList();
       }catch(err){
         const setupMessages={
           server_not_configured:"留言板尚未連接資料庫，網站管理者需完成 Netlify 伺服器設定。",
@@ -46,7 +46,9 @@
           community_permission_missing:"留言板資料庫權限尚未完成設定。"
         };
         const message=setupMessages[err.message]||"留言板目前無法載入。請稍後再試；測驗與其他頁面不受影響。";
-        document.getElementById("community-list").innerHTML=`<div class="error-state">${message}<br><button class="btn btn-ghost" onclick="Community.load(true)">重新載入</button>${setupMessages[err.message]?'<div class="community-setup-note">網站管理者可查看部署文件完成設定。</div>':''}</div>`;
+        const diagnostics=[...(err.details?.missing||[]),...(err.details?.invalid||[])];
+        const diagnosticHTML=diagnostics.length?`<div class="community-setup-note">檢查項目：${diagnostics.map(esc).join("、")}</div>`:"";
+        document.getElementById("community-list").innerHTML=`<div class="error-state">${message}<br><button class="btn btn-ghost" onclick="Community.load(true)">重新載入</button>${setupMessages[err.message]?'<div class="community-setup-note">網站管理者可查看部署文件完成設定。</div>':''}${diagnosticHTML}</div>`;
       }
       finally{state.loading=false;}
     },
@@ -75,7 +77,7 @@
     async submit(event,type,postId,started){
       event.preventDefault();const form=event.currentTarget,fd=new FormData(form),isPost=type==="post";const nick=String(fd.get("nickname")||""),content=String(fd.get("content")||"");form.querySelector('[data-error="nickname"]').textContent=validateNickname(nick);form.querySelector('[data-error="content"]').textContent=validateContent(content,isPost?10:2,isPost?500:300);if(validateNickname(nick)||validateContent(content,isPost?10:2,isPost?500:300))return;
       const btn=form.querySelector('button[type="submit"]');btn.disabled=true;const payload={type,post_id:postId||undefined,nickname:nick.trim(),user_type:String(fd.get("user_type")||"")||null,content:content.trim(),consent:Boolean(fd.get("consent")),website:String(fd.get("website")||""),form_started_at:Number(started),session_id:sessionId};
-      try{const res=await fetch(`${API_BASE}/community-submit`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.message||"submit_failed");try{sessionStorage.setItem("dm_community_nickname",nick.trim());}catch(_){}Modal.close();Toast.show(isPost?"留言已發布":"回覆已發布");trackCommunity(isPost?"community_post_submitted":"community_reply_submitted",{user_type:payload.user_type||"unspecified",content_length_bucket:content.length<50?"short":content.length<180?"medium":"long"});state.loaded=false;await Community.load(true);}
+      try{const res=await fetch(`${API_BASE}/community-submit`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await res.json().catch(()=>({}));if(!res.ok){const error=new Error(data.message||"submit_failed");error.details=data;throw error;}try{sessionStorage.setItem("dm_community_nickname",nick.trim());}catch(_){}Modal.close();Toast.show(isPost?"留言已發布":"回覆已發布");trackCommunity(isPost?"community_post_submitted":"community_reply_submitted",{user_type:payload.user_type||"unspecified",content_length_bucket:content.length<50?"short":content.length<180?"medium":"long"});state.loaded=false;await Community.load(true);}
       catch(err){
         const messages={
           rate_limited:"發布太頻繁，請稍後再試。",
@@ -92,7 +94,7 @@
           community_schema_outdated:"留言資料庫版本尚未更新，請通知網站管理者。"
         };
         const errorBox=document.getElementById("community-form-error");
-        if(errorBox)errorBox.textContent=messages[err.message]||"目前無法發布，請稍後再試。";
+        if(errorBox){const diagnostics=[...(err.details?.missing||[]),...(err.details?.invalid||[])];errorBox.textContent=(messages[err.message]||"目前無法發布，請稍後再試。")+(diagnostics.length?`（檢查：${diagnostics.join("、")}）`:"");}
         trackCommunity(isPost?"community_post_failed":"community_reply_failed",{error_type:String(err.message||"unknown").slice(0,40)});
         btn.disabled=false;
       }

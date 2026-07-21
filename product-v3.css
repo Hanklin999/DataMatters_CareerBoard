@@ -337,3 +337,16 @@ button.result-hero-art:focus-visible{outline:3px solid var(--accent);outline-off
   #result-hero .result-hero-art .square-portrait img{margin:0 auto!important}
   #result-hero .result-hero-heading{margin-inline:auto!important}
 }
+
+
+/* v3.7: direct-click role cards and two-line technical difficulty. */
+.ency-card{position:relative}
+.ency-card::after{content:"點擊查看完整介紹";position:absolute;right:18px;bottom:14px;color:var(--sub);font-size:11px;opacity:.72;pointer-events:none}
+.ency-card:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+.ency-card .tech-difficulty{display:flex;flex-direction:column;align-items:flex-start;gap:4px;white-space:normal;line-height:1.45;text-align:left}
+.ency-card .tech-difficulty strong{display:block;color:var(--text);font-size:13px}
+.ency-card .tech-difficulty span{display:block;color:var(--sub);font-size:12px}
+@media(max-width:800px){
+  .ency-card .tech-difficulty{align-items:center;text-align:center}
+  .ency-card::after{position:static;display:block;margin-top:8px;text-align:center}
+}
