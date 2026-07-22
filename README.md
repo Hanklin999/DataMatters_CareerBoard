@@ -1,263 +1,230 @@
-# Data Matters — Data Career Exploration Product
+# Data Matters
 
-[Live Product](https://datamatters-hanks-career-board.netlify.app/) · [中文使用說明](README.zh-TW.md) · [Product DS Technical Notes](docs/PRODUCT_DS_TECHNICAL_NOTES.md) · [Analysis Roadmap](docs/PRODUCT_DS_ROADMAP.md)
+### A product analytics case study for career discovery
 
-Data Matters is a mobile-first career exploration product that helps students understand how data-related roles differ, identify work preferences, and move from an abstract career label to concrete roles, skills, and job examples.
+[**Try the live product →**](https://datamatters-hanks-career-board.netlify.app/)  
+[中文使用說明](README.zh-TW.md) · [Technical Notes](docs/PRODUCT_DS_TECHNICAL_NOTES.md) · [Analysis Roadmap](docs/PRODUCT_DS_ROADMAP.md)
 
-This project is designed as a **Product Data Science case study**, not only a front-end career quiz. It combines:
+<p align="center">
+  <img src="docs/readme/product-cover.png" alt="Data Matters product overview" width="100%">
+</p>
 
-- product problem framing;
-- a transparent recommendation system;
-- behavioral event instrumentation;
-- user-perceived clarity and recommendation-fit measurement;
-- privacy-conscious analytics;
-- validation and experimentation planning.
+Data Matters helps students who are interested in data careers but cannot yet distinguish roles such as Product Analytics, Data Science, Business Intelligence, Data Engineering, and Decision Science.
 
-> Current status: the product and analytics instrumentation are live. Any product impact metrics should be treated as exploratory until a sufficient sample size and data-quality review are completed.
+I built it as an end-to-end **Product Data Science case study**: framing the user problem, designing an interpretable recommendation system, instrumenting the product journey, analyzing production behavior, and translating findings into product priorities.
 
----
-
-## 1. Product problem
-
-Students often encounter broad labels such as “data analyst,” “data scientist,” “data engineer,” or “product analyst,” but struggle to answer three more useful questions:
-
-1. What does each role actually do every day?
-2. Which type of work fits my preferences?
-3. What should I explore next?
-
-Most career content is organized around job titles, technical skills, or salary. That structure assumes users already understand the field. Data Matters instead starts from **work preferences**, then maps those preferences to role families and concrete job examples.
-
-### Target users
-
-Primary users:
-
-- university students exploring data careers;
-- early-career professionals considering a transition;
-- users who know they “like data” but cannot distinguish adjacent roles.
-
-### Job to be done
-
-> “Help me quickly understand which data roles are worth exploring, why they may fit me, and what concrete action I should take next.”
+> **Product question:** Can a transparent career recommendation reduce decision anxiety and lead users to explore relevant roles and jobs?
 
 ---
 
-## 2. Product hypothesis
+## What I built
 
-The core product hypothesis is:
+The product guides users through a short preference assessment and turns their answers into:
 
-> If users answer questions about preferred work, technical depth, ambiguity, collaboration, and execution style, then a transparent role recommendation can reduce career confusion and increase the likelihood that they explore relevant roles or jobs.
+- one primary career direction;
+- adjacent roles worth comparing;
+- an explanation of why the result fits;
+- real responsibilities, skills, industries, and job examples;
+- a clear next step after the recommendation.
 
-The product therefore optimizes for more than quiz completion. It aims to improve:
+<p align="center">
+  <img src="docs/readme/result-experience.png" alt="Data Matters recommendation result experience" width="100%">
+</p>
 
-- **career-role clarity**;
-- **perceived recommendation fit**;
-- **meaningful exploration behavior**;
-- **transition from result to action**.
+### Product journey
 
----
+```mermaid
+flowchart LR
+    A[Landing] --> B[Career assessment]
+    B --> C[Primary recommendation]
+    C --> D[Understand the fit]
+    D --> E[Compare adjacent roles]
+    E --> F[Explore real jobs]
+    F --> G[Take a next step]
+```
 
-## 3. Product experience
-
-The main user journey is:
-
-1. Land on the product and understand its purpose.
-2. Report baseline clarity about data careers.
-3. Complete a multi-step preference assessment.
-4. Receive a primary role recommendation and adjacent alternatives.
-5. Review the reasons behind the recommendation.
-6. Compare role families.
-7. Explore real job examples and external sources.
-8. Share the result or restart the assessment.
-9. Report post-result clarity and recommendation accuracy.
-
-The result page is intentionally structured as:
-
-**identity → explanation → real work → alternatives → profile → jobs → next action**
-
-This keeps the first screen simple while allowing users to inspect deeper reasoning when needed.
+The product intentionally starts from **preferred ways of working**, rather than asking users to choose among job titles they may not understand.
 
 ---
 
-## 4. Recommendation system
+## Initial production results
 
-Data Matters uses a rule-based, interpretable recommendation approach.
+<p align="center">
+  <img src="docs/readme/analytics-funnel.png" alt="Initial Data Matters production funnel" width="100%">
+</p>
 
-User responses represent preferences such as:
+| Metric | Initial result |
+|---|---:|
+| Anonymous sessions | 170 |
+| Production events | 2,636 |
+| Landing sessions | 157 |
+| Quiz started | 56 |
+| Quiz completed | 42 |
+| Meaningful exploration sessions | 22 |
+| Landing → quiz start | 35.7% |
+| Quiz start → completion | 75.0% |
+| Completion → meaningful exploration | 52.4% |
+| Median quiz completion time | 153 sec |
+
+These figures are descriptive results from the initial production sample, not causal impact estimates.
+
+### What the data changed
+
+**1. Activation—not quiz length—is the largest opportunity.**  
+The largest observed drop occurs between landing and quiz start. Once users begin, 75% complete the assessment.
+
+**2. The recommendation is functioning as a gateway, not merely an endpoint.**  
+More than half of completed sessions continue into a role, comparison, or job-exploration action.
+
+**3. Feedback collection is not yet strong enough to claim recommendation accuracy.**  
+The next priority is improving clarity and fit-response coverage before tuning recommendation weights from sparse evidence.
+
+### Product priorities
+
+| Priority | Product action | Primary metric | Guardrail |
+|---|---|---|---|
+| P0 | Clarify the homepage value proposition and CTA | Quiz-start rate | Completion and exploration |
+| P1 | Reduce friction in the first assessment step | First-step completion | Completion time |
+| P2 | Collect clarity and recommendation-fit feedback earlier | Feedback response rate | Result-page abandonment |
+| P3 | Strengthen post-result role and job exploration | Meaningful exploration rate | Low-quality clicks |
+
+---
+
+## Measurement strategy
+
+### North-star metric
+
+**Meaningful Career Exploration Rate**
+
+A completed session is counted as meaningful when the user performs at least one high-intent action after receiving a result:
+
+- opens a recommended or adjacent role;
+- compares roles;
+- opens a job example;
+- visits an external job source.
+
+Result sharing is tracked separately as a distribution metric rather than counted as equivalent to career exploration.
+
+### Metric tree
+
+| Stage | Metrics |
+|---|---|
+| Acquisition | Landing sessions, source mix, shared-result referrals |
+| Activation | Quiz-start rate, baseline-clarity completion, first-step completion |
+| Engagement | Quiz completion, response time, answer changes, role comparison |
+| Outcome | Meaningful exploration, clarity uplift, perceived fit, external-job clicks |
+| Guardrails | Missing events, duplicate events, device gaps, abnormal completion time |
+
+---
+
+## Recommendation system
+
+Data Matters uses a rule-based, interpretable scoring system.
+
+```mermaid
+flowchart LR
+    A[Work-preference answers] --> B[Weighted role dimensions]
+    B --> C[Role-family scores]
+    C --> D[Primary recommendation]
+    C --> E[Adjacent roles]
+    D --> F[Human-readable reasons]
+    E --> G[Comparison and job exploration]
+```
+
+The inputs represent preferences such as:
 
 - coding and algorithmic effort;
 - ambiguity tolerance;
-- deep-focus preference;
+- deep-focus work;
 - stakeholder interaction;
-- stable delivery versus open-ended problem solving;
-- preferred types of outputs and decisions.
+- stable execution versus open-ended problem solving;
+- preferred outputs and decisions.
 
-Responses are mapped to weighted role-family dimensions. The system ranks role families and returns:
+### Why not a black-box model?
 
-- a primary recommendation;
-- adjacent alternatives;
-- human-readable reasons;
-- a confidence or exploration state;
-- relevant role descriptions and job examples.
+At this stage, interpretability is more valuable than predictive complexity. It enables:
 
-### Why an interpretable system?
+- transparent explanations for users;
+- debugging of unexpected results;
+- sensitivity analysis under small answer changes;
+- practitioner review of role mappings;
+- fast iteration without hidden model behavior.
 
-For an early-stage career product, interpretability is more valuable than model complexity.
-
-It allows the product to:
-
-- explain why a role was recommended;
-- debug unexpected outcomes;
-- inspect sensitivity to individual answers;
-- validate mappings with users and domain experts;
-- change scoring logic without retraining a black-box model.
-
-The current recommendation should be treated as a **decision-support heuristic**, not a psychological test or hiring assessment.
+The recommendation is a career-exploration heuristic—not a psychological test, hiring assessment, or guarantee of fit.
 
 ---
 
-## 5. Product analytics design
+## Product analytics architecture
 
-The product includes privacy-conscious, first-party event tracking through Supabase.
+```mermaid
+flowchart LR
+    A[Web product] --> B[First-party event client]
+    B --> C[(Supabase / PostgreSQL)]
+    C --> D[SQL analysis layer]
+    D --> E[Funnel and diagnostic analysis]
+    E --> F[Product decisions]
+    F --> A
+```
+
+The product tracks the journey from landing to recommendation and post-result exploration through anonymous, first-party events.
 
 ### Measurement questions
 
 The instrumentation is designed to answer:
 
-- Where do users abandon the quiz?
-- Which questions take the longest to answer?
-- How often do users change an answer?
-- Which recommended roles receive the most engagement?
-- Do users explore adjacent roles or compare roles?
-- Do users click job examples after seeing a result?
-- Does self-reported career clarity improve after the experience?
-- How accurately do users feel the recommendation represents them?
-- Do shared results bring new users into the quiz?
-
-### Example event groups
-
-| Product area | Example events |
-|---|---|
-| Acquisition | landing view, referral source, UTM capture |
-| Activation | quiz start, baseline clarity submission |
-| Assessment | step view, question answer, response time, answer change |
-| Recommendation | quiz completion, result view, primary role |
-| Exploration | role open, alternate role open, role comparison |
-| Action | job open, external job click, result share |
-| Quality | clarity after, accuracy rating, feedback submission |
-| Retention proxy | quiz restart, return through shared result |
+- Where do users abandon the experience?
+- Which questions create the most friction?
+- How often do users revise answers?
+- Which recommendations lead to deeper exploration?
+- Do users compare adjacent roles?
+- Do users leave with more clarity?
+- Which changes should be prioritized next?
 
 ### Privacy principles
 
 - anonymous session identifiers;
-- no account or login requirement;
-- no fingerprinting;
+- no login requirement;
+- no browser fingerprinting;
 - referrer stored only as a domain;
 - event and property allowlists;
-- no raw quiz answer object or DOM capture;
-- front-end failures do not block product usage;
-- database access controlled through Supabase Row Level Security.
+- no DOM or raw-answer-object capture;
+- analytics failures do not block product use;
+- Supabase Row Level Security.
 
 ---
 
-## 6. Product metrics
+## Instrumentation findings
 
-### North-star candidate
+Instrumentation quality is treated as part of the Product DS work.
 
-**Meaningful Career Exploration Rate**
+### Answer-change events
 
-A session is considered meaningful when a user:
+High answer-change rates may reflect real reconsideration, interface behavior, or event semantics. Raw sequences should be audited before interpreting them as question confusion.
 
-1. completes the assessment; and
-2. performs at least one high-intent action, such as:
-   - opening a recommended role;
-   - comparing two roles;
-   - opening a job example;
-   - clicking an external job source;
-   - sharing the result.
+### Job-click events
 
-This metric is preferable to raw traffic or quiz completion because it captures whether the result leads to deeper exploration.
+Job-card, job-detail, and external-click events should represent distinct funnel stages. Identical counts or timestamps require validation before conversion rates are reported.
 
-### Supporting metrics
+### Final-answer analysis
 
-**Acquisition**
-- landing sessions;
-- source and campaign mix;
-- shared-result referral rate.
-
-**Activation**
-- quiz-start rate;
-- baseline-clarity completion rate;
-- first-step completion rate.
-
-**Engagement**
-- assessment completion rate;
-- median completion time;
-- question-level response time;
-- answer-change rate;
-- alternate-role exploration rate;
-- role-comparison rate.
-
-**Outcome**
-- clarity uplift;
-- average recommendation accuracy rating;
-- job exploration rate;
-- external-job click-through rate;
-- result-share rate.
-
-**Guardrails**
-- mobile versus desktop completion gap;
-- very fast completion rate;
-- missing-event rate;
-- duplicate-event rate;
-- low-confidence result rate;
-- result dissatisfaction rate.
+Question-level preference distributions should use the final answer per session and question. Counting every selection can overstate options that users later changed.
 
 ---
 
-## 7. Suggested analytical framework
+## Technical implementation
 
-A Product DS review should separate four layers:
-
-### Funnel
-`landing → quiz start → assessment completion → result view → role/job exploration`
-
-### Diagnostic behavior
-- time spent by question;
-- answer changes;
-- abandonment by step;
-- device and acquisition-source differences.
-
-### Recommendation quality
-- perceived accuracy by top role;
-- clarity uplift by result confidence;
-- top-role acceptance versus adjacent-role selection;
-- unstable recommendations under small answer changes.
-
-### Product impact
-- whether users leave with more clarity;
-- whether they take an observable next step;
-- whether result sharing creates qualified new sessions.
-
-See [Product DS Technical Notes](docs/PRODUCT_DS_TECHNICAL_NOTES.md) for proposed SQL models, data-quality checks, recommendation validation, and experimentation methods.
-
----
-
-## 8. Technical architecture
-
-The current implementation is intentionally lightweight.
-
-- **Front end:** HTML, CSS, vanilla JavaScript
-- **Product logic:** rule-based role scoring and result rendering
-- **Analytics:** first-party JavaScript event client
-- **Data store:** Supabase / PostgreSQL
-- **Deployment:** Netlify
-- **Quality checks:** static linting, data validation, matching tests, analytics tests, product tests, build validation
+| Layer | Technology |
+|---|---|
+| Front end | HTML, CSS, vanilla JavaScript |
+| Product logic | Interpretable weighted scoring |
+| Analytics | First-party JavaScript event instrumentation |
+| Data platform | Supabase / PostgreSQL |
+| Deployment | Netlify |
+| Quality | Data validation, analytics tests, product tests, build checks |
 
 ### Local development
 
-Requirements:
-
-- Node.js 22 or later
+Requires Node.js 22 or later.
 
 ```bash
 npm install
@@ -270,110 +237,100 @@ npm run dev
 npm run validate
 ```
 
-The validation command runs linting, data validation, automated tests, and a production build.
-
 ---
 
-## 9. Repository structure
+## Repository map
 
 ```text
 .
-├── index.html
-├── app.js
-├── product-v3.js
-├── analytics.js
-├── analytics-config.js
-├── data/
-├── docs/
-├── images/
-├── scripts/
-├── supabase/
-├── tests/
-├── netlify/
-└── package.json
+├── index.html                 # Main product shell
+├── app.js                     # Assessment, state, scoring, role/job behavior
+├── product-v3.js              # Result experience, comparison, sharing
+├── analytics.js               # Anonymous event collection
+├── analytics-events.js        # Event definitions
+├── analysis/                  # SQL, notebooks, results, metric definitions
+├── data/                      # Role, skill, industry, and job content
+├── docs/                      # Technical notes and roadmap
+├── supabase/                  # Database and analytics infrastructure
+├── tests/                     # Product and instrumentation tests
+└── netlify/                   # Deployment functions
 ```
-
-Key files:
-
-- `app.js`: core product state, assessment, scoring, role and job data behavior;
-- `product-v3.js`: product UX layer, result experience, comparison and sharing behavior;
-- `analytics.js`: anonymous event collection and payload controls;
-- `supabase/`: database definitions and analytics infrastructure;
-- `tests/`: product and analytics validation.
 
 ---
 
-## 10. Validation strategy
-
-The project should be validated at three levels.
+## Validation framework
 
 ### Technical validity
-- scoring produces valid role rankings;
-- all role families remain reachable;
+
+- scoring returns valid and reachable role rankings;
 - event schemas match the database;
 - duplicate and malformed events are controlled;
-- mobile and desktop flows behave consistently.
+- core flows work across mobile and desktop.
 
 ### Recommendation validity
-- role mappings are reviewed by practitioners;
-- representative user profiles produce expected rankings;
-- small answer changes do not cause unreasonable rank reversals;
-- perceived fit is analyzed by recommended role and confidence level.
+
+- representative profiles produce plausible rankings;
+- mappings are reviewed with practitioners;
+- small answer changes do not create unreasonable rank reversals;
+- perceived fit is analyzed by role and confidence state.
 
 ### Product validity
+
 - users understand the result;
-- clarity improves after viewing it;
 - users can distinguish adjacent roles;
+- self-reported clarity improves;
 - users take a relevant next action.
 
 ---
 
-## 11. Current limitations
+## Current limitations
 
-- The scoring weights are expert-defined rather than learned from labeled outcomes.
-- Self-reported clarity and accuracy are subjective.
-- A completed quiz does not prove that a career decision improved.
-- Current traffic may be too small for causal conclusions.
-- External-job clicks measure intent, not application or career outcomes.
-- Anonymous sessions limit longitudinal retention analysis.
-- Role and job taxonomies require periodic review.
-
-These limitations are documented intentionally. The goal is to demonstrate sound product reasoning rather than overstate model precision.
+- Recommendation weights are expert-defined rather than learned from labeled career outcomes.
+- Clarity and perceived fit are self-reported.
+- Quiz completion does not prove that a career decision improved.
+- The initial production sample supports descriptive analysis, not causal claims.
+- External-job clicks measure interest, not applications or career outcomes.
+- Anonymous sessions limit longitudinal analysis.
+- Feedback coverage is currently insufficient for recommendation-calibration claims.
 
 ---
 
-## 12. Next milestones
+## Next steps
 
-Highest-value next steps:
+1. Test a clearer homepage value proposition and CTA.
+2. Audit first-step wording and answer-change instrumentation.
+3. Separate job-card, job-detail, and outbound-click measurement.
+4. Improve post-result clarity and fit-feedback coverage.
+5. Validate recommendation mappings with target users and practitioners.
+6. Add recommendation stability and counterfactual explanations.
+7. Publish refreshed aggregate results after a larger production sample.
 
-1. Build a versioned analytics mart for sessions, funnels, recommendation outcomes, and data quality.
-2. Run 15–20 moderated usability tests with target users.
-3. Validate the role-weight mapping with practitioners from each role family.
-4. Add recommendation stability and counterfactual explanation analysis.
-5. Launch one focused A/B test on the result page.
-6. Publish an analysis notebook or dashboard using real, privacy-safe aggregate data.
-7. Define a feedback loop for revising questions and weights.
+Detailed methods are available in:
 
-The detailed roadmap is available in [docs/PRODUCT_DS_ROADMAP.md](docs/PRODUCT_DS_ROADMAP.md).
-
----
-
-## 13. Product DS interview discussion
-
-This project can support interview conversations about:
-
-- translating an ambiguous user problem into measurable outcomes;
-- designing a recommendation system when labeled data is unavailable;
-- defining a product metric tree;
-- event taxonomy and instrumentation trade-offs;
-- funnel and behavioral analysis;
-- recommendation quality and calibration;
-- experimentation under low traffic;
-- privacy-by-design analytics;
-- balancing interpretability, user experience, and technical complexity.
+- [Product DS Technical Notes](docs/PRODUCT_DS_TECHNICAL_NOTES.md)
+- [Product DS Analysis Roadmap](docs/PRODUCT_DS_ROADMAP.md)
 
 ---
 
-## 14. Disclaimer
+## Why this project
 
-Data Matters is an educational exploration tool. It does not provide psychological assessment, hiring evaluation, or guaranteed career advice. Recommendations should be combined with job research, project experience, coursework, and conversations with practitioners.
+Most recommendation portfolio projects end when an algorithm returns a label.
+
+Data Matters treats the recommendation as the beginning of a measurable product journey. The project connects:
+
+- an ambiguous user problem;
+- an interpretable recommendation system;
+- behavioral event design;
+- instrumentation validation;
+- funnel and diagnostic analysis;
+- product prioritization;
+- experimentation under limited traffic;
+- privacy-conscious analytics.
+
+The objective is not to build the most complicated model. It is to determine whether the product helps users understand their options and take a better next step.
+
+---
+
+## Disclaimer
+
+Data Matters is an educational exploration tool. It does not provide psychological assessment, hiring evaluation, or guaranteed career advice. Results should be combined with job research, project experience, coursework, and conversations with practitioners.
