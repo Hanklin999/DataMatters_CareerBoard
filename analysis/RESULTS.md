@@ -1,4 +1,32 @@
 # Product DS Results
+## Analysis period
+
+2026-07-22 00:16–15:04, Asia/Taipei
+
+## Data quality
+
+The initial launch dataset contained 2,636 deduplicated production events across 170 anonymous sessions. All analyzed events included a production environment label, and no environment-missing rows were observed.
+
+The dataset covered 157 landing sessions, 56 quiz-start sessions and 42 completed-result sessions. Recommendation accuracy and post-assessment clarity remained exploratory because only two sessions submitted each measure.
+
+## Funnel finding
+
+Only 35.7% of landing sessions started the assessment. Among sessions that started, 75.0% completed it. Most quiz-stage abandonment occurred before completion of the first step: 76.8% of starters completed Step 1, while 97.7% of those sessions subsequently completed the full assessment.
+
+This indicates that the primary near-term opportunity is improving quiz entry and first-step usability rather than shortening later sections of the assessment.
+
+## Engagement finding
+
+Among 42 completed assessments, 22 sessions (52.4%) performed at least one defined post-result exploration action. Role exploration occurred in 18 sessions, while seven sessions interacted with job-related actions.
+
+Job-event definitions require further auditing because job-card, job-open and external-click events currently have identical session and event counts.
+
+## Question-friction finding
+
+`problem_type` showed the highest observed answer-change rate, with 37 of 44 sessions changing an answer at least once. `math_pref` and `system_type` showed the longest median response times.
+
+These findings require an instrumentation audit before being interpreted entirely as question confusion, because repeated option interactions may be recorded as answer changes.
+
 
 **Last reviewed:** 2026-07-22
 
