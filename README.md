@@ -6,7 +6,7 @@
 [中文使用說明](README.zh-TW.md) · [Technical Notes](docs/PRODUCT_DS_TECHNICAL_NOTES.md) · [Analysis Roadmap](docs/PRODUCT_DS_ROADMAP.md)
 
 <p align="center">
-  <img src="docs/readme/product-cover.png" alt="Data Matters product overview" width="100%">
+  <img src="images/product-cover.png" alt="Data Matters product overview" width="100%">
 </p>
 
 Data Matters helps students who are interested in data careers but cannot yet distinguish roles such as Product Analytics, Data Science, Business Intelligence, Data Engineering, and Decision Science.
@@ -28,7 +28,7 @@ The product guides users through a short preference assessment and turns their a
 - a clear next step after the recommendation.
 
 <p align="center">
-  <img src="docs/readme/result-experience.png" alt="Data Matters recommendation result experience" width="100%">
+  <img src="images/Result_Experience.png" alt="Data Matters recommendation result experience" width="100%">
 </p>
 
 ### Product journey
@@ -50,7 +50,7 @@ The product intentionally starts from **preferred ways of working**, rather than
 ## Initial production results
 
 <p align="center">
-  <img src="docs/readme/analytics-funnel.png" alt="Initial Data Matters production funnel" width="100%">
+  <img src="images/analytics.png" alt="Initial Data Matters production funnel" width="100%">
 </p>
 
 | Metric | Initial result |
