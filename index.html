@@ -7,7 +7,12 @@
   <meta name="theme-color" content="#090c16">
   <title>Data Matters｜找出適合你的資料職涯</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="product-v3.css?v=3.11.0">
+  <link rel="stylesheet" href="product-v3.css?v=3.13.0">
+  <style id="home-card-fan-critical">
+    #home-card-fan{position:relative;min-height:286px}
+    #home-card-fan .home-card-fan-deck{position:relative;width:100%;height:100%}
+    #home-card-fan button.home-role-card{position:absolute;left:50%;box-sizing:border-box}
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main-content">跳到主要內容</a>
@@ -31,8 +36,14 @@
         <div class="eyebrow">給第一次探索資料工作的你</div>
         <h1 id="home-title">找出適合你的資料職涯</h1>
         <p class="hero-sub">用幾個生活問題，了解你適合探索哪些資料工作。</p>
-        <div class="cta-row">
-          <button class="btn btn-primary" onclick="Nav.startQuiz('landing_hero')">開始探索</button>
+        <div id="home-card-fan" class="home-card-fan" aria-label="隨機排列的資料職涯角色卡" aria-live="polite">
+          <div class="home-card-fan-placeholder" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <p class="home-card-fan-hint">每次打開都會遇見不同角色。點一張卡，開始找出你的資料職涯。</p>
+        <div class="cta-row home-hero-actions">
+          <button class="btn btn-primary" onclick="Nav.startQuiz('landing_hero')">翻開我的職涯角色</button>
           <button class="btn btn-ghost" onclick="Nav.show('encyclopedia')">先看九大職涯</button>
         </div>
         <div class="home-outcomes" aria-label="你會得到">
@@ -174,12 +185,12 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script>window.DATA_MATTERS_APP_VERSION = "v3.11";</script>
+  <script>window.DATA_MATTERS_APP_VERSION = "v3.13";</script>
   <script src="analytics-events.js?v=3.10.0"></script>
   <script src="analytics-config.js"></script>
   <script src="analytics.js?v=3.10.0"></script>
-  <script src="app.js?v=3.11.0"></script>
-  <script src="product-v3.js?v=3.11.0"></script>
+  <script src="app.js?v=3.13.0"></script>
+  <script src="product-v3.js?v=3.13.0"></script>
   <script src="community.js?v=3.10.0"></script>
 </body>
 </html>

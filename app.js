@@ -1739,12 +1739,168 @@ function openRoleDetail(famKey, source="unknown"){
   return true;
 }
 
+/* ---------------------------------------------------------------------
+   Homepage card fan
+   - Randomizes the nine role cards once per page load.
+   - Every card is a quiz entry point; it never changes recommendation scores.
+--------------------------------------------------------------------- */
+const HomeCardFan = {
+  picked: false,
+  order: [],
+  resizeTimer: null,
+  randomIndex(max){
+    if (max <= 1) return 0;
+    try {
+      if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+        const values = new Uint32Array(1);
+        window.crypto.getRandomValues(values);
+        return values[0] % max;
+      }
+    } catch (_) {}
+    return Math.floor(Math.random() * max);
+  },
+  shuffled(entries){
+    const result = entries.slice();
+    for (let i = result.length - 1; i > 0; i -= 1) {
+      const j = this.randomIndex(i + 1);
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+  },
+  layoutPreset(){
+    const width = Math.max(
+      document.documentElement?.clientWidth || 0,
+      window.innerWidth || 0
+    );
+
+    if (width <= 480) {
+      return [
+        { x: -74, y: 28, r: -13, s: 0.9, z: 2 },
+        { x: 0, y: -8, r: 0, s: 1.04, z: 5 },
+        { x: 74, y: 28, r: 13, s: 0.9, z: 2 }
+      ];
+    }
+
+    if (width <= 800) {
+      return [
+        { x: -154, y: 40, r: -19, s: 0.88, z: 1 },
+        { x: -78, y: 12, r: -9, s: 0.96, z: 3 },
+        { x: 0, y: -12, r: 0, s: 1.05, z: 6 },
+        { x: 78, y: 12, r: 9, s: 0.96, z: 3 },
+        { x: 154, y: 40, r: 19, s: 0.88, z: 1 }
+      ];
+    }
+
+    return [
+      { x: -320, y: 64, r: -27, s: 0.8, z: 1 },
+      { x: -242, y: 42, r: -21, s: 0.85, z: 2 },
+      { x: -162, y: 22, r: -14, s: 0.9, z: 3 },
+      { x: -82, y: 6, r: -7, s: 0.96, z: 4 },
+      { x: 0, y: -18, r: 0, s: 1.05, z: 9 },
+      { x: 82, y: 6, r: 7, s: 0.96, z: 4 },
+      { x: 162, y: 22, r: 14, s: 0.9, z: 3 },
+      { x: 242, y: 42, r: 21, s: 0.85, z: 2 },
+      { x: 320, y: 64, r: 27, s: 0.8, z: 1 }
+    ];
+  },
+  layout(){
+    const mount = document.getElementById("home-card-fan");
+    if (!mount) return;
+
+    const cards = Array.from(mount.querySelectorAll(".home-role-card"));
+    const preset = this.layoutPreset();
+
+    cards.forEach((card, index) => {
+      const slot = preset[index];
+      const visible = Boolean(slot);
+      card.classList.toggle("is-visible", visible);
+      card.hidden = !visible;
+      card.setAttribute("aria-hidden", visible ? "false" : "true");
+      card.tabIndex = visible ? 0 : -1;
+      if (!visible) return;
+
+      card.style.setProperty("--fan-x", `${slot.x}px`);
+      card.style.setProperty("--fan-y", `${slot.y}px`);
+      card.style.setProperty("--fan-rotation", `${slot.r}deg`);
+      card.style.setProperty("--fan-scale", String(slot.s));
+      card.style.setProperty("--fan-z", String(slot.z));
+    });
+  },
+  bindResize(){
+    if (this.resizeBound) return;
+    this.resizeBound = true;
+    window.addEventListener("resize", () => {
+      window.clearTimeout(this.resizeTimer);
+      this.resizeTimer = window.setTimeout(() => this.layout(), 120);
+    }, { passive: true });
+  },
+  render(){
+    const mount = document.getElementById("home-card-fan");
+    const profiles = State.careers?.meta?.family_profiles || {};
+    const entries = Object.entries(profiles);
+    if (!mount || !entries.length) return;
+
+    this.picked = false;
+    this.order = this.shuffled(entries);
+    mount.classList.remove("is-ready", "is-picking");
+    mount.replaceChildren();
+
+    const deck = document.createElement("div");
+    deck.className = "home-card-fan-deck";
+
+    this.order.forEach(([famKey, profile]) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "home-role-card";
+      card.dataset.famKey = famKey;
+      card.style.setProperty("--fan-color", profile.color || "#38bdf8");
+      card.setAttribute("aria-label", "抽一張卡，開始資料職涯測驗");
+
+      const back = document.createElement("span");
+      back.className = "home-role-card-back";
+      back.setAttribute("aria-hidden", "true");
+      back.innerHTML = [
+        '<span class="home-role-card-corner">DM</span>',
+        '<span class="home-role-card-mark">◆</span>',
+        '<span class="home-role-card-title">DATA MATTERS</span>',
+        '<span class="home-role-card-subtitle">FIND YOUR DATA ROLE</span>',
+        '<span class="home-role-card-corner home-role-card-corner-bottom">DM</span>'
+      ].join("");
+
+      card.appendChild(back);
+      card.addEventListener("click", () => this.pick(card));
+      deck.appendChild(card);
+    });
+
+    mount.appendChild(deck);
+    this.layout();
+    this.bindResize();
+    deferFrame(() => mount.classList.add("is-ready"));
+  },
+  pick(card){
+    if (this.picked || !card || card.hidden) return;
+    this.picked = true;
+    const mount = document.getElementById("home-card-fan");
+    if (mount) mount.classList.add("is-picking");
+    card.classList.add("is-picked");
+    card.setAttribute("aria-label", "已選擇卡牌，正在開始測驗");
+
+    const reducedMotion = typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.setTimeout(
+      () => Nav.startQuiz("landing_card_fan"),
+      reducedMotion ? 0 : 320
+    );
+  }
+};
+
 // Inline handlers and the v3 product layer must be able to call these reliably.
 Object.assign(window,{
   Encyclopedia,
   Modal,
   Nav,
   Results,
+  HomeCardFan,
   DataMattersRoleDetail:{open:openRoleDetail}
 });
 
@@ -1761,6 +1917,7 @@ async function boot(){
 
   Stations.renderAll();
   Encyclopedia.render();
+  HomeCardFan.render();
 
   // landing_viewed：每個 session 僅一次
   try {
