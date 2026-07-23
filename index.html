@@ -7,11 +7,14 @@
   <meta name="theme-color" content="#090c16">
   <title>Data Matters｜找出適合你的資料職涯</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="product-v3.css?v=3.13.0">
+  <link rel="stylesheet" href="product-v3.css?v=3.13.1">
   <style id="home-card-fan-critical">
-    #home-card-fan{position:relative;min-height:286px}
+    .home-hero-copy{position:relative;z-index:3}
+    #home-card-fan{position:relative;z-index:1;min-height:286px}
     #home-card-fan .home-card-fan-deck{position:relative;width:100%;height:100%}
     #home-card-fan button.home-role-card{position:absolute;left:50%;box-sizing:border-box}
+    @media(max-width:800px){#home-card-fan{overflow:hidden;min-height:340px}}
+    @media(max-width:480px){#home-card-fan{min-height:320px}}
   </style>
 </head>
 <body>
@@ -33,9 +36,11 @@
   <main id="main-content">
     <section id="home" class="view" aria-labelledby="home-title">
       <div class="hero home-hero">
-        <div class="eyebrow">給第一次探索資料工作的你</div>
-        <h1 id="home-title">找出適合你的資料職涯</h1>
-        <p class="hero-sub">用幾個生活問題，了解你適合探索哪些資料工作。</p>
+        <div class="home-hero-copy">
+          <div class="eyebrow">給第一次探索資料工作的你</div>
+          <h1 id="home-title">找出適合你的資料職涯</h1>
+          <p class="hero-sub">用幾個生活問題，了解你適合探索哪些資料工作。</p>
+        </div>
         <div id="home-card-fan" class="home-card-fan" aria-label="隨機排列的資料職涯角色卡" aria-live="polite">
           <div class="home-card-fan-placeholder" aria-hidden="true">
             <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
@@ -185,12 +190,12 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script>window.DATA_MATTERS_APP_VERSION = "v3.13";</script>
+  <script>window.DATA_MATTERS_APP_VERSION = "v3.13.1";</script>
   <script src="analytics-events.js?v=3.10.0"></script>
   <script src="analytics-config.js"></script>
   <script src="analytics.js?v=3.10.0"></script>
-  <script src="app.js?v=3.13.0"></script>
-  <script src="product-v3.js?v=3.13.0"></script>
+  <script src="app.js?v=3.13.1"></script>
+  <script src="product-v3.js?v=3.13.1"></script>
   <script src="community.js?v=3.10.0"></script>
 </body>
 </html>

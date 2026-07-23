@@ -22,7 +22,9 @@ section.view{padding-top:40px}
 .page-head p,.section-heading p{margin:0;color:var(--sub)}
 .page-head .btn{margin-top:18px}
 .page-head small{display:block;margin-top:10px;color:var(--sub)}
-.home-hero{padding-top:72px}
+.home-hero{position:relative;padding-top:72px}
+.home-hero-copy{position:relative;z-index:3;isolation:isolate}
+.home-hero-copy .hero-sub{position:relative;z-index:3}
 .home-hero h1{font-size:clamp(2rem,6vw,3.7rem);max-width:780px;margin:0 auto 14px}
 .home-hero .hero-sub{font-size:clamp(1rem,2vw,1.2rem)}
 .home-outcomes{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:28px auto 0}
@@ -175,21 +177,55 @@ section.view{padding-top:40px}
 .home-hero-actions{margin-top:0}
 
 @media(max-width:800px){
-  #home-card-fan.home-card-fan{height:336px!important;margin-top:18px!important}
-  #home-card-fan button.home-role-card{width:min(38vw,170px)!important;bottom:28px!important}
+  .home-hero-copy{
+    z-index:4!important;
+    padding-inline:16px;
+    margin-bottom:10px;
+  }
+  #home-card-fan.home-card-fan{
+    z-index:1!important;
+    height:350px!important;
+    margin:0 auto 8px!important;
+    overflow:hidden!important;
+    contain:layout paint!important;
+  }
+  #home-card-fan .home-card-fan-deck{
+    height:100%!important;
+    overflow:hidden!important;
+  }
+  #home-card-fan button.home-role-card{
+    width:min(38vw,170px)!important;
+    bottom:32px!important;
+  }
+  .home-card-fan-hint,
+  .home-hero-actions,
+  .home-outcomes,
+  .privacy-inline{
+    position:relative;
+    z-index:4;
+  }
 }
 @media(max-width:480px){
   .home-hero{padding-top:38px}
+  .home-hero-copy{
+    padding-inline:14px;
+    margin-bottom:8px;
+  }
   #home-card-fan.home-card-fan{
     width:calc(100vw - 20px)!important;
-    height:286px!important;
-    margin-left:50%!important;
+    height:320px!important;
+    min-height:320px!important;
+    margin:0 0 10px 50%!important;
     transform:translateX(-50%)!important;
+    overflow:hidden!important;
   }
-  #home-card-fan button.home-role-card{width:min(54vw,178px)!important;bottom:22px!important}
+  #home-card-fan button.home-role-card{
+    width:min(52vw,170px)!important;
+    bottom:24px!important;
+  }
   #home-card-fan .home-role-card-mark{width:48px!important;height:48px!important;font-size:27px!important}
   #home-card-fan .home-role-card-title{font-size:11px!important}
-  .home-card-fan-hint{max-width:300px;font-size:12px;line-height:1.55}
+  .home-card-fan-hint{max-width:300px;font-size:12px;line-height:1.55;margin-top:0}
   .home-hero-actions{display:grid;grid-template-columns:1fr;width:100%;gap:10px}
   .home-hero-actions .btn{width:100%}
 }
