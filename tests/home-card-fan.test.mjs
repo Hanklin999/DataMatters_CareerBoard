@@ -1,4 +1,4 @@
-﻿import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
@@ -22,7 +22,7 @@ test("首頁包含卡牌扇形入口與新版 cache busting", () => {
   assert.match(html, /開始 3 分鐘職涯測驗/);
   assert.match(html, /id="home-card-fan-critical"/);
   assert.match(html, /product-v3\.css\?v=3\.13\.3/);
-  assert.match(html, /app\.js\?v=3\.13\.3/);
+  assert.match(html, /app\.js\?v=3\.14/);
 });
 
 test("卡牌順序使用 Fisher-Yates 隨機化且優先使用 Web Crypto", () => {
