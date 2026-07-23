@@ -20,7 +20,7 @@
   function validateContent(v,min,max){
     const s=v.trim();
     if(s.length<min||s.length>max)return `內容需為 ${min}–${max} 字。`;
-    if(/<[^>]+>|\[[^\]]+\]\([^\)]+\)/.test(s))return "請使用純文字，不要加入 HTML 或 Markdown。";
+    if(/<[^>]+>|\[[^\]]+\]\([^\)]+\)/.test(s))return "請直接輸入文字，不要貼入網頁程式碼或特殊排版語法。";
     const hasPersonalData = [
       /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i,
       /(?:\+?886[-\s]?)?0?9\d{2}[-\s]?\d{3}[-\s]?\d{3}/,
@@ -55,7 +55,7 @@
     },
     renderControls(){
       const el=document.getElementById("community-controls");if(!el)return;
-      el.innerHTML=`<div class="community-toolbar"><label class="community-sort-label">排序<select class="community-sort" aria-label="留言排序" onchange="Community.setSort(this.value)"><option value="latest" ${state.sort==="latest"?"selected":""}>最新</option><option value="replies" ${state.sort==="replies"?"selected":""}>最多回覆</option></select></label></div>`;
+      el.innerHTML=`<div class="community-toolbar"><label class="community-sort-label">排序<select class="community-sort" aria-label="留言排序" onchange="Community.setSort(this.value)"><option value="latest" ${state.sort==="latest"?"selected":""}>最新</option><option value="replies" ${state.sort==="replies"?"selected":""}>回覆最多</option></select></label></div>`;
     },
     setSort(sort){state.sort=sort;trackCommunity(EVENTS.COMMUNITY_SORT_CHANGED,{sort});Community.load(true);},
     renderList(){
@@ -72,7 +72,7 @@
     openReplyForm(postId){trackCommunity(EVENTS.COMMUNITY_REPLY_FORM_OPENED,{reply_count_bucket:bucket(state.posts.find(p=>p.id===postId)?.reply_count||0)});Community.openForm({type:"reply",postId});},
     openForm({type,postId}){
       const isPost=type==="post",started=Date.now();
-      Modal.open(`<form class="form-grid" id="community-form" onsubmit="Community.submit(event,'${type}','${postId||""}',${started})"><h2>${isPost?"發布留言":"回覆留言"}</h2><p class="form-hint">身分為使用者自行選擇，未經驗證。請勿留下 Email、電話或其他個人資料。</p><div class="form-field"><label for="community-nickname">暱稱</label><input id="community-nickname" name="nickname" maxlength="20" value="${esc(nickname)}" required><span class="field-error" data-error="nickname"></span></div><div class="form-field"><label for="community-user-type">身分（選填）</label><select id="community-user-type" name="user_type">${USER_TYPES.map(u=>`<option value="${esc(u)}">${u||"不顯示"}</option>`).join("")}</select></div><div class="form-field"><label for="community-content">內容</label><textarea id="community-content" name="content" minlength="${isPost?10:2}" maxlength="${isPost?500:300}" placeholder="${isPost?"例如：我對資料分析有興趣，但不知道該先學 SQL 還是 Python……":"留下你的回覆……"}" required oninput="Community.updateCount(this,${isPost?500:300})"></textarea><div class="char-count" id="community-char-count">0 / ${isPost?500:300}</div><span class="field-error" data-error="content"></span></div><input class="honeypot" type="text" name="website" tabindex="-1" autocomplete="off"><label class="consent-row"><input type="checkbox" name="consent" required><span>我會尊重不同背景，不發布個人資料、廣告或攻擊內容。</span></label><div id="community-form-error" class="field-error" role="alert"></div><div class="form-actions"><button type="button" class="btn btn-ghost" onclick="Modal.close()">取消</button><button type="submit" class="btn btn-primary">${isPost?"發布留言":"送出回覆"}</button></div></form>`);
+      Modal.open(`<form class="form-grid" id="community-form" onsubmit="Community.submit(event,'${type}','${postId||""}',${started})"><h2>${isPost?"發布留言":"回覆留言"}</h2><p class="form-hint">身分由留言者自行選擇，網站不會另外驗證。請勿留下 Email、電話或其他個人資料。</p><div class="form-field"><label for="community-nickname">暱稱</label><input id="community-nickname" name="nickname" maxlength="20" value="${esc(nickname)}" required><span class="field-error" data-error="nickname"></span></div><div class="form-field"><label for="community-user-type">身分（選填）</label><select id="community-user-type" name="user_type">${USER_TYPES.map(u=>`<option value="${esc(u)}">${u||"不顯示"}</option>`).join("")}</select></div><div class="form-field"><label for="community-content">內容</label><textarea id="community-content" name="content" minlength="${isPost?10:2}" maxlength="${isPost?500:300}" placeholder="${isPost?"例如：我對資料分析有興趣，但不知道該先學 SQL 還是 Python……":"留下你的回覆……"}" required oninput="Community.updateCount(this,${isPost?500:300})"></textarea><div class="char-count" id="community-char-count">0 / ${isPost?500:300}</div><span class="field-error" data-error="content"></span></div><input class="honeypot" type="text" name="website" tabindex="-1" autocomplete="off"><label class="consent-row"><input type="checkbox" name="consent" required><span>我會尊重不同背景，不發布個人資料、廣告或攻擊內容。</span></label><div id="community-form-error" class="field-error" role="alert"></div><div class="form-actions"><button type="button" class="btn btn-ghost" onclick="Modal.close()">取消</button><button type="submit" class="btn btn-primary">${isPost?"發布留言":"送出回覆"}</button></div></form>`);
     },
     updateCount(el,max){const c=document.getElementById("community-char-count");if(c)c.textContent=`${el.value.length} / ${max}`;},
     async submit(event,type,postId,started){

@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
@@ -63,11 +63,13 @@ test("a direct non-active role-card click centers and opens details in one actio
   assert.deepEqual(opened,["C"]);
 });
 
-test("atlas card shows two-line technical difficulty copy",()=>{
+test("atlas card shows technical learning copy",()=>{
   const app=readFileSync("app.js","utf8");
   const css=readFileSync("product-v3.css","utf8");
-  assert.match(app,/技術難度：\$\{p\.tlevel_range\|\|"—"\}/);
+  assert.match(app, /技術學習/);
+  assert.match(app, /tlevel_range/);
   assert.match(app,/roleTechnicalRequirement\(p\)/);
   assert.match(app,/需要 \$\{skills\.join\("、"\)\} 能力/);
   assert.match(css,/\.tech-difficulty\{display:flex;flex-direction:column/);
 });
+

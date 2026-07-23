@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 /**
  * test-cases.mjs — 判定演算法 v2 驗收測試（Cases A–G）
  * 用法：node test-cases.mjs
@@ -113,7 +113,7 @@ console.log("\n【Case E】品質與規則");
   check("Governance 分數不含 worklife 貢獻", !govContrib.includes("worklife"), govContrib.join(","));
 }
 
-/* ── Case F：高薪名聲高壓、不喜歡技術也不面客 ── */
+/* ── Case F：高薪名聲較快、較忙、不喜歡技術也不面客 ── */
 console.log("\n【Case F】只有環境偏好強烈");
 {
   const r = run({ income:5, prestige:5, intensity:5, coding_effort:1, algorithm_effort:1, stakeholder_freq:2 });
@@ -121,7 +121,7 @@ console.log("\n【Case F】只有環境偏好強烈");
   check("職能偏好全為 0（環境不推動 ML/Finance/Consulting）", allZero, JSON.stringify(r.pref));
   check("顯示低信心", r.conf.lowConfidence === true);
   const envL = environmentLines().join("");
-  check("環境摘要包含高薪/名聲/高壓", envL.includes("收入") && envL.includes("品牌") && envL.includes("高壓"));
+  check("環境摘要包含收入／公司名氣／工作節奏", envL.includes("收入") && envL.includes("公司名氣") && envL.includes("較快、較忙"));
 }
 
 /* ── Case G：大量中立回答 ── */
@@ -146,7 +146,7 @@ console.log("\n【路線】鄰近 adjacency ＋ 挑戰 gap");
   check("挑戰選項偏好 > 0 或為次高家族", State.preferenceScores[r.routes[2].famKey] >= 0);
   const detail = familyDetailHTML(r.routes[2].famKey, { routeLabel:"挑戰選項", matchLevel:r.routes[2].matchLevel,
     reasons:r.routes[2].reasons, background:r.routes[2].background, envLines:environmentLines(), tradeoffs:[], isChallenge:true });
-  check("挑戰路線詳細含入門優勢與差距區塊", detail.includes("入門優勢與差距"));
+  check("挑戰路線詳細含起點與補強區塊", detail.includes("你目前的起點與可補強項目"));
 }
 
 /* ── 理由來源限制 ── */
@@ -164,8 +164,8 @@ console.log("\n【元件】共用詳細與職缺卡");
   const h1 = familyDetailHTML(ResultState.routes[0].famKey, { routeLabel:"最適合", matchLevel:"High",
     reasons:ResultState.routes[0].reasons, background:ResultState.routes[0].background, envLines:[], tradeoffs:[] });
   const h2 = familyDetailHTML(F.DABI);
-  check("結果頁詳細含三區塊（推薦/優勢差距/環境可省略）", h1.includes("為什麼推薦這條路線") && h1.includes("入門優勢與差距"));
-  check("圖鑑詳細不含推薦理由", !h2.includes("為什麼推薦這條路線"));
+  check("結果頁詳細含三區塊（推薦／起點補強／環境可省略）", h1.includes("為什麼推薦這個方向") && h1.includes("你目前的起點與可補強項目"));
+  check("圖鑑詳細不含推薦理由", !h2.includes("為什麼推薦這個方向"));
   const rpgNames = Object.values(State.careers.meta.family_profiles).map(p => p.class_title);
   const jc = jobCardHTML(State.careers.tracks[0], { routes: ResultState.routes });
   check("職缺卡不含 RPG 名稱", !rpgNames.some(n => jc.includes(n)));
@@ -241,3 +241,5 @@ console.log("\n【config】題目歸屬一致性");
 
 console.log("\n" + (failures ? `✗ ${failures} 項未通過` : "✓ 全部驗收測試通過"));
 process.exit(failures ? 1 : 0);
+
+

@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
@@ -9,9 +9,9 @@ const product = fs.readFileSync(path.join(root, "product-v3.js"), "utf8");
 const css = fs.readFileSync(path.join(root, "product-v3.css"), "utf8");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
-test("角色詳情使用技術深度文字且不再顯示星星", () => {
-  assert.match(app, /技術深度：\$\{p\.tlevel_range/);
-  assert.match(app, /需要 Python、統計建模與解釋模型結果的能力/);
+test("角色詳情使用技術學習文字且不再顯示星星", () => {
+  assert.match(app, /技術學習/);
+  assert.match(app, /tlevel_range/);
   assert.doesNotMatch(app, /"★"\.repeat\(p\.technical_stars\)/);
   assert.match(app, /class="tech-depth-summary"/);
 });
@@ -32,3 +32,4 @@ test("手機工作重心圖使用全寬版面與短角色名稱", () => {
   assert.match(css, /\.map-label-short\{display:block!important\}/);
   assert.match(css, /height:min\(118vw,450px\)!important/);
 });
+

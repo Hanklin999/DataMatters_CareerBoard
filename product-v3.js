@@ -130,16 +130,16 @@
     [F.DS]: "更偏向預測、實驗與模型",
     [F.MLE]: "更偏向把模型做成可用系統",
     [F.DE]: "更偏向建立穩定的資料工具",
-    [F.OR]: "更偏向限制下的最佳安排",
+    [F.OR]: "更偏向在限制下找出更好的安排",
     [F.STRAT]: "更偏向規劃、溝通與推動",
     [F.PROD]: "更偏向把需求變成產品流程",
-    [F.FIN]: "更偏向金錢、風險與量化判斷",
+    [F.FIN]: "更偏向用數字評估金錢與風險",
     [F.GOV]: "更偏向品質、規則與可信度"
   };
 
   function compactReason(text){
     const rules = [
-      [/原因/, "喜歡找出原因"], [/預測|未來/, "喜歡預測未來"], [/有限|最好|省時省錢|安排/, "享受最佳化"],
+      [/原因/, "喜歡找出原因"], [/預測|未來/, "喜歡預測未來"], [/有限|最好|省時省錢|安排/, "喜歡找出更好的安排"],
       [/自動|系統|工具/, "想建立實用工具"], [/流程|作品|上線/, "重視流程落地"], [/錯誤|風險|規則/, "在意品質風險"],
       [/程式/, "願意投入技術"], [/背後|運作/, "想理解背後原理"], [/討論|一起/, "喜歡協作討論"],
       [/專注/, "享受深度專注"], [/標準答案|摸索/, "喜歡自己找方向"], [/穩定/, "重視穩定交付"]
@@ -160,7 +160,7 @@
   function confidenceLabel(){
     const c = State.confidence;
     if (!c || c.clarity === "Exploratory") return "還在探索";
-    if (c.matchLevel === "High") return "高度相符";
+    if (c.matchLevel === "High") return "偏好很接近";
     return "有幾個接近方向";
   }
 
@@ -231,7 +231,7 @@
       <section class="result-hero-v3" style="${famVars(p)}" aria-labelledby="result-role-title">
         <div class="result-hero-heading result-role-detail-trigger" data-primary-role-detail role="button" tabindex="0" aria-label="查看 ${escapeHTML(p.cn_name)} 詳細資訊">
           <span class="eyebrow">你的探索結果</span>
-          <div class="result-kicker">你最像</div>
+          <div class="result-kicker">最接近你的方向</div>
           <h2 id="result-role-title">${escapeHTML(p.class_title)}</h2>
           <div class="real-role">${escapeHTML(p.cn_name)}</div>
           <div class="real-role-en">${escapeHTML(p.en_name || "")}</div>
@@ -253,15 +253,15 @@
 
     document.getElementById("result-why").innerHTML = `
       <section class="result-section" aria-labelledby="why-title">
-        <div class="section-heading"><div><span class="eyebrow">工作偏好匹配</span><h2 id="why-title">為什麼像你？</h2></div></div>
-        <div class="why-grid">${reasons.map((r, i) => `<article class="why-card"><h3>${escapeHTML(r)}</h3><p>${escapeHTML((main.reasons || [])[i] || "這個訊號來自你的工作內容偏好，不是科系或收入期待。")}</p></article>`).join("")}</div>
+        <div class="section-heading"><div><span class="eyebrow">根據你的工作偏好</span><h2 id="why-title">為什麼像你？</h2></div></div>
+        <div class="why-grid">${reasons.map((r, i) => `<article class="why-card"><h3>${escapeHTML(r)}</h3><p>${escapeHTML((main.reasons || [])[i] || "這個理由只根據你對工作內容的偏好，不會看科系或收入期待。")}</p></article>`).join("")}</div>
       </section>`;
 
     const titles = (p.representative_titles || []).slice(0, 3);
     const jobs = State.careers.tracks.filter(t => t.job_family === main.famKey);
     document.getElementById("result-common-work").innerHTML = `
       <section class="result-section" aria-labelledby="common-work-title">
-        <div class="section-heading"><div><span class="eyebrow">先認識真實職稱</span><h2 id="common-work-title">你可能做的工作</h2></div></div>
+        <div class="section-heading"><div><span class="eyebrow">看看職場上的真實名稱</span><h2 id="common-work-title">你可能做的工作</h2></div></div>
         <div class="common-work-grid">${titles.map((title, i) => {
           const sample = jobs.find(j => j.title.includes(title)) || jobs[i] || jobs[0];
           return `<article class="common-work-card"><h3>${escapeHTML(title)}</h3><p>${escapeHTML(sample?.what_they_do || p.role_description)}</p><button class="btn btn-ghost" onclick="Results.scrollToJobs()">查看相關職缺</button></article>`;
@@ -277,7 +277,7 @@
         }).join("")}</div>
       </section>`;
 
-    document.getElementById("compare-entry").innerHTML = `<div class="compare-entry"><div><h3>還分不清兩個角色？</h3><p>把每天做什麼、技術投入與常見產出放在一起看。</p></div><button class="btn btn-ghost" onclick="RoleCompare.open('${escapeHTML(main.famKey)}')">比較兩個角色</button></div>`;
+    document.getElementById("compare-entry").innerHTML = `<div class="compare-entry"><div><h3>還分不清兩個角色？</h3><p>把每天做什麼、需要的技術學習與常見產出放在一起看。</p></div><button class="btn btn-ghost" onclick="RoleCompare.open('${escapeHTML(main.famKey)}')">比較兩個角色</button></div>`;
 
     nextFrame(() => safeTrack(EVENTS.RESULT_HERO_VIEWED, { role_id: main.famKey, match_level: State.confidence?.matchLevel, result_clarity: State.confidence?.clarity }));
   };
@@ -296,12 +296,12 @@
     document.getElementById("profile-summary").innerHTML = `
       ${low}
       <details class="profile-accordion" id="result-profile-accordion">
-        <summary><span><strong>查看完整職涯輪廓</strong><small style="display:block;color:var(--sub);font-weight:400">了解你的工作偏好與技術投入。</small></span></summary>
+        <summary><span><strong>查看完整結果</strong><small style="display:block;color:var(--sub);font-weight:400">了解你偏好的工作方式與需要準備的技術。</small></span></summary>
         <div class="profile-accordion-body">
           <div class="profile-mini-grid">
             <article class="profile-mini-card"><h3>你的工作重心</h3><ul>${(p.daily_tasks || []).slice(0, 3).map(x => `<li>${escapeHTML(x)}</li>`).join("")}</ul></article>
             <article class="profile-mini-card"><h3>你的偏好</h3><ul>${tags.slice(0, 4).map(x => `<li>${escapeHTML(x)}</li>`).join("")}</ul></article>
-            <article class="profile-mini-card"><h3>你的技術投入：${techLabel}</h3><div class="tech-meter" aria-label="技術投入 ${techLabel}">${[1,2,3].map(i => `<span class="${i <= techBars ? "on" : ""}"></span>`).join("")}</div><p class="detail-note">${advantages.length ? `目前優勢：${advantages.map(d => BACKGROUND_DIMS[d]).join("、")}` : "目前起點不決定適合度。"}</p>${gaps.length ? `<p class="detail-note">可補強：${gaps.map(g => BACKGROUND_DIMS[g.dim]).join("、")}</p>` : ""}</article>
+            <article class="profile-mini-card"><h3>你願意投入的技術學習：${techLabel}</h3><div class="tech-meter" aria-label="需要的技術學習 ${techLabel}">${[1,2,3].map(i => `<span class="${i <= techBars ? "on" : ""}"></span>`).join("")}</div><p class="detail-note">${advantages.length ? `目前優勢：${advantages.map(d => BACKGROUND_DIMS[d]).join("、")}` : "目前的科系與基礎不會決定你是否適合。"}</p>${gaps.length ? `<p class="detail-note">可以先補強：${gaps.map(g => BACKGROUND_DIMS[g.dim]).join("、")}</p>` : ""}</article>
           </div>
         </div>
       </details>`;
@@ -318,7 +318,7 @@
     const main = ResultState.routes[0];
     if (!main) return;
     const p = State.careers.meta.family_profiles[main.famKey];
-    document.getElementById("next30").innerHTML = `<section class="result-section"><div class="section-heading"><div><span class="eyebrow">採取下一步</span><h2>接下來可以做</h2></div></div><div class="why-grid"><article class="why-card"><h3>讀 5 份職缺</h3><p>記下重複出現的技能與工作內容。</p></article><article class="why-card"><h3>做一個小作品</h3><p>${escapeHTML(p.starter_portfolio)}</p></article><article class="why-card"><h3>找一位前輩聊聊</h3><p>用 20 分鐘確認真實工作是否符合想像。</p></article></div></section>`;
+    document.getElementById("next30").innerHTML = `<section class="result-section"><div class="section-heading"><div><span class="eyebrow">採取下一步</span><h2>接下來可以做</h2></div></div><div class="why-grid"><article class="why-card"><h3>讀 5 份真實職缺</h3><p>記下重複出現的技能與工作內容。</p></article><article class="why-card"><h3>做一個小作品</h3><p>${escapeHTML(p.starter_portfolio)}</p></article><article class="why-card"><h3>找一位前輩聊聊</h3><p>用 20 分鐘確認真實工作是否符合想像。</p></article></div></section>`;
   };
 
   Results.renderEnvProfile = function(){
@@ -487,9 +487,9 @@
         const p = profiles[fam];
         const tech = p.technical_stars >= 4 ? "較多" : p.technical_stars <= 2 ? "較少" : "中等";
         const rows = [
-          ["每天主要做什麼", (p.daily_tasks||[]).slice(0,2).join("；")], ["常見產出", outputs[fam]], ["技術投入", tech],
+          ["每天主要做什麼", (p.daily_tasks||[]).slice(0,2).join("；")], ["常見產出", outputs[fam]], ["需要的技術學習", tech],
           ["常合作的人", collaboration[fam]], ["常見職稱", (p.representative_titles||[]).slice(0,3).join("、")],
-          ["適合的成就感", satisfaction[fam]], ["最容易混淆", confusion[fam]]
+          ["常見的成就感", satisfaction[fam]], ["常見誤解", confusion[fam]]
         ];
         return `<section class="compare-column" style="${famVars(p)}">${portraitHTML(p,"sm")}<h2>${escapeHTML(p.cn_name)}</h2><div class="rpg-badge">${escapeHTML(p.class_title)}</div>${rows.map(([label,value]) => `<div class="compare-row"><span class="compare-label">${label}</span><span>${escapeHTML(value||"—")}</span></div>`).join("")}</section>`;
       };

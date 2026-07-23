@@ -767,3 +767,100 @@ button.result-hero-art:focus-visible{outline:3px solid var(--accent);outline-off
   .focus-mobile-y-guide{font-size:10px}
   .focus-mobile-y-guide span{padding:6px 8px}
 }
+
+/* ==========================================================================
+   v3.13.2 — Homepage activation and CTA clarity
+   ========================================================================== */
+
+.home-hero .home-outcomes{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  width:min(100%,720px);
+  gap:8px;
+  margin:22px auto 18px;
+}
+
+.home-hero .home-outcomes span{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  padding:8px 10px;
+  text-align:center;
+  line-height:1.35;
+}
+
+.home-hero-actions{
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  margin:0 auto;
+}
+
+.home-hero-actions .btn-primary{
+  min-width:240px;
+  font-weight:800;
+  box-shadow:0 14px 34px color-mix(in srgb,var(--accent) 26%,transparent);
+}
+
+.home-secondary-cta{
+  border-color:transparent!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:var(--sub)!important;
+  text-decoration:underline;
+  text-underline-offset:4px;
+}
+
+.home-cta-trust{
+  position:relative;
+  z-index:4;
+  max-width:680px;
+  margin:12px auto 0;
+  color:var(--sub);
+  font-size:12px;
+  line-height:1.6;
+  text-align:center;
+}
+
+#home-card-fan.home-card-fan{ margin-top:20px; }
+
+@media(max-width:600px){
+  .home-hero .home-outcomes{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+    margin:18px auto 14px;
+  }
+
+  .home-hero .home-outcomes span{
+    width:auto;
+    min-width:0;
+    min-height:52px;
+    padding:7px 5px;
+    font-size:11px;
+  }
+
+  .home-hero-actions{
+    display:grid;
+    grid-template-columns:1fr;
+    width:100%;
+    gap:4px;
+  }
+
+  .home-hero-actions .btn{ width:100%; }
+
+  .home-hero-actions .btn-primary{
+    min-width:0;
+    min-height:50px;
+    font-size:16px;
+  }
+
+  .home-secondary-cta{
+    min-height:40px!important;
+    padding-block:6px!important;
+  }
+
+  #home-card-fan.home-card-fan{
+    margin-top:8px!important;
+  }
+}

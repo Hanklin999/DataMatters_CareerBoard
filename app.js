@@ -48,10 +48,10 @@ const F = {
 };
 
 const BACKGROUND_DIMS = {
-  coding: "程式能力",
-  math_stats: "統計與數學",
-  business_domain: "商業與領域知識",
-  software_eng: "軟體工程基礎"
+  coding: "程式基礎",
+  math_stats: "統計與數學基礎",
+  business_domain: "商業與產業理解",
+  software_eng: "程式開發基礎"
 };
 
 /* 每個 Job Family 常見的入門起點（0–5，主觀參考值），
@@ -85,11 +85,11 @@ const FAMILY_ADJACENCY = {
 const TECH_FAMILIES = new Set([F.MLE, F.DE, F.DS, F.OR]);
 
 const ENVIRONMENT_LABELS = {
-  compensation: { label: "收入期待", high: "你追求收入高上限，能接受波動", low: "你重視收入穩定" },
-  prestige:     { label: "品牌與頭銜", high: "你在意品牌與頭銜", low: "你對品牌與頭銜沒有強烈偏好" },
-  stability:    { label: "工作保障", high: "你偏好穩定且可預期的環境", low: "你能接受較高的不確定性" },
+  compensation: { label: "收入期待", high: "你追求更高的收入機會，也能接受一些變動", low: "你重視收入穩定" },
+  prestige:     { label: "公司名氣與職稱", high: "你在意公司名氣與職稱", low: "你對公司名氣與職稱沒有強烈偏好" },
+  stability:    { label: "工作穩定", high: "你偏好穩定且可預期的環境", low: "你能接受較高的不確定性" },
   worklife:     { label: "生活平衡", high: "你重視生活平衡", low: "你能為工作階段性衝刺" },
-  intensity:    { label: "工作強度", high: "你能承受高壓與常態性衝刺", low: "你偏好穩定、可預期的節奏" }
+  intensity:    { label: "工作強度", high: "你能接受較快、較忙的工作節奏", low: "你偏好穩定、可預期的節奏" }
 };
 
 /* 每一題屬於哪個計分系統（文件化用，測試也會驗證） */
@@ -174,19 +174,19 @@ const STATION1_QUESTIONS = [
     id: "major", type: "single", system: "background",
     text: "你的科系最接近哪一類？",
     options: [
-      { label: "統計、資管、財工等（商管學院，程式比重高）",
+      { label: "商管相關，課程常用程式（例如統計、資管、財工）",
         background: { coding: 2, math_stats: 3, business_domain: 3, software_eng: 1 },
         industry: { "Technology": 1, "SaaS": 1 }, domain: { "Product": 1 } },
-      { label: "國貿、財金、會計等（商管學院，程式比重低）",
+      { label: "商管相關，課程較少用程式（例如國貿、財金、會計）",
         background: { coding: 0, math_stats: 1, business_domain: 4, software_eng: 0 },
         industry: { "Financial Services": 1, "Insurance": 1 }, domain: { "Finance": 1 } },
-      { label: "電機、資工等（理工學院，程式比重高）",
+      { label: "理工相關，課程常用程式（例如資工、電機）",
         background: { coding: 4, math_stats: 3, business_domain: 0, software_eng: 4 },
         industry: { "Technology": 1, "SaaS": 1 }, domain: { "Product": 1 } },
-      { label: "物理、材料、土木、生科等（理工學院，程式比重低）",
+      { label: "理工相關，課程較少用程式（例如物理、材料、土木、生科）",
         background: { coding: 1, math_stats: 3, business_domain: 1, software_eng: 1 },
         industry: { "Manufacturing": 1, "Healthcare": 1 }, domain: { "Supply Chain": 1 } },
-      { label: "非商學院、非理工學院",
+      { label: "人文、社會、教育、設計或其他科系",
         background: { coding: 0, math_stats: 0, business_domain: 2, software_eng: 0 },
         industry: { "Media": 1, "Education": 1 }, domain: { "Customer": 1 } }
     ]
@@ -199,8 +199,8 @@ const STATION1_QUESTIONS = [
   },
   {
     id: "algorithm_effort", type: "slider", system: "preference",
-    text: "使用一個工具時，你多想理解背後原理？",
-    leftLabel: "會用就好", rightLabel: "想徹底搞懂",
+    text: "使用一個工具時，你會想花多少力氣了解它怎麼運作？",
+    leftLabel: "會用就好", rightLabel: "想深入了解",
     high: [F.MLE, F.OR, F.DS], lowIsMeaningful: false
   },
   {
@@ -209,7 +209,7 @@ const STATION1_QUESTIONS = [
     options: [
       { label: "找出發生了什麼、為什麼", family: { [F.DABI]: 2, [F.DS]: 1 } },
       { label: "預測接下來可能發生什麼", family: { [F.DS]: 2, [F.MLE]: 1 } },
-      { label: "在限制下找出最佳安排", family: { [F.OR]: 2 } },
+      { label: "在時間、預算有限時找出更好的安排", family: { [F.OR]: 2 } },
       { label: "建立可重複使用的工具", family: { [F.DE]: 2 } },
       { label: "把需求變成流程或功能", family: { [F.PROD]: 2 } },
       { label: "找出錯誤、風險與不一致", family: { [F.GOV]: 2, [F.FIN]: 1 } }
@@ -220,7 +220,7 @@ const STATION1_QUESTIONS = [
     text: "如果要做一套工具，你比較想做？",
     options: [
       { label: "整理資料並自動更新", family: { [F.DE]: 2 } },
-      { label: "讓模型提供推薦或答案", family: { [F.MLE]: 2 } },
+      { label: "讓系統自動提供推薦或答案", family: { [F.MLE]: 2 } },
       { label: "讓團隊快速看懂現況", family: { [F.DABI]: 2, [F.DE]: 1 } },
       { label: "把需求變成可用功能", family: { [F.PROD]: 2 } }
     ]
@@ -230,7 +230,7 @@ const STATION1_QUESTIONS = [
     text: "哪種問題比較吸引你？",
     options: [
       { label: "預測需求、風險或行為", family: { [F.DS]: 2 } },
-      { label: "在成本與時間限制下找最佳方案", family: { [F.OR]: 2 } },
+      { label: "在成本與時間有限時找出更好的方案", family: { [F.OR]: 2 } },
       { label: "衡量某個行動是否真的有效", family: { [F.DS]: 1, [F.PROD]: 1 } },
       { label: "先把現況解釋清楚", family: { [F.DABI]: 2 } }
     ]
@@ -262,7 +262,7 @@ const STATION2_QUESTIONS = [
   },
   {
     id: "responsibility", type: "single", system: "preference",
-    text: "哪一種責任最吸引你？",
+    text: "哪一種工作責任最吸引你？",
     options: [
       { label: "找出資料或流程錯誤", family: { [F.GOV]: 2 } },
       { label: "找出可能造成損失的風險", family: { [F.FIN]: 2 } },
@@ -272,8 +272,8 @@ const STATION2_QUESTIONS = [
   },
   {
     id: "stakeholder_freq", type: "slider", system: "preference",
-    text: "事情卡住時，你多喜歡找大家確認需求？",
-    leftLabel: "先自己研究", rightLabel: "找大家一起確認",
+    text: "事情卡住時，你比較喜歡怎麼釐清問題？",
+    leftLabel: "先自己研究", rightLabel: "和相關的人一起確認",
     high: { [F.STRAT]: 1, [F.PROD]: 1, [F.FIN]: 1, [F.DABI]: 0.5 },
     lowIsMeaningful: false // 低互動偏好只記錄，不自動推向 DS / Engineering
   },
@@ -292,7 +292,7 @@ const STATION2_QUESTIONS = [
   },
   {
     id: "stable_delivery", type: "slider", system: "preference",
-    text: "你有多享受把事情做得穩定、可以反覆使用？",
+    text: "你有多喜歡把成果做得穩定，之後能一直使用？",
     leftLabel: "不太在意", rightLabel: "很有成就感",
     high: [F.DE, F.GOV, F.DABI, F.MLE], lowIsMeaningful: false
   }
@@ -307,13 +307,13 @@ const STATION3_QUESTIONS = [
   },
   {
     id: "prestige", type: "slider", system: "environment", env: "prestige",
-    text: "品牌與頭銜對你重要嗎？",
+    text: "公司名氣與職稱對你重要嗎？",
     leftLabel: "不太重要", rightLabel: "非常重要",
     industryHigh: ["Consulting", "Financial Services"]
   },
   {
     id: "security", type: "slider", system: "environment", env: "stability",
-    text: "你需要多少工作保障？",
+    text: "你有多重視工作穩定？",
     leftLabel: "能接受變動", rightLabel: "希望高度穩定",
     industryHighAtMax: ["Government", "Education", "Insurance", "Healthcare"],
     industryHighAtMin: ["Technology"]
@@ -321,14 +321,14 @@ const STATION3_QUESTIONS = [
   {
     id: "worklife", type: "slider", system: "environment", env: "worklife",
     text: "你多重視工作與生活平衡？",
-    leftLabel: "可階段性衝刺", rightLabel: "生活品質很重要",
+    leftLabel: "必要時可以忙一陣子", rightLabel: "生活平衡很重要",
     industryHighAtMax: ["Government", "Education"],
     industryHighAtMin: ["Consulting", "Financial Services", "Technology"]
   },
   {
     id: "intensity", type: "slider", system: "environment", env: "intensity",
-    text: "你能承受多高強度的工作節奏？",
-    leftLabel: "穩定可預期", rightLabel: "能承受常態衝刺",
+    text: "你能接受多快、多忙的工作節奏？",
+    leftLabel: "穩定可預期", rightLabel: "經常需要加快步調",
     industryHigh: ["Consulting", "Financial Services"]
   }
 ];
@@ -344,29 +344,29 @@ const STATIONS = {
    環境（收入/名聲/穩定/平衡/強度）與科系「不得」成為推薦理由。
 --------------------------------------------------------------------- */
 const REASON_TEXT = {
-  coding_effort:   { high: "你願意花時間練程式這種很難但很強的技能" },
-  algorithm_effort:{ high: "你會想搞懂工具背後是怎麼運作的" },
+  coding_effort:   { high: "你願意花時間累積程式能力" },
+  algorithm_effort:{ high: "你想了解工具背後怎麼運作" },
   stakeholder_freq:{ high: "你喜歡和大家討論、一起做決定" },
   deep_focus:      { high: "你享受長時間專注做一件事" },
   ambiguity:       { high: "你喜歡沒有標準答案、自己摸索的問題", low: "你偏好方向明確、流程清楚的任務" },
-  stable_delivery: { high: "你享受把事情做到穩定、每次都不出錯" },
+  stable_delivery: { high: "你喜歡把成果做得穩定、可以重複使用" },
   problem_type: [
     "你喜歡找出事情背後的原因",
     "你喜歡預測接下來會發生什麼",
-    "你喜歡在有限資源下排出最好的安排",
-    "你喜歡打造讓資料自動運作的系統",
+    "你喜歡在資源有限時找出更好的安排",
+    "你喜歡建立能自動整理資料的工具",
     "你喜歡把需求變成流程和作品",
-    "你擅長揪出錯誤與風險"
+    "你喜歡找出錯誤與風險"
   ],
   system_type: [
-    "你想做讓資料自動歸檔流動的幕後工具",
-    "你想做會推薦、會回覆的 AI 系統",
+    "你想做讓資料自動整理與更新的工具",
+    "你想做會推薦或回答問題的人工智慧（AI）系統",
     "你想做讓大家一看就懂的數據看板",
     "你想做支撐活動與產品運作的流程"
   ],
   math_pref: [
-    "「從紀錄猜中未來」的謎題最吸引你",
-    "「限制下排出最好計畫」的謎題最吸引你",
+    "用過去資料預測未來最吸引你",
+    "在限制下找出更好的計畫最吸引你",
     "你在意驗證改變是不是真的有效",
     "你擅長把複雜的事解釋到大家都懂"
   ],
@@ -385,8 +385,8 @@ const REASON_TEXT = {
     "你想排出一個更好的資源安排"
   ],
   responsibility: [
-    "你願意扛「確保零錯誤」的把關責任",
-    "你願意扛金錢與風險評估的責任",
+    "你願意負責把關資料與流程品質",
+    "你願意負責金錢與風險評估",
     "你想找出讓更多人參與、成長的機會",
     "你想讓流程更快、更省資源"
   ]
@@ -752,10 +752,10 @@ function environmentTradeoffs(famKey){
   const r = p.radar || []; // [技術硬度, 人際客戶, 創新程度, 抗壓強度, 薪資上限, 生活穩定]
   const e = State.environmentScores;
   const out = [];
-  if ((e.worklife ?? 3) >= 4 && r[5] <= 2) out.push(`你重視生活平衡，但「${p.cn_name}」的生活穩定屬性偏低，選擇公司與產業時需特別留意。`);
-  if ((e.stability ?? 3) >= 4 && r[5] <= 2) out.push(`你重視工作保障，這條路線的穩定屬性偏低，兩者存在取捨。`);
-  if ((e.compensation ?? 3) >= 4 && r[4] <= 2) out.push(`你追求收入上限，這條路線的薪資天花板屬性中等偏低，可能需要靠產業選擇彌補。`);
-  if ((e.intensity ?? 3) <= 2 && r[3] >= 4) out.push(`這條路線常見高強度節奏，與你偏好的步調存在取捨。`);
+  if ((e.worklife ?? 3) >= 4 && r[5] <= 2) out.push(`你重視生活平衡，但「${p.cn_name}」在部分公司可能較忙或較不固定，選公司與產業時要多留意。`);
+  if ((e.stability ?? 3) >= 4 && r[5] <= 2) out.push(`你重視工作穩定，但這類工作在部分公司可能較忙或較不固定，選公司時要多留意。`);
+  if ((e.compensation ?? 3) >= 4 && r[4] <= 2) out.push(`你重視更高的收入機會，但這類工作的收入差異常和產業、公司及經驗有關。`);
+  if ((e.intensity ?? 3) <= 2 && r[3] >= 4) out.push(`這類工作在部分公司步調較快，和你偏好的穩定節奏可能不同。`);
   return out;
 }
 
@@ -766,11 +766,11 @@ function profileSummary(){
   const a = State.answers;
   const tech = ((a.coding_effort ?? 3) + (a.algorithm_effort ?? 3)) / 2;
   const interact = a.stakeholder_freq ?? 3;
-  if (tech <= 2.5 && interact >= 3.5) return "你較偏向用資料理解商業問題、協助團隊做決策，而不是投入底層系統與模型建置。";
-  if (tech >= 4 && interact <= 2.5)  return "你偏向深入技術與模型本身，享受長時間把系統或演算法做深做穩，勝過頻繁的跨部門討論。";
-  if (tech >= 4 && interact >= 3.5)  return "你同時願意投入技術深度、也享受跨部門協作，適合站在技術與業務之間的橋樑型角色。";
+  if (tech <= 2.5 && interact >= 3.5) return "你較喜歡用資料理解商業問題、協助團隊做決定，而不是深入建立系統或模型。";
+  if (tech >= 4 && interact <= 2.5)  return "你較喜歡深入研究技術與模型，也享受長時間把系統做穩，而不是頻繁開會討論。";
+  if (tech >= 4 && interact >= 3.5)  return "你願意深入學習技術，也喜歡和不同團隊合作，適合連結技術與實際需求的角色。";
   if (tech <= 2.5 && interact <= 2.5) return "你偏好穩定地把分析做紮實，讓數據品質與正確性說話，而不是追逐舞台或底層技術。";
-  return "你在技術投入與商業導向之間保持彈性，適合先從泛用型的資料分析角色開始探索。";
+  return "你對技術工作與商業問題都保持彈性，適合先從入門選擇較多的資料分析工作開始探索。";
 }
 
 function profileTags(){
@@ -782,7 +782,7 @@ function profileTags(){
   if ((a.ambiguity ?? 3) >= 4) tags.push("喜歡定義問題");
   else if ((a.ambiguity ?? 3) <= 2) tags.push("重視明確需求");
   if ((a.stable_delivery ?? 3) >= 4) tags.push("重視穩定交付");
-  const ptTags = ["喜歡找出原因","預測導向","最佳化思維","平台思維","產品流程導向","品質風險意識"];
+  const ptTags = ["喜歡找出原因","預測導向","最佳化思維","喜歡建立共用工具","喜歡改善產品流程","品質風險意識"];
   if (a.problem_type !== undefined) tags.push(ptTags[a.problem_type]);
   return tags.slice(0, 4);
 }
@@ -875,15 +875,15 @@ function radarSVG(values, axes, color, size){
 }
 
 const TECH_DEPTH_COPY = {
-  [F.DABI]: "需要 SQL、報表與把數據說清楚的能力。",
-  [F.DS]: "需要 Python、統計建模與解釋模型結果的能力。",
-  [F.MLE]: "需要機器學習、軟體工程與模型上線能力。",
-  [F.DE]: "需要 SQL、資料建模與穩定維護資料流程的能力。",
-  [F.OR]: "需要數學建模、最佳化與程式實作能力。",
-  [F.STRAT]: "需要問題拆解、商業判斷與溝通推動能力。",
-  [F.PROD]: "需要需求拆解、流程設計與跨部門協作能力。",
-  [F.FIN]: "需要財務風險、統計分析與程式能力。",
-  [F.GOV]: "需要資料品質、規則設計與跨部門治理能力。"
+  [F.DABI]: "常用 SQL（查詢資料）、報表工具，以及清楚解釋數字的能力。",
+  [F.DS]: "常用 Python、統計方法與預測模型，也要能解釋模型結果。",
+  [F.MLE]: "需要機器學習、程式開發，以及把模型穩定放進產品中。",
+  [F.DE]: "需要 SQL、資料表設計，以及建立穩定的資料處理流程。",
+  [F.OR]: "需要數學建模、找出較佳方案的方法，以及程式實作。",
+  [F.STRAT]: "需要拆解問題、理解商業情境，以及清楚溝通與推動。",
+  [F.PROD]: "需要理解需求、設計流程，以及和不同團隊合作。",
+  [F.FIN]: "需要理解財務風險、統計分析與程式工具。",
+  [F.GOV]: "需要檢查資料品質、制定規則，以及協調不同部門。"
 };
 function technicalDepthCopy(famKey){
   return TECH_DEPTH_COPY[famKey] || "需要能獨立完成這類工作的核心工具與方法。";
@@ -902,25 +902,25 @@ function familyDetailHTML(famKey, ctx){
 
   const reasonsBlock = (ctx && ctx.reasons && ctx.reasons.length) ? `
     <div class="detail-block">
-      <div class="detail-label">🧭 為什麼推薦這條路線</div>
+      <div class="detail-label">🧭 為什麼推薦這個方向</div>
       <ul class="detail-list">${list(ctx.reasons.map(r => r + "。"))}</ul>
-      <div class="detail-note">理由僅來自你的「工作內容偏好」作答；科系與環境偏好不會出現在這裡，也不影響排名。</div>
+      <div class="detail-note">理由只根據你對工作內容的偏好；科系和工作環境不會影響推薦順序。</div>
     </div>` : "";
 
   let backgroundBlock = "";
   if (ctx && ctx.background){
     const b = ctx.background;
     const advLines = b.advantages.map(dim => `你的${BACKGROUND_DIMS[dim]}基礎已達這條路線的常見起點。`);
-    const gapLines = b.gaps.slice(0,3).map(g => `${BACKGROUND_DIMS[g.dim]}還需補強（目前約 ${g.have}/5，常見起點約 ${g.need}/5）。`);
+    const gapLines = b.gaps.slice(0,3).map(g => `${BACKGROUND_DIMS[g.dim]}可以再補強，會更接近這類工作的常見入門要求。`);
     const challengeLine = ctx.isChallenge && b.gaps.length
       ? `<div class="detail-note">為什麼是挑戰選項：你的偏好有相當契合，但${b.gaps.slice(0,2).map(g => BACKGROUND_DIMS[g.dim]).join("與")}與常見起點還有距離，需要額外投資。</div>` : "";
     backgroundBlock = `
       <div class="detail-block">
-        <div class="detail-label">🎓 你的入門優勢與差距</div>
+        <div class="detail-label">🎓 你目前的起點與可補強項目</div>
         <ul class="detail-list">${list([...advLines, ...gapLines])}</ul>
         ${advLines.length + gapLines.length === 0 ? `<div class="detail-value">科系題未作答，暫無法評估起點。</div>` : ""}
         ${challengeLine}
-        <div class="detail-note">起點為主觀參考值，用於估計補強成本，不代表能力上限。</div>
+        <div class="detail-note">這裡只提供準備方向，不是能力評分，也不代表未來上限。</div>
       </div>`;
   }
 
@@ -928,7 +928,7 @@ function familyDetailHTML(famKey, ctx){
   if (ctx && (ctx.envLines?.length || ctx.tradeoffs?.length)){
     envBlock = `
       <details class="method-details">
-        <summary>🌤️ 你偏好的工作環境（不影響配對）</summary>
+        <summary>🌤️ 你偏好的工作環境（不會改變推薦）</summary>
         ${ctx.envLines?.length ? `<ul class="detail-list">${list(ctx.envLines)}</ul>` : ""}
         ${ctx.tradeoffs?.length ? `<ul class="detail-list">${list(ctx.tradeoffs)}</ul>` : ""}
       </details>`;
@@ -937,7 +937,7 @@ function familyDetailHTML(famKey, ctx){
   const matchBlock = (ctx && ctx.matchLevel) ? `
     <div class="match-row" style="margin:6px 0 0;">
       <span class="route-pill">${ctx.routeLabel}</span>
-      配對程度：<b>${MATCH_ZH[ctx.matchLevel]}</b>
+      偏好相近程度：<b>${MATCH_ZH[ctx.matchLevel]}</b>
       <span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">${meta.match_index_note}｜信心分數 ${State.confidence ? State.confidence.score : "-"}／100（僅供參考）</span></span>
     </div>` : "";
 
@@ -952,7 +952,7 @@ function familyDetailHTML(famKey, ctx){
         <div class="official-en">${p.en_name}</div>
         <div class="rpg-badge">「${p.class_title}」</div>
         <div class="tech-depth-summary" aria-label="技術深度 ${p.tlevel_range || "依職缺而定"}">
-          <strong>技術深度：${p.tlevel_range || "依職缺而定"}</strong>
+          <strong>需要的技術學習：${p.tlevel_range || "依職缺而定"}</strong>
           <span>${technicalDepthCopy(famKey)}</span>
         </div>
         ${p.salary_taiwan ? `<div class="stat-chips"><span class="chip">💰 有公開薪資</span></div>` : ""}
@@ -976,7 +976,7 @@ function familyDetailHTML(famKey, ctx){
     </div>
 
     <div class="detail-block">
-      <div class="detail-label">必學技能</div>
+      <div class="detail-label">建議先學</div>
       <div class="chip-row">${chips(p.starter_skills)}</div>
     </div>
 
@@ -985,12 +985,12 @@ function familyDetailHTML(famKey, ctx){
       <div class="detail-value">${p.next_step}</div>
     </div>
     <div class="detail-block starter-block">
-      <div class="detail-label">🛠️ 第一個作品集</div>
+      <div class="detail-label">🛠️ 第一個練習作品</div>
       <div class="detail-value">${p.starter_portfolio}</div>
     </div>
 
     <details class="method-details">
-      <summary>日常工作與需要留意的地方</summary>
+      <summary>平常做什麼、有哪些現實面</summary>
       <div class="detail-label" style="margin-top:10px;">常見工作內容</div>
       <ul class="detail-list">${list(p.daily_tasks)}</ul>
       <div class="detail-label" style="margin-top:10px;">⚠️ 你需要留意</div>
@@ -999,7 +999,7 @@ function familyDetailHTML(famKey, ctx){
     </details>
 
     <details class="method-details">
-      <summary>薪資、路徑與入行門檻</summary>
+      <summary>薪資、發展路線與入門準備</summary>
       <div class="detail-grid">
         <div>
           <div class="detail-label">💰 薪資（台灣）</div>
@@ -1007,39 +1007,39 @@ function familyDetailHTML(famKey, ctx){
           <div class="detail-note">${p.salary_note || ""}${p.salary_source ? ` · <a href="${p.salary_source}" target="_blank" rel="noopener noreferrer">來源</a>` : ""}</div>
         </div>
         <div>
-          <div class="detail-label">🛤️ 職涯路徑</div>
+          <div class="detail-label">🛤️ 常見發展路線</div>
           <div class="detail-value">${p.career_path}</div>
         </div>
         <div>
-          <div class="detail-label">🎫 入行門檻</div>
+          <div class="detail-label">🎫 常見入門要求</div>
           <div class="detail-value">${p.entry_requirements}</div>
         </div>
         <div>
-          <div class="detail-label">📌 小提醒</div>
+          <div class="detail-label">📌 現實提醒</div>
           <div class="detail-value">${p.tip}</div>
         </div>
       </div>
-      <div class="detail-label" style="margin-top:6px;">🔎 可搜尋的實習職稱</div>
+      <div class="detail-label" style="margin-top:6px;">🔎 找實習時可搜尋的職稱</div>
       <div class="chip-row">${chips(p.internship_titles)}</div>
     </details>
 
     <details class="method-details">
-      <summary>角色設定與特性圖</summary>
+      <summary>角色形象與工作特性</summary>
       <p class="class-lore">${p.class_lore}</p>
       <div class="radar-detail-wrap">${radarSVG(p.radar, meta.radar_axes, p.color, 230)}</div>
-      <div class="detail-note" style="text-align:center;">主觀啟發式評分，非統計量測</div>
+      <div class="detail-note" style="text-align:center;">用來幫助比較的簡化圖，不是正式測驗分數。</div>
     </details>
 
     ${companies.length ? `
     <div class="detail-block">
-      <div class="detail-label">哪些公司開過這種缺</div>
+      <div class="detail-label">哪些公司曾招募這類工作</div>
       <div class="chip-row">${chips(companies)}</div>
     </div>` : ""}
 
     <details class="method-details" ${examples.length <= 4 ? "open" : ""}>
       <summary>範例職缺（真實來源，${examples.length} 筆）</summary>
       <div class="card-grid" style="margin-top:12px;">
-        ${examples.length ? examples.map(t => jobCardHTML(t)).join("") : `<div class="job-hint">此家族目前尚無收錄的種子職缺。</div>`}
+        ${examples.length ? examples.map(t => jobCardHTML(t)).join("") : `<div class="job-hint">這個方向目前還沒有收錄範例職缺。</div>`}
       </div>
     </details>
   `;
@@ -1055,9 +1055,9 @@ const ResultState = {
 };
 
 const ROUTE_META = [
-  { label: "最適合", cls: "route-best", note: "工作內容偏好最契合，現階段最值得優先準備" },
-  { label: "鄰近選項", cls: "route-near", note: "與主路線工作內容相近，技能重疊高、容易轉換" },
-  { label: "挑戰選項", cls: "route-stretch", note: "偏好有相當契合，但背景或技術需要額外補強" }
+  { label: "最適合", cls: "route-best", note: "最接近你的工作偏好，建議先認識" },
+  { label: "鄰近選項", cls: "route-near", note: "工作內容相近，許多技能可以共用" },
+  { label: "挑戰選項", cls: "route-stretch", note: "你可能有興趣，但通常需要補更多技術或背景" }
 ];
 
 const Results = {
@@ -1204,7 +1204,7 @@ const Results = {
       : `<div class="detail-value">沒有特別強烈的環境偏好，選擇彈性大。</div>`;
     document.getElementById("env-profile").innerHTML = `
       <details class="env-card method-details" style="padding:18px 26px;">
-        <summary>你偏好的工作環境（不影響配對）</summary>
+        <summary>你偏好的工作環境（不會改變推薦）</summary>
         ${body}
         ${tradeoffs.length ? `<div class="detail-label" style="margin-top:10px;">與主路線的可能取捨</div><ul class="detail-list">${tradeoffs.map(t => `<li>${t}</li>`).join("")}</ul>` : ""}
       </details>`;
@@ -1468,7 +1468,7 @@ const Encyclopedia = {
           <div class="official-zh">${p.cn_name}</div>
           <div class="official-en">${p.en_name || ""}</div>
           <p class="route-oneliner">${p.tagline}</p>
-          <div class="tl-chip tech-difficulty"><strong>技術難度：${p.tlevel_range||"—"}</strong><span>${roleTechnicalRequirement(p)}</span></div>
+          <div class="tl-chip tech-difficulty"><strong>需要的技術：${p.tlevel_range||"—"}</strong><span>${roleTechnicalRequirement(p)}</span></div>
           <button type="button" class="btn btn-ghost route-btn" data-role-detail="${famKey}">認識這個角色</button>
         </div>
       </article>
