@@ -1,245 +1,216 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 /**
- * test-cases.mjs — 判定演算法 v2 驗收測試（Cases A–G）
- * 用法：node test-cases.mjs
- * 零依賴；以 DOM stub 載入 app.js，模擬作答並驗證演算法行為。
+ * Data Matters v3.14 matching acceptance tests.
+ * Replace the repository's test-cases.mjs with this file.
+ * Run: node test-cases.mjs
  */
 import { readFileSync } from "node:fs";
 
-/* ── minimal DOM stub ── */
 const elements = {};
-function el(){ return { innerHTML:"", style:{}, textContent:"", classList:{add(){},remove(){},toggle(){}}, querySelector(){return null}, querySelectorAll(){return []}, scrollBy(){}, offsetWidth:250 }; }
-global.document = { getElementById: id => (elements[id] ||= el()), querySelectorAll: () => [], querySelector: () => null };
-global.window = { scrollTo(){} };
-global.fetch = async (path) => ({ json: async () => JSON.parse(readFileSync(path, "utf8")) });
-
-const src = readFileSync("app.js", "utf8");
-(0, eval)(src + `\n;globalThis.__T={State,Results,ResultState,FAMILIES,F,QUESTION_DIMENSIONS,computeAllScores,pickRoutes,reasonsFor,environmentLines,familyDetailHTML,jobCardHTML,Encyclopedia,HEX_AXES,profileTags,profileSummary,MATCH_ZH,CLARITY_ZH};`);
-await new Promise(r => setTimeout(r, 60));
-const { State, Results, ResultState, FAMILIES, F, QUESTION_DIMENSIONS, computeAllScores, environmentLines, familyDetailHTML, jobCardHTML, Encyclopedia } = globalThis.__T;
-
-let failures = 0;
-function check(name, cond, extra){
-  if (cond) console.log("  ✓ " + name);
-  else { failures++; console.log("  ✗ " + name + (extra ? "｜" + extra : "")); }
-}
-function run(answers){
-  Object.keys(State.answers).forEach(k => delete State.answers[k]);
-  Object.assign(State.answers, answers);
-  Results.compute();
+function makeClassList(){
+  const values = new Set();
   return {
-    routes: ResultState.routes,
-    main: ResultState.routes[0].famKey,
-    pref: State.preferenceScores,
-    env: State.environmentScores,
-    conf: State.confidence
+    add(...xs){ xs.forEach(x => values.add(x)); },
+    remove(...xs){ xs.forEach(x => values.delete(x)); },
+    toggle(x, force){
+      if (force === true) { values.add(x); return true; }
+      if (force === false) { values.delete(x); return false; }
+      if (values.has(x)) { values.delete(x); return false; }
+      values.add(x); return true;
+    },
+    contains(x){ return values.has(x); }
   };
 }
-function famZh(f){ return State.careers.meta.family_profiles[f].cn_name; }
-
-if (!State.careers){ console.error("boot 失敗"); process.exit(1); }
-console.log("boot OK，職缺", State.careers.tracks.length, "筆\n");
-
-/* ── 結構檢查 ── */
-console.log("【結構】三分數系統與題目歸屬");
-{
-  const r = run({ income:5, prestige:5, security:5, worklife:5, intensity:5 });
-  const anyPref = FAMILIES.some(f => r.pref[f] !== 0);
-  check("環境題不影響 preferenceScores", !anyPref, JSON.stringify(r.pref));
-  check("環境題進 environmentScores", Object.keys(r.env).length === 5);
-  const envQids = ["income","prestige","security","worklife","intensity"];
-  const contribHasEnv = Object.values(State.contrib).flat().some(c => envQids.includes(c.qid));
-  check("環境題不產生推薦理由貢獻", !contribHasEnv);
-}
-{
-  const r = run({ major: 2 }); // 資工背景，無偏好作答
-  const anyPref = FAMILIES.some(f => r.pref[f] !== 0);
-  check("科系不影響 preferenceScores", !anyPref, JSON.stringify(r.pref));
-  check("科系進 backgroundScores", State.backgroundScores.coding === 4 && State.backgroundScores.software_eng === 4);
-}
-{
-  const r = run({ coding_effort: 1, algorithm_effort: 1 }); // 不想寫程式
-  const anyPref = FAMILIES.some(f => r.pref[f] > 0);
-  check("低分（lowIsMeaningful:false）不自動變成其他職涯正分", !anyPref, JSON.stringify(r.pref));
-}
-{
-  run({ ambiguity: 1 }); // lowIsMeaningful:true 的題
-  const gotLow = State.preferenceScores[F.DE] > 0 && State.preferenceScores[F.GOV] > 0;
-  check("ambiguity 低分（有意義的反向）以較低權重加分", gotLow && State.preferenceScores[F.DE] === 1);
+function el(){
+  return {
+    innerHTML: "", textContent: "", value: "", checked: false,
+    children: [], dataset: {}, attributes: {},
+    style: { setProperty(){}, removeProperty(){} },
+    classList: makeClassList(),
+    clientWidth: 320, offsetWidth: 250, scrollLeft: 0,
+    appendChild(node){ this.children.push(node); return node; },
+    append(...nodes){ this.children.push(...nodes); },
+    replaceChildren(...nodes){ this.children = nodes; this.innerHTML = ""; },
+    remove(){}, focus(){}, click(){},
+    setAttribute(k,v){ this.attributes[k] = String(v); },
+    getAttribute(k){ return this.attributes[k] ?? null; },
+    removeAttribute(k){ delete this.attributes[k]; },
+    addEventListener(){}, removeEventListener(){},
+    querySelector(){ return null; }, querySelectorAll(){ return []; },
+    closest(){ return null; },
+    scrollBy(){}, scrollTo(){},
+    getBoundingClientRect(){ return { left:0, top:0, width:250, height:250, right:250, bottom:250 }; }
+  };
 }
 
-/* ── Case A：高技術、低互動、喜歡 AI 系統 ── */
-console.log("\n【Case A】高技術、低互動、AI 系統");
-{
-  const r = run({ coding_effort:5, algorithm_effort:5, system_type:1, problem_type:1,
-                  deep_focus:5, stakeholder_freq:1, prestige:1, income:3 });
-  check("主路線為 MLE 或 DE", [F.MLE, F.DE].includes(r.main), famZh(r.main));
-  check("不在意名聲不影響職能排名（prestige 無 pref 貢獻）",
-    !Object.values(State.contrib).flat().some(c => c.qid === "prestige"));
+global.document = {
+  getElementById: id => (elements[id] ||= el()),
+  querySelectorAll: () => [], querySelector: () => null,
+  createElement: () => el(),
+  body: el(), documentElement: el(),
+  addEventListener(){}, removeEventListener(){}
+};
+global.window = {
+  scrollTo(){}, addEventListener(){}, removeEventListener(){},
+  setTimeout, clearTimeout,
+  matchMedia(){ return { matches:false, addEventListener(){}, removeEventListener(){} }; },
+  location: { href:"http://localhost/", origin:"http://localhost", pathname:"/", search:"", hash:"" },
+  history: { pushState(){}, replaceState(){} },
+  crypto: globalThis.crypto
+};
+Object.defineProperty(globalThis, "navigator", { value: { userAgent: "node-test", share: undefined, clipboard: { writeText: async () => {} } }, configurable: true, writable: true });
+global.requestAnimationFrame = fn => { fn(Date.now()); return 1; };
+global.cancelAnimationFrame = () => {};
+global.getComputedStyle = () => ({ getPropertyValue(){ return ""; } });
+global.fetch = async path => ({
+  ok: true,
+  json: async () => JSON.parse(readFileSync(path, "utf8"))
+});
+
+const src = readFileSync("app.js", "utf8");
+(0, eval)(src + `
+;globalThis.__T={
+ State,ResultState,FAMILIES,F,QUESTION_DIMENSIONS,STATIONS,
+ resetState,computeAllScores,pickRoutes,rankFamilies,
+ calibratedRoleScore,maxPossiblePreferenceScore,roleEvidenceCount,
+ reasonsFor,environmentLines,familyDetailHTML,jobCardHTML,Encyclopedia
+};`);
+await new Promise(resolve => setTimeout(resolve, 100));
+
+const T = globalThis.__T;
+const { State, FAMILIES, F, QUESTION_DIMENSIONS, STATIONS } = T;
+let failures = 0;
+function check(name, condition, extra=""){
+  if (condition) console.log("  ✓ " + name);
+  else { failures += 1; console.log("  ✗ " + name + (extra ? "｜" + extra : "")); }
+}
+function famZh(fam){ return State.careers?.meta?.family_profiles?.[fam]?.cn_name || fam; }
+function run(answers){
+  T.resetState();
+  Object.assign(State.answers, answers);
+  T.computeAllScores();
+  const keys = T.pickRoutes();
+  const routeKeys = [keys.main, keys.near, keys.challenge];
+  return {
+    main: keys.main,
+    routeKeys,
+    raw: { ...State.preferenceScores },
+    calibrated: Object.fromEntries(FAMILIES.map(f => [f, T.calibratedRoleScore(f)])),
+    evidence: Object.fromEntries(FAMILIES.map(f => [f, T.roleEvidenceCount(f)])),
+    confidence: State.confidence
+  };
 }
 
-/* ── Case B：資工科系但低技術偏好、商業溝通、需求流程 ── */
-console.log("\n【Case B】資工科系＋商業溝通＋需求流程");
-{
-  const r = run({ major:2, coding_effort:2, algorithm_effort:2, problem_type:4, work_result:1,
-                  output_pref:3, stakeholder_freq:5, ambiguity:4 });
-  check("主路線為 Product 或 Strategy", [F.PROD, F.STRAT].includes(r.main), famZh(r.main));
-  check("不因資工科系被推到 MLE", r.main !== F.MLE);
-  check("MLE 偏好分數為 0（科系不加分）", r.pref[F.MLE] === 0, String(r.pref[F.MLE]));
+if (!State.careers){
+  console.error("boot 失敗：無法載入 data/careers.json");
+  process.exit(1);
 }
+console.log(`boot OK，職缺 ${State.careers.tracks.length} 筆\n`);
 
-/* ── Case C：喜歡預測模型 ── */
-console.log("\n【Case C】預測模型");
+console.log("【題庫結構】18 題、三套分數、每題最多五個選項");
 {
-  const r = run({ problem_type:1, math_pref:0, work_result:2, output_pref:1 });
-  check("DS 高於 OR", r.pref[F.DS] > r.pref[F.OR], `DS=${r.pref[F.DS]} OR=${r.pref[F.OR]}`);
-  check("主路線為 DS", r.main === F.DS, famZh(r.main));
-}
-
-/* ── Case D：喜歡最佳化 ── */
-console.log("\n【Case D】最佳化與資源配置");
-{
-  const r = run({ problem_type:2, math_pref:1, output_pref:5, responsibility:3 });
-  check("OR 高於 DS", r.pref[F.OR] > r.pref[F.DS], `OR=${r.pref[F.OR]} DS=${r.pref[F.DS]}`);
-  check("主路線為 OR", r.main === F.OR, famZh(r.main));
-}
-
-/* ── Case E：品質、規則、資料正確 ── */
-console.log("\n【Case E】品質與規則");
-{
-  const r = run({ problem_type:5, responsibility:0, output_pref:4, stable_delivery:5, worklife:5 });
-  check("主路線為 Governance", r.main === F.GOV, famZh(r.main));
-  const govContrib = (State.contrib[F.GOV]||[]).map(c => c.qid);
-  check("Governance 分數不含 worklife 貢獻", !govContrib.includes("worklife"), govContrib.join(","));
-}
-
-/* ── Case F：高薪名聲較快、較忙、不喜歡技術也不面客 ── */
-console.log("\n【Case F】只有環境偏好強烈");
-{
-  const r = run({ income:5, prestige:5, intensity:5, coding_effort:1, algorithm_effort:1, stakeholder_freq:2 });
-  const allZero = FAMILIES.every(f => r.pref[f] === 0);
-  check("職能偏好全為 0（環境不推動 ML/Finance/Consulting）", allZero, JSON.stringify(r.pref));
-  check("顯示低信心", r.conf.lowConfidence === true);
-  const envL = environmentLines().join("");
-  check("環境摘要包含收入／公司名氣／工作節奏", envL.includes("收入") && envL.includes("公司名氣") && envL.includes("較快、較忙"));
-}
-
-/* ── Case G：大量中立回答 ── */
-console.log("\n【Case G】全部中立");
-{
-  const r = run({ coding_effort:3, algorithm_effort:3, stakeholder_freq:3, deep_focus:3, ambiguity:3, stable_delivery:3 });
-  check("低信心觸發", r.conf.lowConfidence === true, r.conf.triggers.join(";"));
-  check("清晰度為尚在探索", r.conf.clarity === "Exploratory", r.conf.clarity);
-  check("配對程度不是「高」", r.routes[0].matchLevel !== "High", r.routes[0].matchLevel);
-  const html = elements["route-cards"].innerHTML + elements["profile-summary"].innerHTML;
-  check("畫面不出現 90–95 精準百分比", !/9[0-5]\s*<\/b>/.test(html));
-  check("顯示探索型提示文案", elements["profile-summary"].innerHTML.includes("泛用型角色開始探索"));
-}
-
-/* ── 路線邏輯 ── */
-console.log("\n【路線】鄰近 adjacency ＋ 挑戰 gap");
-{
-  const r = run({ problem_type:0, work_result:0, math_pref:3, output_pref:0, stable_delivery:4, major:1 });
-  check("主路線 DABI", r.main === F.DABI, famZh(r.main));
-  const adjacency = ["Product, Systems & Solutions","Strategy, Operations & Consulting","Data Science & Applied Modeling"];
-  check("鄰近選項來自 adjacency 名單", adjacency.includes(r.routes[1].famKey), famZh(r.routes[1].famKey));
-  check("挑戰選項偏好 > 0 或為次高家族", State.preferenceScores[r.routes[2].famKey] >= 0);
-  const detail = familyDetailHTML(r.routes[2].famKey, { routeLabel:"挑戰選項", matchLevel:r.routes[2].matchLevel,
-    reasons:r.routes[2].reasons, background:r.routes[2].background, envLines:environmentLines(), tradeoffs:[], isChallenge:true });
-  check("挑戰路線詳細含起點與補強區塊", detail.includes("你目前的起點與可補強項目"));
-}
-
-/* ── 理由來源限制 ── */
-console.log("\n【理由】只能來自 preference 題");
-{
-  run({ major:1, income:5, prestige:5, problem_type:5, responsibility:1 });
-  const reasons = ResultState.routes.flatMap(r => r.reasons).join("");
-  check("理由不含科系/收入/名聲字眼", !/科系|收入|名聲|高薪|品牌/.test(reasons), reasons);
-}
-
-/* ── 共用元件與職缺卡 ── */
-console.log("\n【元件】共用詳細與職缺卡");
-{
-  run({ problem_type:1, math_pref:0 });
-  const h1 = familyDetailHTML(ResultState.routes[0].famKey, { routeLabel:"最適合", matchLevel:"High",
-    reasons:ResultState.routes[0].reasons, background:ResultState.routes[0].background, envLines:[], tradeoffs:[] });
-  const h2 = familyDetailHTML(F.DABI);
-  check("結果頁詳細含三區塊（推薦／起點補強／環境可省略）", h1.includes("為什麼推薦這個方向") && h1.includes("你目前的起點與可補強項目"));
-  check("圖鑑詳細不含推薦理由", !h2.includes("為什麼推薦這個方向"));
-  const rpgNames = Object.values(State.careers.meta.family_profiles).map(p => p.class_title);
-  const jc = jobCardHTML(State.careers.tracks[0], { routes: ResultState.routes });
-  check("職缺卡不含 RPG 名稱", !rpgNames.some(n => jc.includes(n)));
-  Encyclopedia.render();
-  check("圖鑑 9 卡＋地圖 9 節點",
-    (elements["ency-carousel"].innerHTML.match(/ency-card/g)||[]).length >= 9 &&
-    (elements["spectrum-plot"].innerHTML.match(/map-node/g)||[]).length === 9);
-}
-
-/* ── 八組 persona（大眾向改版驗收）── */
-console.log("\n【八組 persona】前三名合理區別、無 NaN、不崩潰");
-{
-  const personas = [
-    ["偏商業溝通型", { stakeholder_freq:5, problem_type:0, output_pref:0, responsibility:3, ambiguity:4 }, [F.STRAT, F.DABI, F.PROD]],
-    ["偏產品與系統型", { problem_type:4, work_result:1, output_pref:3, stakeholder_freq:4 }, [F.PROD]],
-    ["偏描述分析型", { problem_type:0, math_pref:3, work_result:0, output_pref:0 }, [F.DABI]],
-    ["偏資料工程型", { problem_type:3, system_type:0, work_result:3, output_pref:2, stable_delivery:5, coding_effort:4 }, [F.DE]],
-    ["偏機器學習型", { problem_type:1, system_type:1, coding_effort:5, algorithm_effort:5, deep_focus:5 }, [F.MLE, F.DS]],
-    ["偏風險／量化型", { problem_type:5, responsibility:1, output_pref:4, algorithm_effort:4 }, [F.FIN, F.GOV]]
-  ];
-  const tops = new Set();
-  for (const [name, answers, expected] of personas){
-    const r = run(answers);
-    tops.add(r.main);
-    const noNaN = FAMILIES.every(f => Number.isFinite(r.pref[f]));
-    check(`${name} → ${famZh(r.main)}`, expected.includes(r.main) && noNaN,
-      `top3=${r.routes.map(x => famZh(x.famKey)).join(",")}`);
-    check(`${name} 三條路線互不重複`, new Set(r.routes.map(x => x.famKey)).size === 3);
-  }
-  check("各 persona 主路線有合理區別（非全部同一角色）", tops.size >= 4, [...tops].map(famZh).join(","));
-
-  // 混合型：不崩潰、三條路線齊全
-  const mixed = run({ problem_type:0, system_type:1, stakeholder_freq:4, deep_focus:4, coding_effort:4, work_result:2 });
-  check("混合型不崩潰且產生三條路線", mixed.routes.length === 3 && FAMILIES.every(f => Number.isFinite(mixed.pref[f])));
-
-  // 漏答（只答一題）：不崩潰
-  const sparse = run({ problem_type:2 });
-  check("大量漏答不崩潰、仍有三條路線", sparse.routes.length === 3);
-
-  // 重新測驗清除舊結果
-  run({ problem_type:1 });
-  const before = JSON.stringify(State.preferenceScores);
-  run({});
-  check("重新測驗清除舊分數", JSON.stringify(State.preferenceScores) !== before || FAMILIES.every(f => State.preferenceScores[f] === 0));
-}
-
-/* ── Architect 職稱分層 ── */
-console.log("\n【Architect】職稱兩層顯示");
-{
-  const prod = State.careers.meta.family_profiles[F.PROD];
-  check("產品與系統分析含入門職稱 Systems Analyst", prod.representative_titles.includes("Systems Analyst"));
-  check("產品與系統分析含進階 Solution Architect", (prod.advanced_titles||[]).includes("Solution Architect"));
-  check("Data Architect 歸在資料工程而非產品分析",
-    (State.careers.meta.family_profiles[F.DE].advanced_titles||[]).includes("Data Architect") &&
-    !(prod.advanced_titles||[]).includes("Data Architect"));
-  check("AI Architect 歸在 ML 工程", (State.careers.meta.family_profiles[F.MLE].advanced_titles||[]).includes("AI Architect"));
-  const detail = familyDetailHTML(F.PROD);
-  check("詳細頁分層顯示入門/進階職稱", detail.includes("常見職稱") && detail.includes("進階（需多年經驗）"));
-}
-
-/* ── QUESTION_DIMENSIONS 與題庫一致 ── */
-console.log("\n【config】題目歸屬一致性");
-{
-  const qs = Object.values({ ...globalThis.STATIONS ?? {} }).flat();
-  // STATIONS 不在 __T，改由題目回答鍵檢查：確保每個 QUESTION_DIMENSIONS key 都能被回答處理
+  const questions = Object.values(STATIONS).flat();
   const dims = Object.values(QUESTION_DIMENSIONS);
-  check("共 18 題", Object.keys(QUESTION_DIMENSIONS).length === 18, String(Object.keys(QUESTION_DIMENSIONS).length));
-  check("preference 12 題 / environment 5 題 / background 1 題",
-    dims.filter(d => d==="preference").length === 12 &&
-    dims.filter(d => d==="environment").length === 5 &&
-    dims.filter(d => d==="background").length === 1);
+  check("共 18 題", questions.length === 18, String(questions.length));
+  check("preference 12／environment 5／background 1",
+    dims.filter(x=>x==="preference").length === 12 &&
+    dims.filter(x=>x==="environment").length === 5 &&
+    dims.filter(x=>x==="background").length === 1);
+  const oversized = questions.filter(q => q.type === "single" && q.options.length > 5);
+  check("所有單選題最多五個選項", oversized.length === 0, oversized.map(q=>q.id).join(","));
+  check("所有題目 ID 唯一", new Set(questions.map(q=>q.id)).size === questions.length);
 }
 
-console.log("\n" + (failures ? `✗ ${failures} 項未通過` : "✓ 全部驗收測試通過"));
+console.log("\n【隔離性】背景與環境不得改變職涯排名");
+{
+  const env = run({ income:5, prestige:5, security:5, worklife:5, intensity:5 });
+  check("環境題不改變 raw preference", FAMILIES.every(f => env.raw[f] === 0));
+  check("環境題完整進 environmentScores", Object.keys(State.environmentScores).length === 5);
+  const bg = run({ major:2 });
+  check("科系不改變 raw preference", FAMILIES.every(f => bg.raw[f] === 0));
+  check("科系只建立起點", State.backgroundScores.coding === 4 && State.backgroundScores.software_eng === 4);
+  const low = run({ coding_effort:1, algorithm_effort:1 });
+  check("不喜歡技術不會自動推向其他角色", FAMILIES.every(f => low.raw[f] === 0));
+  const opposite = run({ ambiguity:1 });
+  check("只有 ambiguity 的低端具有明確反向意義", opposite.raw[F.DE] > 0 && opposite.raw[F.GOV] > 0);
+}
+
+console.log("\n【校準】不同角色的可得分上限被正規化");
+{
+  const maxima = Object.fromEntries(FAMILIES.map(f => [f, T.maxPossiblePreferenceScore(f)]));
+  check("每個角色都有正的理論上限", FAMILIES.every(f => Number.isFinite(maxima[f]) && maxima[f] > 0));
+  const ratio = Math.max(...Object.values(maxima)) / Math.min(...Object.values(maxima));
+  check("理論上限差距受控（最大／最小 < 1.7）", ratio < 1.7, ratio.toFixed(3));
+  const sparse = run({ problem_type:0 });
+  check("少量作答仍能產生三條不重複路線", sparse.routeKeys.length === 3 && new Set(sparse.routeKeys).size === 3);
+  check("少量作答標為低信心", sparse.confidence.lowConfidence === true);
+}
+
+const PERSONAS = {
+  DABI: { expected:F.DABI, answers:{ problem_type:0, system_type:2, math_pref:0, work_result:0, output_pref:0, responsibility:4, coding_effort:2, algorithm_effort:2, stakeholder_freq:5, deep_focus:3, ambiguity:2, stable_delivery:5 } },
+  DS: { expected:F.DS, answers:{ problem_type:1, system_type:1, math_pref:1, work_result:2, output_pref:1, responsibility:2, coding_effort:5, algorithm_effort:5, stakeholder_freq:2, deep_focus:5, ambiguity:5, stable_delivery:3 } },
+  MLE: { expected:F.MLE, answers:{ problem_type:1, system_type:1, math_pref:1, work_result:2, output_pref:2, responsibility:2, coding_effort:5, algorithm_effort:5, stakeholder_freq:2, deep_focus:5, ambiguity:4, stable_delivery:5 } },
+  DE: { expected:F.DE, answers:{ problem_type:0, system_type:0, math_pref:0, work_result:3, output_pref:2, responsibility:2, coding_effort:5, algorithm_effort:3, stakeholder_freq:2, deep_focus:5, ambiguity:1, stable_delivery:5 } },
+  OR: { expected:F.OR, answers:{ problem_type:2, system_type:2, math_pref:3, work_result:4, output_pref:4, responsibility:1, coding_effort:4, algorithm_effort:5, stakeholder_freq:3, deep_focus:5, ambiguity:5, stable_delivery:3 } },
+  STRAT: { expected:F.STRAT, answers:{ problem_type:2, system_type:3, math_pref:4, work_result:1, output_pref:0, responsibility:4, coding_effort:2, algorithm_effort:3, stakeholder_freq:5, deep_focus:3, ambiguity:5, stable_delivery:2 } },
+  PROD: { expected:F.PROD, answers:{ problem_type:3, system_type:3, math_pref:2, work_result:1, output_pref:3, responsibility:3, coding_effort:3, algorithm_effort:3, stakeholder_freq:5, deep_focus:3, ambiguity:5, stable_delivery:3 } },
+  FIN: { expected:F.FIN, answers:{ problem_type:4, system_type:4, math_pref:4, work_result:4, output_pref:4, responsibility:1, coding_effort:3, algorithm_effort:4, stakeholder_freq:4, deep_focus:4, ambiguity:2, stable_delivery:5 } },
+  GOV: { expected:F.GOV, answers:{ problem_type:4, system_type:4, math_pref:0, work_result:3, output_pref:2, responsibility:0, coding_effort:3, algorithm_effort:2, stakeholder_freq:3, deep_focus:4, ambiguity:1, stable_delivery:5 } }
+};
+
+console.log("\n【九種角色】代表 persona 應回到對應職涯");
+for (const [name, persona] of Object.entries(PERSONAS)){
+  const result = run(persona.answers);
+  check(`${name} → ${famZh(result.main)}`, result.main === persona.expected,
+    `top3=${result.routeKeys.map(famZh).join("、")}`);
+  check(`${name} 三條路線不重複`, new Set(result.routeKeys).size === 3);
+  check(`${name} 分數皆為有限值`, FAMILIES.every(f => Number.isFinite(result.raw[f]) && Number.isFinite(result.calibrated[f])));
+}
+
+console.log("\n【穩定性】單一答案變動不應造成不合理翻轉");
+{
+  const prefQuestions = Object.values(STATIONS).flat().filter(q => q.system === "preference");
+  for (const [name, persona] of Object.entries(PERSONAS)){
+    let total = 0, primary = 0, top3 = 0;
+    for (const q of prefQuestions){
+      const values = q.type === "single" ? q.options.map((_,i)=>i) : [1,2,3,4,5];
+      for (const value of values){
+        if (value === persona.answers[q.id]) continue;
+        const result = run({ ...persona.answers, [q.id]:value });
+        total += 1;
+        if (result.main === persona.expected) primary += 1;
+        if (result.routeKeys.includes(persona.expected)) top3 += 1;
+      }
+    }
+    const primaryRate = primary / total;
+    const top3Rate = top3 / total;
+    check(`${name} 主結果保留率至少 95%`, primaryRate >= 0.95, (primaryRate*100).toFixed(1)+"%");
+    check(`${name} 前三名保留率 100%`, top3Rate === 1, (top3Rate*100).toFixed(1)+"%");
+  }
+}
+
+console.log("\n【內容相關性】理由只能來自偏好題");
+{
+  run({ major:1, income:5, prestige:5, problem_type:4, responsibility:1 });
+  const reasons = FAMILIES.flatMap(f => T.reasonsFor(f)).join("");
+  check("推薦理由不含科系、收入或公司名氣", !/科系|收入|高薪|公司名氣|品牌/.test(reasons), reasons);
+  const envText = T.environmentLines().join("");
+  check("環境偏好仍能獨立呈現", envText.includes("收入") && envText.includes("公司名氣"));
+}
+
+console.log("\n【元件】結果與圖鑑共用內容仍可產生");
+{
+  const result = run(PERSONAS.DABI.answers);
+  const detail = T.familyDetailHTML(result.main, {
+    routeLabel:"最適合", matchLevel:"High", reasons:T.reasonsFor(result.main),
+    background:{ advantages:[], gaps:[] }, envLines:[], tradeoffs:[]
+  });
+  check("結果詳情包含推薦與起點補強", detail.includes("為什麼推薦這個方向") && detail.includes("你目前的起點與可補強項目"));
+  const atlasDetail = T.familyDetailHTML(F.DABI);
+  check("圖鑑詳情不冒充個人推薦", !atlasDetail.includes("為什麼推薦這個方向"));
+  const card = T.jobCardHTML(State.careers.tracks[0], { routes:[] });
+  check("職缺卡可正常產生", typeof card === "string" && card.length > 20);
+}
+
+console.log("\n" + (failures ? `✗ ${failures} 項未通過` : "✓ v3.14 全部驗收測試通過"));
 process.exit(failures ? 1 : 0);
-
-

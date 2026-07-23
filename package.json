@@ -1,6 +1,6 @@
 {
   "name": "data-matters-career-board",
-  "version": "3.11.0",
+  "version": "3.14.0",
   "private": true,
   "description": "Mobile-first data career exploration product",
   "engines": {
@@ -15,7 +15,7 @@
     "test:analytics-contract": "node tests/analytics-event-contract.test.mjs",
     "test:analytics": "node test-analytics.mjs",
     "test:matching": "node test-cases.mjs",
-    "test:product": "node --test tests/*.test.mjs",
+    "test:product": "node --test --test-concurrency=1 tests/*.test.mjs",
     "test": "npm run test:analytics && npm run test:matching && npm run test:product",
     "build": "node scripts/build.mjs",
     "build:overlay": "OVERLAY_BUILD=true node scripts/build.mjs",
