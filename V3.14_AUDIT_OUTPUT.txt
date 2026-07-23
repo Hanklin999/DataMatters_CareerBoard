@@ -1,0 +1,58 @@
+
+Max possible raw score by role
+┌─────────┬─────────┐
+│ (index) │ Values  │
+├─────────┼─────────┤
+│ DS      │ '13.55' │
+│ MLE     │ '11.40' │
+│ DABI    │ '11.90' │
+│ DE      │ '11.30' │
+│ OR      │ '11.25' │
+│ STRAT   │ '9.35'  │
+│ PROD    │ '13.20' │
+│ FIN     │ '9.25'  │
+│ GOV     │ '8.35'  │
+└─────────┴─────────┘
+
+Uniform-answer opportunity stress test (artificial, not user prevalence)
+┌─────────┬──────────┐
+│ (index) │ Values   │
+├─────────┼──────────┤
+│ DS      │ '12.84%' │
+│ MLE     │ '8.23%'  │
+│ DABI    │ '11.48%' │
+│ DE      │ '9.80%'  │
+│ OR      │ '10.12%' │
+│ STRAT   │ '15.07%' │
+│ PROD    │ '11.66%' │
+│ FIN     │ '10.23%' │
+│ GOV     │ '10.57%' │
+└─────────┴──────────┘
+
+Nine targeted personas
+{
+  DABI: { top3: [ 'DABI', 'STRAT', 'GOV' ], primaryCorrect: true },
+  DS: { top3: [ 'DS', 'MLE', 'OR' ], primaryCorrect: true },
+  MLE: { top3: [ 'MLE', 'DS', 'DE' ], primaryCorrect: true },
+  DE: { top3: [ 'DE', 'MLE', 'DABI' ], primaryCorrect: true },
+  OR: { top3: [ 'OR', 'FIN', 'DS' ], primaryCorrect: true },
+  STRAT: { top3: [ 'STRAT', 'PROD', 'OR' ], primaryCorrect: true },
+  PROD: { top3: [ 'PROD', 'STRAT', 'DS' ], primaryCorrect: true },
+  FIN: { top3: [ 'FIN', 'GOV', 'OR' ], primaryCorrect: true },
+  GOV: { top3: [ 'GOV', 'DE', 'FIN' ], primaryCorrect: true }
+}
+
+Single-answer perturbation sensitivity
+┌─────────┬───────────────┬──────────────────┬───────────────┐
+│ (index) │ perturbations │ primaryRetention │ top3Retention │
+├─────────┼───────────────┼──────────────────┼───────────────┤
+│ DABI    │ 48            │ '100.0%'         │ '100.0%'      │
+│ DS      │ 48            │ '97.9%'          │ '100.0%'      │
+│ MLE     │ 48            │ '97.9%'          │ '100.0%'      │
+│ DE      │ 48            │ '100.0%'         │ '100.0%'      │
+│ OR      │ 48            │ '100.0%'         │ '100.0%'      │
+│ STRAT   │ 48            │ '100.0%'         │ '100.0%'      │
+│ PROD    │ 48            │ '97.9%'          │ '100.0%'      │
+│ FIN     │ 48            │ '97.9%'          │ '100.0%'      │
+│ GOV     │ 48            │ '100.0%'         │ '100.0%'      │
+└─────────┴───────────────┴──────────────────┴───────────────┘

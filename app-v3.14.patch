@@ -1,0 +1,557 @@
+--- /tmp/app.js	2026-07-23 10:14:15.112285538 +0000
++++ /tmp/app-v3.14.js	2026-07-23 10:35:25.800271231 +0000
+@@ -1,5 +1,5 @@
+ /* ==========================================================================
+-   資料科學分析地圖 | Data Matters — 判定演算法 v2
++   資料科學分析地圖 | Data Matters — 判定演算法 v3.14
+    配對計算在瀏覽器端完成；匿名操作事件與留言板由獨立模組處理。
+ 
+    三分數系統：
+@@ -159,7 +159,7 @@
+ }
+ 
+ /* ---------------------------------------------------------------------
+-   題庫 v2 — 18 題，三站
++   題庫 v3.14 — 18 題，三站
+    Station 1｜你想解決什麼問題（6）
+    Station 2｜你喜歡如何工作（7）
+    Station 3｜你想要什麼工作環境（5，不影響 Job Family）
+@@ -172,7 +172,7 @@
+ const STATION1_QUESTIONS = [
+   {
+     id: "major", type: "single", system: "background",
+-    text: "你的科系最接近哪一類？",
++    text: "你的科系或主要學習背景最接近哪一類？",
+     options: [
+       { label: "商管相關，課程常用程式（例如統計、資管、財工）",
+         background: { coding: 2, math_stats: 3, business_domain: 3, software_eng: 1 },
+@@ -186,53 +186,56 @@
+       { label: "理工相關，課程較少用程式（例如物理、材料、土木、生科）",
+         background: { coding: 1, math_stats: 3, business_domain: 1, software_eng: 1 },
+         industry: { "Manufacturing": 1, "Healthcare": 1 }, domain: { "Supply Chain": 1 } },
+-      { label: "人文、社會、教育、設計或其他科系",
++      { label: "人文、社會、教育、設計或其他背景",
+         background: { coding: 0, math_stats: 0, business_domain: 2, software_eng: 0 },
+         industry: { "Media": 1, "Education": 1 }, domain: { "Customer": 1 } }
+     ]
+   },
+   {
+     id: "coding_effort", type: "slider", system: "preference",
+-    text: "你願意花多少時間學會寫程式？",
+-    leftLabel: "先會用工具", rightLabel: "願意長期練習",
+-    high: [F.MLE, F.DE, F.DS], lowIsMeaningful: false
++    text: "你願意投入多少時間學習寫程式？",
++    leftLabel: "只學工作需要的基本操作", rightLabel: "願意持續練習與除錯",
++    high: { [F.MLE]: 0.9, [F.DE]: 0.9, [F.DS]: 0.6, [F.OR]: 0.35 },
++    lowIsMeaningful: false
+   },
+   {
+     id: "algorithm_effort", type: "slider", system: "preference",
+-    text: "使用一個工具時，你會想花多少力氣了解它怎麼運作？",
+-    leftLabel: "會用就好", rightLabel: "想深入了解",
+-    high: [F.MLE, F.OR, F.DS], lowIsMeaningful: false
++    text: "使用資料或 AI 工具時，你有多想了解背後的方法？",
++    leftLabel: "知道怎麼用就好", rightLabel: "想弄懂原理與限制",
++    high: { [F.MLE]: 0.9, [F.DS]: 0.9, [F.OR]: 0.7, [F.FIN]: 0.3 },
++    lowIsMeaningful: false
+   },
+   {
+-    id: "problem_type", type: "single", system: "preference", weight: 1.5,
+-    text: "哪一類問題最吸引你？",
++    id: "problem_type", type: "single", system: "preference",
++    text: "你最想解決哪一類問題？",
+     options: [
+-      { label: "找出發生了什麼、為什麼", family: { [F.DABI]: 2, [F.DS]: 1 } },
+-      { label: "預測接下來可能發生什麼", family: { [F.DS]: 2, [F.MLE]: 1 } },
+-      { label: "在時間、預算有限時找出更好的安排", family: { [F.OR]: 2 } },
+-      { label: "建立可重複使用的工具", family: { [F.DE]: 2 } },
+-      { label: "把需求變成流程或功能", family: { [F.PROD]: 2 } },
+-      { label: "找出錯誤、風險與不一致", family: { [F.GOV]: 2, [F.FIN]: 1 } }
++      { label: "看懂發生了什麼，並找出主要原因", family: { [F.DABI]: 2, [F.DS]: 0.5 } },
++      { label: "預測未來的需求、行為或事件", family: { [F.DS]: 2, [F.MLE]: 0.5 } },
++      { label: "在時間、預算或人力有限時，找出更好的安排", family: { [F.OR]: 2, [F.STRAT]: 0.5 } },
++      { label: "把使用者或團隊的需求變成可用功能", family: { [F.PROD]: 2, [F.STRAT]: 0.5 } },
++      { label: "找出資料、規則或決策中的錯誤與風險", family: { [F.GOV]: 1, [F.FIN]: 1 } }
+     ]
+   },
+   {
+     id: "system_type", type: "single", system: "preference",
+-    text: "如果要做一套工具，你比較想做？",
++    text: "如果團隊要做一個資料工具，你最想負責哪一段？",
+     options: [
+-      { label: "整理資料並自動更新", family: { [F.DE]: 2 } },
+-      { label: "讓系統自動提供推薦或答案", family: { [F.MLE]: 2 } },
+-      { label: "讓團隊快速看懂現況", family: { [F.DABI]: 2, [F.DE]: 1 } },
+-      { label: "把需求變成可用功能", family: { [F.PROD]: 2 } }
++      { label: "整理原始資料，讓資料固定自動更新", family: { [F.DE]: 2 } },
++      { label: "建立預測或推薦功能，讓模型穩定運作", family: { [F.MLE]: 2, [F.DS]: 0.5 } },
++      { label: "設計指標與看板，讓團隊快速看懂現況", family: { [F.DABI]: 2 } },
++      { label: "確認使用需求，設計功能與操作流程", family: { [F.PROD]: 2, [F.STRAT]: 0.5 } },
++      { label: "訂出資料定義、品質檢查與使用權限", family: { [F.GOV]: 2, [F.FIN]: 0.25 } }
+     ]
+   },
+   {
+     id: "math_pref", type: "single", system: "preference",
+-    text: "哪種問題比較吸引你？",
++    text: "遇到需要用資料判斷的問題時，你最想用哪種方法？",
+     options: [
+-      { label: "預測需求、風險或行為", family: { [F.DS]: 2 } },
+-      { label: "在成本與時間有限時找出更好的方案", family: { [F.OR]: 2 } },
+-      { label: "衡量某個行動是否真的有效", family: { [F.DS]: 1, [F.PROD]: 1 } },
+-      { label: "先把現況解釋清楚", family: { [F.DABI]: 2 } }
++      { label: "比較趨勢與不同群體，拆解變化原因", family: { [F.DABI]: 2 } },
++      { label: "建立統計或機器學習模型，預測未來", family: { [F.DS]: 2, [F.MLE]: 0.25 } },
++      { label: "設計對照測試，確認改變是否真的有效", family: { [F.DS]: 1.25, [F.PROD]: 0.75, [F.DABI]: 0.5 } },
++      { label: "用模擬或最佳化，在限制下找出較好的方案", family: { [F.OR]: 2 } },
++      { label: "估算不同情境下的金錢影響與風險", family: { [F.FIN]: 2, [F.STRAT]: 0.5, [F.OR]: 0.25 } }
+     ]
+   }
+ ];
+@@ -240,95 +243,100 @@
+ const STATION2_QUESTIONS = [
+   {
+     id: "work_result", type: "single", system: "preference",
+-    text: "活動報名率很低，你比較想先做什麼？",
++    text: "活動報名率很低，你最想先做什麼？",
+     options: [
+-      { label: "找出原因並提出建議", family: { [F.DABI]: 2 } },
+-      { label: "直接做出改善方案並測試", family: { [F.PROD]: 2 } },
+-      { label: "設計一個預測或驗證方法", family: { [F.DS]: 2 } },
+-      { label: "整理資料，讓之後能重複使用", family: { [F.DE]: 2 } }
++      { label: "查看流程與不同族群，找出在哪一步流失", family: { [F.DABI]: 2 } },
++      { label: "和使用者及主辦人聊聊，先確認真正問題", family: { [F.PROD]: 1.25, [F.STRAT]: 1.25 } },
++      { label: "提出一個小改動，設計測試確認是否有效", family: { [F.PROD]: 1, [F.DS]: 1.25 } },
++      { label: "先檢查追蹤資料，再把報表更新自動化", family: { [F.DE]: 1.25, [F.GOV]: 0.75 } },
++      { label: "估算預算、容量與執行影響，再排優先順序", family: { [F.STRAT]: 1, [F.OR]: 0.75, [F.FIN]: 0.75 } }
+     ]
+   },
+   {
+     id: "output_pref", type: "single", system: "preference",
+-    text: "一個月後，你最想完成什麼？",
++    text: "一個月後，你最想交付哪一種成果？",
+     options: [
+-      { label: "一份能幫助決策的分析", family: { [F.DABI]: 2, [F.STRAT]: 1 } },
+-      { label: "一個可驗證的模型或測試", family: { [F.DS]: 2 } },
+-      { label: "一套穩定運行的工具", family: { [F.DE]: 2, [F.MLE]: 1 } },
+-      { label: "一個真正上線的功能或流程", family: { [F.PROD]: 2 } },
+-      { label: "一套品質或風險規則", family: { [F.GOV]: 2, [F.FIN]: 1 } },
+-      { label: "一個更好的資源安排", family: { [F.OR]: 2 } }
++      { label: "一份清楚的分析與行動建議", family: { [F.DABI]: 1.5, [F.STRAT]: 1 } },
++      { label: "一個經過驗證的模型或實驗結果", family: { [F.DS]: 1.75, [F.PROD]: 0.5 } },
++      { label: "一套能穩定自動運作的資料或 AI 系統", family: { [F.DE]: 1.25, [F.MLE]: 1.25 } },
++      { label: "一個真正上線的功能或工作流程", family: { [F.PROD]: 2, [F.STRAT]: 0.5 } },
++      { label: "一個在限制下可執行的排程或資源方案", family: { [F.OR]: 2, [F.FIN]: 0.25 } }
+     ]
+   },
+   {
+     id: "responsibility", type: "single", system: "preference",
+-    text: "哪一種工作責任最吸引你？",
++    text: "你最想對哪一件事負責到底？",
+     options: [
+-      { label: "找出資料或流程錯誤", family: { [F.GOV]: 2 } },
+-      { label: "找出可能造成損失的風險", family: { [F.FIN]: 2 } },
+-      { label: "找到可以成長的機會", family: { [F.PROD]: 1, [F.DABI]: 1 } },
+-      { label: "找出流程中的浪費", family: { [F.OR]: 1, [F.STRAT]: 1 } }
++      { label: "資料定義、品質與使用規則都正確", family: { [F.GOV]: 2 } },
++      { label: "金錢損失、預算或風險受到控制", family: { [F.FIN]: 2 } },
++      { label: "自動化結果上線後仍準確、穩定而且可維護", family: { [F.MLE]: 1, [F.DE]: 1, [F.DS]: 0.25 } },
++      { label: "功能真的解決使用者的問題", family: { [F.PROD]: 2 } },
++      { label: "不同團隊對目標與優先順序有共識", family: { [F.STRAT]: 2, [F.PROD]: 0.25 } }
+     ]
+   },
+   {
+     id: "stakeholder_freq", type: "slider", system: "preference",
+-    text: "事情卡住時，你比較喜歡怎麼釐清問題？",
+-    leftLabel: "先自己研究", rightLabel: "和相關的人一起確認",
+-    high: { [F.STRAT]: 1, [F.PROD]: 1, [F.FIN]: 1, [F.DABI]: 0.5 },
+-    lowIsMeaningful: false // 低互動偏好只記錄，不自動推向 DS / Engineering
++    text: "問題還不清楚時，你比較喜歡怎麼釐清？",
++    leftLabel: "先自己查資料與研究", rightLabel: "和相關的人一起確認需求",
++    high: { [F.STRAT]: 0.9, [F.PROD]: 0.8, [F.DABI]: 0.5, [F.FIN]: 0.3 },
++    lowIsMeaningful: false
+   },
+   {
+     id: "deep_focus", type: "slider", system: "preference",
+-    text: "你有多享受長時間自己研究或動手完成一件事？",
+-    leftLabel: "不太享受", rightLabel: "很享受",
+-    high: [F.DS, F.MLE, F.DE, F.OR], lowIsMeaningful: false
++    text: "你有多享受長時間專注處理同一個難題？",
++    leftLabel: "喜歡快速切換不同事情", rightLabel: "喜歡持續鑽研到解開",
++    high: { [F.DS]: 0.8, [F.MLE]: 0.8, [F.DE]: 0.7, [F.OR]: 0.7, [F.FIN]: 0.3 },
++    lowIsMeaningful: false
+   },
+   {
+     id: "ambiguity", type: "slider", system: "preference",
+-    text: "遇到沒有標準答案的問題時，你會？",
+-    leftLabel: "希望先有清楚流程", rightLabel: "喜歡自己找方向",
+-    high: [F.DS, F.PROD, F.STRAT, F.OR],
+-    lowIsMeaningful: true, low: [F.DE, F.GOV, F.DABI], lowWeight: 0.5
++    text: "面對還沒有明確答案的任務，你偏好哪種方式？",
++    leftLabel: "先有清楚問題與做法", rightLabel: "願意邊探索邊定義問題",
++    high: { [F.STRAT]: 0.9, [F.PROD]: 0.8, [F.DS]: 0.6, [F.OR]: 0.5 },
++    lowIsMeaningful: true,
++    low: { [F.DE]: 0.4, [F.GOV]: 0.5, [F.DABI]: 0.3, [F.FIN]: 0.25 },
++    lowWeight: 1
+   },
+   {
+     id: "stable_delivery", type: "slider", system: "preference",
+-    text: "你有多喜歡把成果做得穩定，之後能一直使用？",
+-    leftLabel: "不太在意", rightLabel: "很有成就感",
+-    high: [F.DE, F.GOV, F.DABI, F.MLE], lowIsMeaningful: false
++    text: "你有多在意成果能長期穩定重複使用？",
++    leftLabel: "先解決這一次就好", rightLabel: "希望之後能一直可靠運作",
++    high: { [F.DE]: 0.9, [F.GOV]: 0.8, [F.MLE]: 0.6, [F.DABI]: 0.4, [F.FIN]: 0.35 },
++    lowIsMeaningful: false
+   }
+ ];
+ 
+ const STATION3_QUESTIONS = [
+   {
+     id: "income", type: "slider", system: "environment", env: "compensation",
+-    text: "你對收入的期待是？",
+-    leftLabel: "穩定夠用", rightLabel: "追求更高上限",
++    text: "選工作時，你有多重視收入成長空間？",
++    leftLabel: "穩定夠用即可", rightLabel: "追求更高的收入上限",
+     industryHigh: ["Technology", "Financial Services"]
+   },
+   {
+     id: "prestige", type: "slider", system: "environment", env: "prestige",
+-    text: "公司名氣與職稱對你重要嗎？",
++    text: "公司名氣或職稱對你有多重要？",
+     leftLabel: "不太重要", rightLabel: "非常重要",
+     industryHigh: ["Consulting", "Financial Services"]
+   },
+   {
+     id: "security", type: "slider", system: "environment", env: "stability",
+     text: "你有多重視工作穩定？",
+-    leftLabel: "能接受變動", rightLabel: "希望高度穩定",
++    leftLabel: "能接受組織與工作變動", rightLabel: "希望工作高度穩定",
+     industryHighAtMax: ["Government", "Education", "Insurance", "Healthcare"],
+     industryHighAtMin: ["Technology"]
+   },
+   {
+     id: "worklife", type: "slider", system: "environment", env: "worklife",
+-    text: "你多重視工作與生活平衡？",
+-    leftLabel: "必要時可以忙一陣子", rightLabel: "生活平衡很重要",
++    text: "你有多重視下班後仍保有自己的時間？",
++    leftLabel: "忙碌期可以常加班", rightLabel: "希望大多數時間能準時收工",
+     industryHighAtMax: ["Government", "Education"],
+     industryHighAtMin: ["Consulting", "Financial Services", "Technology"]
+   },
+   {
+     id: "intensity", type: "slider", system: "environment", env: "intensity",
+-    text: "你能接受多快、多忙的工作節奏？",
+-    leftLabel: "穩定可預期", rightLabel: "經常需要加快步調",
++    text: "你偏好哪一種工作節奏？",
++    leftLabel: "任務固定、變化較少", rightLabel: "優先順序常變、需要快速反應",
+     industryHigh: ["Consulting", "Financial Services"]
+   }
+ ];
+@@ -344,51 +352,53 @@
+    環境（收入/名聲/穩定/平衡/強度）與科系「不得」成為推薦理由。
+ --------------------------------------------------------------------- */
+ const REASON_TEXT = {
+-  coding_effort:   { high: "你願意花時間累積程式能力" },
+-  algorithm_effort:{ high: "你想了解工具背後怎麼運作" },
+-  stakeholder_freq:{ high: "你喜歡和大家討論、一起做決定" },
+-  deep_focus:      { high: "你享受長時間專注做一件事" },
+-  ambiguity:       { high: "你喜歡沒有標準答案、自己摸索的問題", low: "你偏好方向明確、流程清楚的任務" },
+-  stable_delivery: { high: "你喜歡把成果做得穩定、可以重複使用" },
++  coding_effort:   { high: "你願意持續練習程式與除錯" },
++  algorithm_effort:{ high: "你想理解資料與 AI 方法背後的原理和限制" },
++  stakeholder_freq:{ high: "你喜歡和相關的人一起確認需求" },
++  deep_focus:      { high: "你享受長時間專注處理同一個難題" },
++  ambiguity:       { high: "你願意邊探索邊定義問題", low: "你偏好問題與做法先說清楚" },
++  stable_delivery: { high: "你在意成果能長期穩定重複使用" },
+   problem_type: [
+-    "你喜歡找出事情背後的原因",
+-    "你喜歡預測接下來會發生什麼",
+-    "你喜歡在資源有限時找出更好的安排",
+-    "你喜歡建立能自動整理資料的工具",
+-    "你喜歡把需求變成流程和作品",
+-    "你喜歡找出錯誤與風險"
++    "你想先看懂發生了什麼與主要原因",
++    "你對預測未來的需求或行為有興趣",
++    "你喜歡在限制下找出更好的安排",
++    "你想把需求變成能使用的功能",
++    "你在意資料、規則或決策中的錯誤與風險"
+   ],
+   system_type: [
+-    "你想做讓資料自動整理與更新的工具",
+-    "你想做會推薦或回答問題的人工智慧（AI）系統",
+-    "你想做讓大家一看就懂的數據看板",
+-    "你想做支撐活動與產品運作的流程"
++    "你想讓資料整理與更新自動運作",
++    "你想把預測或推薦模型做成可用系統",
++    "你想設計指標與看板，讓團隊看懂現況",
++    "你想先確認需求，再設計功能與流程",
++    "你想建立資料定義、品質檢查與權限規則"
+   ],
+   math_pref: [
+-    "用過去資料預測未來最吸引你",
+-    "在限制下找出更好的計畫最吸引你",
+-    "你在意驗證改變是不是真的有效",
+-    "你擅長把複雜的事解釋到大家都懂"
++    "你喜歡比較趨勢與群體，拆解變化原因",
++    "你想用模型預測未來",
++    "你想用實驗確認改變是否有效",
++    "你想用模擬或最佳化找出更好的方案",
++    "你想評估不同情境下的金錢影響與風險"
+   ],
+   work_result: [
+-    "你想負責找出原因並提出建議",
+-    "你想負責規劃流程、讓大家順利完成",
+-    "你想負責預測與實驗的部分",
+-    "你想負責整理資料、建立共用系統"
++    "你會先拆解流程與族群，找出流失原因",
++    "你會先和使用者及團隊確認真正問題",
++    "你想用小規模測試驗證改善方式",
++    "你會先檢查資料，再把更新流程自動化",
++    "你會評估預算、容量與執行影響"
+   ],
+   output_pref: [
+-    "你想拿出一份能幫助決策的分析",
+-    "你想拿出一個可驗證的模型或測試",
+-    "你想拿出一套自動運作的系統",
+-    "你想拿出一個正式上線的作品",
+-    "你想建立一套品質或風險規則",
+-    "你想排出一個更好的資源安排"
++    "你想交付一份清楚的分析與行動建議",
++    "你想交付經過驗證的模型或實驗結果",
++    "你想交付能穩定自動運作的資料或 AI 系統",
++    "你想交付真正上線的功能或工作流程",
++    "你想交付可執行的排程或資源方案"
+   ],
+   responsibility: [
+-    "你願意負責把關資料與流程品質",
+-    "你願意負責金錢與風險評估",
+-    "你想找出讓更多人參與、成長的機會",
+-    "你想讓流程更快、更省資源"
++    "你願意對資料定義、品質與使用規則負責",
++    "你願意對金錢損失、預算與風險負責",
++    "你願意對自動化結果上線後的準確與穩定負責",
++    "你在意功能是否真的解決使用者問題",
++    "你願意協調不同團隊的目標與優先順序"
+   ]
+ };
+ 
+@@ -396,11 +406,11 @@
+    六邊形「工作偏好輪廓」— 全部由 preference 題換算（1–5）
+ --------------------------------------------------------------------- */
+ const HEX_AXES = [
+-  { label: "商業決策", calc: a => clamp15(2 + (a.problem_type === 4 ? 1 : 0) + ((a.output_pref === 0 || a.output_pref === 3) ? 1 : 0) + (a.responsibility === 2 ? 1 : 0)) },
+-  { label: "資料分析", calc: a => clamp15(2 + (a.problem_type === 0 ? 1 : 0) + (a.work_result === 0 ? 1 : 0) + (a.math_pref === 3 ? 1 : 0)) },
++  { label: "商業決策", calc: a => clamp15(2 + (a.problem_type === 3 ? 1 : 0) + ((a.output_pref === 0 || a.output_pref === 3) ? 1 : 0) + (a.responsibility === 4 ? 1 : 0)) },
++  { label: "資料分析", calc: a => clamp15(2 + (a.problem_type === 0 ? 1 : 0) + (a.work_result === 0 ? 1 : 0) + (a.math_pref === 0 ? 1 : 0)) },
+   { label: "程式投入", calc: a => clamp15(a.coding_effort ?? 3) },
+-  { label: "模型研究", calc: a => clamp15((a.algorithm_effort ?? 3) + ((a.math_pref === 0 || a.math_pref === 1) ? 1 : 0) + (a.problem_type === 1 ? 1 : 0) - 1 + 1) },
+-  { label: "系統建構", calc: a => clamp15(2 + ((a.system_type === 0 || a.system_type === 1) ? 1 : 0) + (a.output_pref === 2 ? 1 : 0) + Math.max(0, (a.coding_effort ?? 3) - 3)) },
++  { label: "模型研究", calc: a => clamp15((a.algorithm_effort ?? 3) + ((a.math_pref === 1 || a.math_pref === 2) ? 1 : 0) + (a.problem_type === 1 ? 1 : 0)) },
++  { label: "系統建構", calc: a => clamp15(2 + ((a.system_type === 0 || a.system_type === 1) ? 1 : 0) + (a.output_pref === 2 ? 1 : 0) + (a.responsibility === 2 ? 1 : 0)) },
+   { label: "跨部門協作", calc: a => clamp15(a.stakeholder_freq ?? 3) }
+ ];
+ function clamp15(v){ return Math.max(1, Math.min(5, Math.round(v))); }
+@@ -541,7 +551,7 @@
+ };
+ 
+ /* ---------------------------------------------------------------------
+-   Scoring v2
++   Scoring v3.14
+ --------------------------------------------------------------------- */
+ function addContrib(family, qid, amount, dir){
+   if (amount <= 0) return;
+@@ -561,6 +571,54 @@
+   }
+ }
+ 
++const ROLE_TIE_BREAK = [F.DABI, F.PROD, F.STRAT, F.DS, F.DE, F.OR, F.MLE, F.FIN, F.GOV];
++
++function targetWeight(target, famKey){
++  if (!target) return 0;
++  if (Array.isArray(target)) return target.includes(famKey) ? 1 : 0;
++  return Number(target[famKey] || 0);
++}
++
++function maxPossiblePreferenceScore(famKey){
++  let total = 0;
++  Object.values(STATIONS).flat().forEach(q => {
++    if (q.system !== "preference") return;
++    if (q.type === "single"){
++      const w = q.weight || 1;
++      const best = Math.max(0, ...q.options.map(opt => Number((opt.family && opt.family[famKey]) || 0) * w));
++      total += best;
++      return;
++    }
++    const high = 2 * targetWeight(q.high, famKey);
++    const low = 2 * (q.lowWeight ?? 0.5) * targetWeight(q.low, famKey);
++    total += Math.max(high, low);
++  });
++  return total;
++}
++
++function roleEvidenceCount(famKey){
++  return new Set((State.contrib[famKey] || []).filter(x => x.amount > 0).map(x => x.qid)).size;
++}
++
++function calibratedRoleScore(famKey){
++  const raw = State.preferenceScores[famKey] || 0;
++  const maxPossible = maxPossiblePreferenceScore(famKey);
++  const normalized = maxPossible > 0 ? (raw / maxPossible) * 10 : 0;
++  const consistencyBonus = Math.min(roleEvidenceCount(famKey), 4) * 0.45;
++  return normalized + consistencyBonus;
++}
++
++function rankFamilies(){
++  const allZero = FAMILIES.every(f => (State.preferenceScores[f] || 0) === 0);
++  if (allZero) return ROLE_TIE_BREAK.slice();
++  return FAMILIES.slice().sort((a, b) =>
++    calibratedRoleScore(b) - calibratedRoleScore(a) ||
++    roleEvidenceCount(b) - roleEvidenceCount(a) ||
++    State.preferenceScores[b] - State.preferenceScores[a] ||
++    ROLE_TIE_BREAK.indexOf(a) - ROLE_TIE_BREAK.indexOf(b)
++  );
++}
++
+ function applyPrefSlider(q, value){
+   // 只有明確偏好（>=4）才加分；低分只有在 lowIsMeaningful 時才代表另一種偏好
+   if (value >= 4 && q.high) addPref(q.high, q.id, value - 3, "high");
+@@ -640,28 +698,27 @@
+ }
+ 
+ /* ---------------------------------------------------------------------
+-   Top 3 路線 v2：最適合 / 鄰近（adjacency）/ 挑戰（gap+aspiration）
++   Top 3 路線 v3.14：最適合 / 鄰近（adjacency）/ 挑戰（gap+aspiration）
+ --------------------------------------------------------------------- */
+ function pickRoutes(){
+-  const ranked = FAMILIES.slice().sort((a,b) => State.preferenceScores[b] - State.preferenceScores[a]);
++  const ranked = rankFamilies();
+   const main = ranked[0];
+ 
+-  // 鄰近：從 adjacency 候選中取偏好分數最高者
++  // 鄰近：從 adjacency 候選中取校準後分數最高者
+   const adjacency = (FAMILY_ADJACENCY[main] || []).filter(f => f !== main);
+   let near = adjacency.length
+-    ? adjacency.slice().sort((a,b) => State.preferenceScores[b] - State.preferenceScores[a])[0]
++    ? adjacency.slice().sort((a,b) => calibratedRoleScore(b) - calibratedRoleScore(a))[0]
+     : ranked[1];
+ 
+-  // 挑戰：challengeScore = preference - backgroundGapPenalty + aspirationBonus
++  // 挑戰：偏好校準分數 - 起點差距 + 技術投入意願
+   const a = State.answers;
+-  const aspiration = (Math.max(0, (a.coding_effort ?? 3) - 3) + Math.max(0, (a.algorithm_effort ?? 3) - 3)) * 0.5;
++  const aspiration = (Math.max(0, (a.coding_effort ?? 3) - 3) + Math.max(0, (a.algorithm_effort ?? 3) - 3)) * 0.35;
+   const candidates = FAMILIES.filter(f => f !== main && f !== near);
+   let challenge = null, bestScore = -Infinity;
+   for (const f of candidates){
+-    const pref = State.preferenceScores[f];
+-    if (pref <= 0) continue;
++    if ((State.preferenceScores[f] || 0) <= 0) continue;
+     const { gapSum } = backgroundGap(f);
+-    const score = pref - gapSum * 0.5 + (TECH_FAMILIES.has(f) ? aspiration : 0);
++    const score = calibratedRoleScore(f) - gapSum * 0.35 + (TECH_FAMILIES.has(f) ? aspiration : 0);
+     if (score > bestScore){ bestScore = score; challenge = f; }
+   }
+   if (!challenge) challenge = ranked.find(f => f !== main && f !== near) || ranked[2];
+@@ -681,25 +738,35 @@
+   const prefQs = Object.values(STATIONS).flat().filter(q => q.system === "preference");
+   const coverage = prefQs.filter(q => State.answers[q.id] !== undefined).length / prefQs.length;
+ 
+-  const sorted = FAMILIES.map(f => State.preferenceScores[f]).sort((a,b) => b-a);
+-  const [s1, s2, s3] = [sorted[0], sorted[1], sorted[2]];
+-  const spread = s1 - sorted[sorted.length - 1];
++  const ranked = rankFamilies();
++  const main = ranked[0], second = ranked[1], third = ranked[2];
++  const topRaw = State.preferenceScores[main] || 0;
++  const topEvidence = roleEvidenceCount(main);
++  const margin = calibratedRoleScore(main) - calibratedRoleScore(second);
++  const topThreeSpread = calibratedRoleScore(main) - calibratedRoleScore(third);
+ 
+   const triggers = [];
+-  if (neutralRatio > 0.5) triggers.push("多數偏好題回答接近中間值");
+-  if (s1 - s3 < 2) triggers.push("前三名分數非常接近");
+-  if (s1 < 4) triggers.push("有效偏好訊號不足");
+-  if (spread < 4) triggers.push("各職能分數差距很小");
+-
+-  let score = 30 + 25 * (1 - neutralRatio) + Math.min(20, Math.max(0, s1 - s2) * 5)
+-            + Math.min(15, Math.max(0, s1) * 1.5) + 10 * coverage;
++  if (coverage < 0.5) triggers.push("偏好題作答不足一半");
++  if (neutralRatio > 0.5) triggers.push("多數滑桿回答接近中間值");
++  if (topEvidence < 2) triggers.push("第一名只有單一題支持");
++  if (topRaw < 3) triggers.push("有效偏好訊號不足");
++  if (margin < 0.6) triggers.push("第一與第二名非常接近");
++  if (topThreeSpread < 1.2) triggers.push("前三名差距很小");
++
++  let score = 20 + 20 * (1 - neutralRatio) + 20 * coverage
++            + Math.min(20, topEvidence * 5)
++            + Math.min(15, Math.max(0, margin) * 5)
++            + Math.min(10, topRaw);
+   score = Math.round(Math.max(0, Math.min(100, score)));
+ 
+-  const matchLevel = (score >= 70 && s1 >= 6) ? "High" : (score >= 45 ? "Medium" : "Low");
+-  const clarity = (triggers.length === 0 && s1 - s2 >= 2) ? "Clear"
+-    : (triggers.length <= 1 ? "Mixed" : "Exploratory");
++  const matchLevel = (score >= 72 && topRaw >= 5 && topEvidence >= 3 && margin >= 0.8)
++    ? "High"
++    : (score >= 45 && topRaw >= 3 && topEvidence >= 2 ? "Medium" : "Low");
++  const clarity = matchLevel === "High" && margin >= 1.2
++    ? "Clear"
++    : (matchLevel === "Low" ? "Exploratory" : "Mixed");
+ 
+-  return { score, matchLevel, clarity, triggers, lowConfidence: triggers.length >= 1 };
++  return { score, matchLevel, clarity, triggers, lowConfidence: matchLevel === "Low" };
+ }
+ 
+ const MATCH_ZH = { High: "高", Medium: "中", Low: "低" };
+@@ -707,10 +774,12 @@
+ 
+ /* 各路線的配對程度（高/中/低），非能力分數 */
+ function routeMatchLevel(famKey){
+-  const s1 = Math.max(...FAMILIES.map(f => State.preferenceScores[f]));
+-  const s = State.preferenceScores[famKey];
+-  if (s >= Math.max(6, 0.8 * s1) && State.confidence.matchLevel !== "Low") return "High";
+-  if (s >= 3) return "Medium";
++  const top = Math.max(...FAMILIES.map(f => calibratedRoleScore(f)));
++  const score = calibratedRoleScore(famKey);
++  const raw = State.preferenceScores[famKey] || 0;
++  const evidence = roleEvidenceCount(famKey);
++  if (evidence >= 3 && raw >= 5 && score >= 0.8 * top && State.confidence.matchLevel !== "Low") return "High";
++  if (evidence >= 2 && raw >= 2.5) return "Medium";
+   return "Low";
+ }
+ 
+@@ -782,7 +851,7 @@
+   if ((a.ambiguity ?? 3) >= 4) tags.push("喜歡定義問題");
+   else if ((a.ambiguity ?? 3) <= 2) tags.push("重視明確需求");
+   if ((a.stable_delivery ?? 3) >= 4) tags.push("重視穩定交付");
+-  const ptTags = ["喜歡找出原因","預測導向","最佳化思維","喜歡建立共用工具","喜歡改善產品流程","品質風險意識"];
++  const ptTags = ["喜歡找出原因","預測導向","最佳化思維","喜歡改善產品流程","品質風險意識"];
+   if (a.problem_type !== undefined) tags.push(ptTags[a.problem_type]);
+   return tags.slice(0, 4);
+ }
+@@ -1101,7 +1170,7 @@
+     track(APP_EVENTS.RESULT_VIEWED, {
+       role_id: main, recommendation_rank: 1,
+       top_role_id: main, second_role_id: near, third_role_id: challenge,
+-      result_count: 3, scoring_version: (window.ANALYTICS_CONFIG && window.ANALYTICS_CONFIG.SCORING_VERSION) || "v2"
++      result_count: 3, scoring_version: (window.ANALYTICS_CONFIG && window.ANALYTICS_CONFIG.SCORING_VERSION) || "v3.14-calibrated"
+     });
+ 
+     Nav.show("results");
+@@ -1125,7 +1194,7 @@
+         <div class="tag-row profile-tags">${tags.map(t => `<span class="profile-tag">${t}</span>`).join("")}</div>
+         <div class="confidence-row">
+           結果清晰度：<b>${CLARITY_ZH[c.clarity]}</b>｜配對信心：<b>${MATCH_ZH[c.matchLevel]}</b>
+-          <span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">信心分數 ${c.score}／100，綜合「非中立回答比例、第一與第二名差距、有效作答覆蓋度」計算，僅供參考，不是心理量表。</span></span>
++          <span class="info-tip" tabindex="0">ⓘ<span class="info-bubble">信心分數 ${c.score}／100，綜合「非中立回答比例、作答覆蓋度、支持題數與前三名差距」計算，僅供參考，不是心理量表。</span></span>
+         </div>
+         ${banner}
+         <details class="method-details">
+@@ -1137,7 +1206,7 @@
+         </details>
+         <details class="method-details">
+           <summary>結果怎麼算？</summary>
+-          <p>依你的回答，計算與九種角色「工作內容偏好」的相似程度，取前三名。這是探索工具，不是能力、人格或錄用測驗；科系與環境偏好不影響排名。</p>
++          <p>依你的回答累積工作偏好證據，再校正九種角色可取得的分數機會，取前三名。這是探索工具，不是能力、人格或錄用測驗；科系與環境偏好不影響排名。</p>
+         </details>
+       </div>`;
+   },
