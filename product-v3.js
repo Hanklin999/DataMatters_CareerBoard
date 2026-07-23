@@ -427,6 +427,11 @@
   /* ------------------------------------------------------------------
      Work-focus map with explicit, non-overlapping positions.
   ------------------------------------------------------------------ */
+  const MAP_SHORT_LABELS = {
+    [F.STRAT]: "策略顧問", [F.FIN]: "風險量化", [F.GOV]: "資料治理",
+    [F.PROD]: "產品系統", [F.OR]: "作業研究", [F.DE]: "資料工程",
+    [F.DABI]: "資料分析", [F.DS]: "資料科學", [F.MLE]: "ML／AI 工程"
+  };
   const MAP_POSITIONS = {
     [F.STRAT]: { x:22, y:18 }, [F.FIN]: { x:18, y:38 }, [F.GOV]: { x:55, y:18 },
     [F.PROD]: { x:76, y:28 }, [F.OR]: { x:43, y:48 }, [F.DE]: { x:76, y:52 },
@@ -436,7 +441,8 @@
     const profiles = State.careers.meta.family_profiles;
     document.getElementById("spectrum-plot").innerHTML = Object.entries(profiles).map(([famKey,p]) => {
       const pos = MAP_POSITIONS[famKey] || {x:50,y:50};
-      return `<button type="button" class="map-node" style="left:${pos.x}%;top:${pos.y}%;background:none;border:0;color:inherit" title="${escapeHTML(p.class_title)}｜${escapeHTML(p.cn_name)}" onclick="Encyclopedia.openFamily('${String(famKey).replace(/'/g,"\\'")}')">${iconDotHTML(p)}<span class="map-label">${escapeHTML(p.cn_name)}</span></button>`;
+      const shortLabel = MAP_SHORT_LABELS[famKey] || p.cn_name;
+      return `<button type="button" class="map-node" style="left:${pos.x}%;top:${pos.y}%;background:none;border:0;color:inherit" title="${escapeHTML(p.class_title)}｜${escapeHTML(p.cn_name)}" onclick="Encyclopedia.openFamily('${String(famKey).replace(/'/g,"\\'")}')">${iconDotHTML(p)}<span class="map-label"><span class="map-label-full">${escapeHTML(p.cn_name)}</span><span class="map-label-short">${escapeHTML(shortLabel)}</span></span></button>`;
     }).join("") + `<span class="quadrant-label q-tl">決策與規劃</span><span class="quadrant-label q-tr">平台與制度</span><span class="quadrant-label q-bl">分析與洞察</span><span class="quadrant-label q-br">產品與執行</span>`;
   };
 

@@ -874,6 +874,21 @@ function radarSVG(values, axes, color, size){
     </svg>`;
 }
 
+const TECH_DEPTH_COPY = {
+  [F.DABI]: "需要 SQL、報表與把數據說清楚的能力。",
+  [F.DS]: "需要 Python、統計建模與解釋模型結果的能力。",
+  [F.MLE]: "需要機器學習、軟體工程與模型上線能力。",
+  [F.DE]: "需要 SQL、資料建模與穩定維護資料流程的能力。",
+  [F.OR]: "需要數學建模、最佳化與程式實作能力。",
+  [F.STRAT]: "需要問題拆解、商業判斷與溝通推動能力。",
+  [F.PROD]: "需要需求拆解、流程設計與跨部門協作能力。",
+  [F.FIN]: "需要財務風險、統計分析與程式能力。",
+  [F.GOV]: "需要資料品質、規則設計與跨部門治理能力。"
+};
+function technicalDepthCopy(famKey){
+  return TECH_DEPTH_COPY[famKey] || "需要能獨立完成這類工作的核心工具與方法。";
+}
+
 /* ---------------------------------------------------------------------
    共用角色詳細內容（結果頁與圖鑑共用）
    ctx（僅結果頁）= { routeLabel, matchLevel, reasons, background, envLines,
@@ -936,18 +951,18 @@ function familyDetailHTML(famKey, ctx){
         <div class="official-zh" style="font-size:19px;">${p.cn_name}</div>
         <div class="official-en">${p.en_name}</div>
         <div class="rpg-badge">「${p.class_title}」</div>
-        <div class="stat-chips">
-          <span class="chip">${p.tlevel_range || ""} 技術深度</span>
-          <span class="chip">${"★".repeat(p.technical_stars)}</span>
-          ${p.salary_taiwan ? `<span class="chip">💰 有公開薪資</span>` : ""}
+        <div class="tech-depth-summary" aria-label="技術深度 ${p.tlevel_range || "依職缺而定"}">
+          <strong>技術深度：${p.tlevel_range || "依職缺而定"}</strong>
+          <span>${technicalDepthCopy(famKey)}</span>
         </div>
+        ${p.salary_taiwan ? `<div class="stat-chips"><span class="chip">💰 有公開薪資</span></div>` : ""}
         ${matchBlock}
       </div>
     </div>
 
-    <div class="detail-block">
-      <div class="detail-label">這份工作在做什麼</div>
-      <div class="detail-value">${p.role_description}</div>
+    <div class="detail-block role-one-line">
+      <div class="detail-label">一句話看懂</div>
+      <div class="detail-value">${p.tagline || p.role_description}</div>
     </div>
 
     ${reasonsBlock}

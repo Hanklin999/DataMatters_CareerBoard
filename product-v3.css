@@ -468,3 +468,97 @@ button.result-hero-art:focus-visible{outline:3px solid var(--accent);outline-off
     max-width:330px!important;
   }
 }
+
+/* v3.11: concise role detail and mobile-first work-focus map. */
+.tech-depth-summary{
+  display:grid;
+  gap:4px;
+  width:min(100%,560px);
+  margin-top:14px;
+  padding:12px 14px;
+  border:1px solid color-mix(in srgb,var(--fam-color,var(--accent)) 44%,var(--border));
+  border-radius:14px;
+  background:color-mix(in srgb,var(--fam-color,var(--accent)) 8%,transparent);
+  line-height:1.45;
+}
+.tech-depth-summary strong{color:var(--text);font-size:14px}
+.tech-depth-summary span{color:var(--sub);font-size:13px}
+.family-detail-head .stat-chips{margin-top:10px}
+.role-one-line .detail-value{font-size:16px;line-height:1.65}
+
+.focus-mobile-y-guide{display:none}
+.map-label-short{display:none}
+
+@media(max-width:800px){
+  .tech-depth-summary{width:100%;margin-top:12px;padding:11px 12px;text-align:left}
+  .tech-depth-summary strong{font-size:13px}
+  .tech-depth-summary span{font-size:12px;line-height:1.5}
+
+  .focus-map-section{margin-top:42px}
+  .focus-map-section .focus-map-layout{display:block;max-width:100%;margin:0}
+  .focus-y-axis{display:none!important}
+  .focus-map-main{display:block!important;width:100%;min-width:0}
+  .focus-mobile-y-guide{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin:0 0 10px;
+    color:var(--sub);
+    font-size:11px;
+  }
+  .focus-mobile-y-guide span{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:7px 9px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    background:rgba(255,255,255,.035);
+  }
+  .focus-mobile-y-guide b{color:var(--accent);font-size:12px}
+  .focus-map-section .focus-plot{
+    width:100%!important;
+    height:min(118vw,450px)!important;
+    min-height:410px!important;
+    margin:0!important;
+    border-radius:18px;
+  }
+  .focus-map-section .quadrant-label{display:none}
+  .map-node{min-width:62px!important}
+  .map-icon{width:46px!important;height:46px!important}
+  .map-label{
+    display:block;
+    width:max-content;
+    max-width:72px!important;
+    margin-top:3px;
+    padding:4px 5px!important;
+    font-size:10px!important;
+    line-height:1.2!important;
+    text-align:center;
+    white-space:normal;
+  }
+  .map-label-full{display:none!important}
+  .map-label-short{display:block!important}
+  .focus-x-axis{margin-top:10px}
+  .focus-x-title{margin:0 0 8px;font-size:14px;text-align:left}
+  .focus-x-labels{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}
+  .focus-x-labels span{
+    padding:10px 11px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:rgba(255,255,255,.03);
+    text-align:left!important;
+  }
+  .focus-x-labels span:last-child{text-align:right!important}
+  .focus-x-labels strong{display:block;font-size:13px}
+  .focus-x-labels small{display:block!important;margin-top:3px;font-size:10px!important;line-height:1.35}
+  .focus-map-main .map-disclaimer{margin-top:10px;text-align:left;font-size:11px;line-height:1.5}
+}
+
+@media(max-width:390px){
+  .focus-map-section .focus-plot{height:430px!important;min-height:430px!important}
+  .map-icon{width:43px!important;height:43px!important}
+  .map-label{max-width:66px!important;font-size:9.5px!important}
+  .focus-mobile-y-guide{font-size:10px}
+  .focus-mobile-y-guide span{padding:6px 8px}
+}
